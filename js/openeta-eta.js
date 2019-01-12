@@ -62,6 +62,131 @@ var ETAManager = function () {
 		}
 	}
 
+	this.requestAllRoutes = function () {
+		var mt = new MultiTasker();
+		var tasks = [];
+		var args = [];
+		for (var provider of this.providers) {
+			if (provider) {
+				args.push([provider, mt]);
+				tasks.push(function (arg) {
+					RequestLimiter.queue(function (arg) {
+						arg[0].fetchRoutes().done(function () {
+							console.log(arg[1]);
+							arg[1].dispatch();
+						}).progressChange(function (progress) {
+							arg[1].setTaskProgress(progress);
+						});
+					}, arg);
+				});
+			}
+		}
+		mt.setArgs(args);
+		mt.setTasks(tasks);
+		mt.start();
+		return mt;
+	}
+
+}
+
+class MultiTasker {
+
+	constructor() {
+		this.pcHandlers = [];
+		this.handlers = [];
+		this.args = [];
+		this.tasks = [];
+		this.remain = 0;
+		this.taskProgress = 0;
+	}
+
+	setArgs(args) {
+		this.args = args;
+	}
+
+	setTasks(tasks) {
+		this.tasks = tasks;
+		this.remain = tasks.length;
+	}
+
+	getTotalProgress() {
+		console.log(this.taskProgress);
+		return (this.tasks.length - this.remain + 1 + this.taskProgress / 100.0) / this.tasks.length * 100.0;
+	}
+
+	setTaskProgress(value) {
+		if (value < 0) {
+			value = 0;
+		} else if (value > 100) {
+			value = 100;
+		}
+		this.taskProgress = value;
+
+		for (var pcHandler of this.pcHandlers) {
+			if (pcHandler && typeof pcHandler === 'function') {
+				pcHandler(this.getTotalProgress());
+			}
+		}
+	}
+
+	getTaskProgress() {
+		return taskProgress;
+	}
+
+	start() {
+		console.log(this)
+		for (var i = 0; i < this.tasks.length; i++) {
+			this.taskProgress = 0;
+			var task = this.tasks[i];
+			if (task && typeof task === 'function') {
+				if (this.args && this.args.length > i) {
+					task(this.args[i]);
+				} else {
+					task();
+				}
+			}
+		}
+	}
+
+	dispatch() {
+		for (var pcHandler of this.pcHandlers) {
+			if (pcHandler && typeof pcHandler === 'function') {
+				pcHandler(this.getTotalProgress());
+			}
+		}
+
+		if (this.remain > 1) {
+			this.remain--;
+			return;
+		}
+
+		for (var handler of this.handlers) {
+			if (handler && typeof handler === 'function') {
+				handler(arguments);
+			}
+		}
+	}
+
+	progressChange(func) {
+		if (func && typeof func === 'function') {
+			if (this.tasks.length == 0) {
+				func(100.0);
+			}
+			this.pcHandlers.push(func);
+		}
+		return this;
+	}
+
+	done(func) {
+		if (func && typeof func === 'function') {
+			if (this.tasks.length == 0) {
+				func();
+			}
+			this.handlers.push(func);
+		}
+		return this;
+	}
+
 }
 
 class ETAProvider {
@@ -81,6 +206,14 @@ class ETAProvider {
 		});
 	}
 
+	getRoutes() {
+		return null;
+	}
+
+	fetchRoutes() {
+		return null;
+	}
+
 	getETA(etaHandler) {
 		return null;
 	}
@@ -91,23 +224,56 @@ class ETAProvider {
 
 }
 
-class FetchListener {
+class ProgressListener {
 
 	constructor() {
+		this.pcHandlers = [];
 		this.handlers = [];
+		this.progress = 0;
 	}
 
 	dispatch() {
-		for (var handler in handlers) {
+		for (var handler of this.handlers) {
 			if (handler && typeof handler === 'function') {
 				handler(arguments);
 			}
 		}
 	}
 
+	setProgress(value) {
+		console.log("seting to " + value)
+		if (value < 0) {
+			value = 0;
+		} else if (value > 100) {
+			value = 100;
+		}
+		this.progress = value;
+
+		for (var pcHandler of this.pcHandlers) {
+			if (pcHandler && typeof pcHandler === 'function') {
+				console.log("reporting")
+				pcHandler(this.progress);
+			}
+		}
+	}
+
+	getProgress() {
+		return progress;
+	}
+
+	progressChange(func) {
+		if (func && typeof func === 'function') {
+			if (this.progress != 0) {
+				func(this.progress);
+			}
+			this.pcHandlers.push(func);
+		}
+		return this;
+	}
+
 	done(func) {
 		if (func && typeof func === 'function') {
-			handlers.add(func);
+			this.handlers.push(func);
 		}
 		return this;
 	}

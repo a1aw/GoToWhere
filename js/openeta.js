@@ -127,15 +127,22 @@ function _postLoadScript() {
 		"</div>"
 	);
 
-	$("#startup-progress").css("width", "100%");
-	$("#startup-desc").html("");
-	$("#startup-status").html("Preparing UI");
+	var mt = ETAManager.requestAllRoutes(false);
+	mt.progressChange(function (progress) {
+		console.log(progress);
+		$("#startup-progress").css("width", progress + "%");
+	})
+	mt.done(function () {
+		$("#startup-progress").css("width", "100%");
 
-	UIManager.home();
-	UIManager.show(true);
+		setTimeout(function () {
+			UIManager.home();
+			UIManager.show(true);
 
-	$("#startup").html("");
-	$("#startup").css("display", "none");
+			$("#startup").html("");
+			$("#startup").css("display", "none");
+		}, 250);
+	});
 }
 
 function autoSizeText(count) {

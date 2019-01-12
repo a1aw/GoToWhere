@@ -8,11 +8,11 @@ var RequestLimiter = function () {
 
 	this.running = false;
 
-	this.queue = function (func) {
+	this.queue = function (func, args) {
 		if (typeof func !== "function") {
 			throw new TypeError("The variable must be a 'function'.");
 		}
-		this.requests.push(func);
+		this.requests.push([func, args]);
 		return func;
 	}
 
@@ -29,8 +29,8 @@ var RequestLimiter = function () {
 		var next = this.requests.shift();
 		var global = this;
 
-		if (next && typeof next === 'function') {
-			next();
+		if (next && typeof next[0] === 'function') {
+			next[0](next[1]);
 		}
 
 		if (this.running) {
