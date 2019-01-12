@@ -39,7 +39,7 @@ function _makeInstall() {
 	$("#startup-status").html("Installing plugin...");
 	$("#startup-image").attr("style", "");
 	if (!PluginLoader.install(_installCode)) {
-		$("#startup-image").attr("src", "");
+		$("#startup-image").attr("style", "display: none");
 		$("#startup-status").attr("style", "color: red");
 		$("#startup-status").html("Install plugin failed<br>Check console log for more details.");
 		return;
@@ -77,6 +77,7 @@ function _postLoadScript() {
 
 	_installCode = getParameter("install");
 	if (_installCode) {
+		$("#startup-image").attr("style", "display: none");
 		var json;
 		try {
 			json = PluginLoader.decode(_installCode);
@@ -84,7 +85,6 @@ function _postLoadScript() {
 			$("#startup-status").attr("style", "color: red");
 			$("#startup-status").html("Install Code Parsing Error");
 			$("#startup-desc").html("The install code you provided is invalid. Please either copy and paste the code again, or try to use the online installation method.");
-			$("#startup-image").attr("style", "display: none");
 			return;
 		}
 		var calcSize = byteCount(_installCode);
@@ -105,7 +105,6 @@ function _postLoadScript() {
 				"<br /><br /><span style=\"color: red;\"><b>**Caution:</b> Make sure you trust the source of the install code for offline installation. The application is unable to verify offline sources automatically.</span>"
 			);
 		}
-		$("#startup-image").attr("src", "");
 		return;
 	}
 
