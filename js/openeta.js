@@ -3,11 +3,18 @@ const _scripts = [
 	"js/openeta-app.js",
 	"js/openeta-map.js",
 	"js/openeta-event.js",
+	"js/openeta-eta.js",
+	"js/openeta-ui.js",
+	"js/openeta-requestlimiter.js",
 	"js/openeta-plugin.js",
 	"js/openeta-pluginloader.js"
 ];
 
-var pluginLoader;
+var PluginLoader;
+var RequestLimiter;
+var UIManager;
+var EventManager;
+var ETAManager;
 
 var _loadScriptTasks;
 var _installCode;
@@ -30,15 +37,15 @@ $(document).ready(function () {
 function _makeInstall() {
 	$("#startup-desc").html("");
 	$("#startup-status").html("Installing plugin...");
-	$("#startup-image").attr("src", "img/loading.gif");
-	if (!pluginLoader.install(_installCode)) {
+	$("#startup-image").attr("style", "");
+	if (!PluginLoader.install(_installCode)) {
 		$("#startup-image").attr("src", "");
 		$("#startup-status").attr("style", "color: red");
 		$("#startup-status").html("Install plugin failed<br>Check console log for more details.");
 		return;
 	}
 
-	$("#startup-image").attr("src", "");
+	$("#startup-image").attr("style", "display: none");
 	$("#startup-status").attr("style", "color: green");
 	$("#startup-status").html("Success!");
 	$("#startup-desc").html(
@@ -53,10 +60,16 @@ function _postLoadScript() {
 		return;
 	}
 
+	ETAManager = new ETAManager();
+	EventManager = new EventManager();
+	UIManager = new UIManager();
+	RequestLimiter = new RequestLimiter();
+	RequestLimiter.start();
+
 	$("#startup-status").html("Loading plugins...");
-	pluginLoader = new PluginLoader();
-	if (!pluginLoader.load()) {
-		$("#startup-image").attr("src", "");
+	PluginLoader = new PluginLoader();
+	if (!PluginLoader.load()) {
+		$("#startup-image").attr("style", "display: none");
 		$("#startup-status").attr("style", "color: red");
 		$("#startup-status").html("Load plugins failed<br>Check console log for more details.");
 		return;
@@ -66,12 +79,12 @@ function _postLoadScript() {
 	if (_installCode) {
 		var json;
 		try {
-			json = pluginLoader.decode(_installCode);
+			json = PluginLoader.decode(_installCode);
 		} catch (err) {
 			$("#startup-status").attr("style", "color: red");
 			$("#startup-status").html("Install Code Parsing Error");
 			$("#startup-desc").html("The install code you provided is invalid. Please either copy and paste the code again, or try to use the online installation method.");
-			$("#startup-image").attr("src", "");
+			$("#startup-image").attr("style", "display: none");
 			return;
 		}
 		var calcSize = byteCount(_installCode);
@@ -96,8 +109,8 @@ function _postLoadScript() {
 		return;
 	}
 
-	if (pluginLoader.getLoadedPlugins() == 0) {
-		$("#startup-image").attr("src", "");
+	if (PluginLoader.getLoadedPlugins() == 0) {
+		$("#startup-image").attr("style", "display: none");
 		$("#startup-status").html("You need plugins to run OpenETA!");
 		$("#startup-desc").html(
 			"OpenETA is just an interface to display city data using a simple map.<br><br>" +
@@ -107,7 +120,23 @@ function _postLoadScript() {
 		return;
 	}
 
+	$("#startup-status").html("Initializing Database");
+	$("#startup-desc").html(
+		"<div class=\"progress progress- striped active\">" +
+		"    <div class=\"progress-bar progress-bar-success\" id=\"startup-progress\" role=\"progressbar\" aria-valuenow=\"40\" aria-valuemin=\"0\" aria-valuemax=\"100\" style=\"width: 0%\">" +
+		"    </div>" +
+		"</div>"
+	);
+
+	$("#startup-progress").css("width", "100%");
+	$("#startup-desc").html("");
 	$("#startup-status").html("Preparing UI");
+
+	UIManager.home();
+	UIManager.show(true);
+
+	$("#startup").html("");
+	$("#startup").css("display", "none");
 }
 
 function autoSizeText(count) {

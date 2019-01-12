@@ -32,6 +32,15 @@ html, body {
 	text-align: center;
 }
 
+#startup-image {
+	width: 64px;
+	height: 64px;
+}
+
+#startup-status {
+	display: inline-block;
+}
+
 .startup-oneforth {
 	padding-left: 25%;
 	padding-right: 25%;

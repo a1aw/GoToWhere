@@ -1,5 +1,11 @@
 //OpenETA Event Manager
 
+const EVENTS = {
+	EVENT_UI_SHOW: "EVENT_UI_SHOW",
+	EVENT_UI_HIDE: "EVENT_UI_HIDE",
+	EVENT_UI_HOME: "EVENT_UI_HOME"
+};
+
 var EventManager = function () {
 
 	this.eventListeners = {};
@@ -8,7 +14,7 @@ var EventManager = function () {
 		if (!this.eventListeners[event]) {
 			return;
 		}
-		for (var listener in this.eventListeners[event]) {
+		for (var listener of this.eventListeners[event]) {
 			if (listener) {
 				listener();
 			} else {
