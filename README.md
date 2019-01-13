@@ -59,5 +59,5 @@ Estimated Transit Location is introduced is show the estimated location of the t
   ---------------------------
 ```
 
-#License
+## License
 [tl;dr](https://tldrlegal.com/license/mit-license) The project is licensed under the MIT License.
