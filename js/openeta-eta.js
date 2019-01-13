@@ -51,6 +51,94 @@ var ETAManager = function () {
 		return this.handlers;
 	}
 
+	this.getAllRoutes = function () {
+		var allRoutes = [];
+		for (var provider of this.providers) {
+			if (provider) {
+				var routes = provider.getRoutes();
+				if (routes && routes.length > 0){
+					allRoutes = allRoutes.concat(routes);
+				}
+			}
+		}
+		return allRoutes;
+	}
+
+	this.getAllStops = function () {
+		var allStops = [];
+		for (var provider of this.providers) {
+			if (provider) {
+				var stops = provider.getStops();
+				if (stops && stops.length > 0) {
+					allStops = allStops.concat(stops);
+				}
+			}
+		}
+		return allStops;
+	}
+
+	this.getAllStopsNearbyCoordForce = function (lat, lng, range = 0.1) {
+		var stops = [];
+		while (stops.length <= 0) {
+			stops = this.getAllStopsNearbyCoord(lat, lng, range);
+			range += 0.1;
+		}
+		return stops;
+	}
+
+	this.getAllStopsNearbyCoord = function (lat, lng, range, sorted = true, withDistance = false) {
+		var allStops = this.getAllStops();
+		var stops = [];
+		var stop;
+		var d;
+		console.log(allStops);
+		for (var i = 0; i < allStops.length; i++) {
+			stop = allStops[i];
+			d = Misc.geoDistance(lat, lng, stop.lat, stop.lng);
+			if (d <= range) {
+				stops.push([stop, d]);
+			}
+		}
+
+		if (sorted) {
+			stops.sort(function(a, b){
+				if(a.distance < b.distance){
+					return -1;
+				} else if (a.distance > b.distance) {
+					return 1;
+				} else {
+					return 0;	
+				}
+			});
+		}
+
+		if (!withDistance) {
+			return stops.map(function (value, index) {
+				return value[0];
+			});
+		} else {
+			return stops;
+		}
+	}
+
+	this.getRoutesOfStop = function (stop) {
+		var routes = [];
+
+		var allRoutes = this.getAllRoutes();
+		for (var route of allRoutes) {
+			var paths = route.paths;
+			for (var path of paths) {
+				for (var stopId of path) {
+					if (stop.stopId === stopId) {
+						routes.push(route);
+					}
+				}
+			}
+		}
+
+		return routes;
+	}
+
 	this.requestAllETA = function () {
 		for (var handler in handlers) {
 			if (handler) {
@@ -72,7 +160,6 @@ var ETAManager = function () {
 				tasks.push(function (arg) {
 					RequestLimiter.queue(function (arg) {
 						arg[0].fetchRoutes().done(function () {
-							console.log(arg[1]);
 							arg[1].dispatch();
 						}).progressChange(function (progress) {
 							arg[1].setTaskProgress(progress);
@@ -110,7 +197,6 @@ class MultiTasker {
 	}
 
 	getTotalProgress() {
-		console.log(this.taskProgress);
 		return (this.tasks.length - this.remain + 1 + this.taskProgress / 100.0) / this.tasks.length * 100.0;
 	}
 
@@ -210,6 +296,10 @@ class ETAProvider {
 		return null;
 	}
 
+	getStops() {
+		return null;
+	}
+
 	fetchRoutes() {
 		return null;
 	}
@@ -227,12 +317,14 @@ class ETAProvider {
 class ProgressListener {
 
 	constructor() {
+		this.completed = false;
 		this.pcHandlers = [];
 		this.handlers = [];
 		this.progress = 0;
 	}
 
 	dispatch() {
+		this.completed = true;
 		for (var handler of this.handlers) {
 			if (handler && typeof handler === 'function') {
 				handler(arguments);
@@ -263,7 +355,9 @@ class ProgressListener {
 
 	progressChange(func) {
 		if (func && typeof func === 'function') {
-			if (this.progress != 0) {
+			if (this.completed) {
+				func(100.0);
+			} else if (this.progress != 0) {
 				func(this.progress);
 			}
 			this.pcHandlers.push(func);
@@ -273,6 +367,9 @@ class ProgressListener {
 
 	done(func) {
 		if (func && typeof func === 'function') {
+			if (this.completed) {
+				func();
+			}
 			this.handlers.push(func);
 		}
 		return this;

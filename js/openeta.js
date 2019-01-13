@@ -1,10 +1,12 @@
 // OpenETA script loader
 const _scripts = [
 	"js/openeta-app.js",
+	"js/openeta-misc.js",
 	"js/openeta-map.js",
 	"js/openeta-event.js",
 	"js/openeta-eta.js",
 	"js/openeta-ui.js",
+	"js/openeta-location.js",
 	"js/openeta-requestlimiter.js",
 	"js/openeta-plugin.js",
 	"js/openeta-pluginloader.js"
@@ -15,6 +17,7 @@ var RequestLimiter;
 var UIManager;
 var EventManager;
 var ETAManager;
+var Misc;
 
 var _loadScriptTasks;
 var _installCode;
@@ -60,6 +63,8 @@ function _postLoadScript() {
 		return;
 	}
 
+	Misc = new Misc();
+	LocationManager = new LocationManager();
 	ETAManager = new ETAManager();
 	EventManager = new EventManager();
 	UIManager = new UIManager();
@@ -119,6 +124,90 @@ function _postLoadScript() {
 		return;
 	}
 
+	$("#startup-status").html("Location Access");
+	var convention = LocationManager.getConvention();
+	if (convention == CONVENTION_ASK_EVERYTIME) {
+		$("#startup-image").attr("style", "display: none");
+		$("#startup-desc").html(
+			"<div class=\"form-group\">" +
+			"    <label>How should I handle location?</label>" +
+			"    <select class=\"form-control\" id=\"startup-locationaccess-how\">" +
+			"        <option value=\"0\">Ask for location access</option>" +
+			"        <option value=\"1\">Directly request location access</option>" +
+			"        <option value=\"2\">Only use custom location</option>" +
+			"    </select>" +
+			"    <div class=\"checkbox\">" +
+			"        <label>" +
+			"            <input type=\"checkbox\" id=\"startup-locationaccess-askeverytime\" />" +
+			"            Ask everytime for this" +
+			"        </label>" +
+			"    </div>" +
+			"</div>" +
+			"<input type=\"button\" class=\"btn btn-success\" id=\"startup-locationaccess-how-btn\" value=\"OK\" />"
+		);
+
+		$("#startup-locationaccess-how-btn").click(function () {
+			var val = $("#startup-locationaccess-how").val();
+			var ask = $("#startup-locationaccess-askeverytime").is(":checked")
+			var list = [
+				CONVENTION_ASK_LOCATION_ACCESS,
+				CONVENTION_DIRECT_LOCATION_ACCESS,
+				CONVENTION_CUSTOM_LOCATION
+			];
+			var selected = list[val];
+			if (!ask) {
+				LocationManager.setConvention(selected);
+			}
+
+			_initLoc(selected);
+		});
+	} else {
+		_initLoc(convention);
+	}
+}
+
+function _initLoc(convention) {
+	if (convention == CONVENTION_ASK_LOCATION_ACCESS) {
+		$("#startup-image").attr("style", "display: none");
+		$("#startup-status").html("Location Access");
+		$("#startup-desc").html(
+			"<p>Click the button below to start requesting for location access.</p>" +
+			"<input type=\"button\" class=\"btn btn-success\" id=\"startup-locationaccess-request-btn\" value=\"Request for location access\" />"
+		);
+		$("#startup-locationaccess-request-btn").click(function () {
+			_requestLoc();
+		});
+	} else if (convention == CONVENTION_DIRECT_LOCATION_ACCESS) {
+		_requestLoc();
+	} else {
+		alert("Custom location")
+	}
+}
+
+function _requestLoc() {
+	$("#startup-image").attr("style", "");
+	$("#startup-desc").html(
+		"<p>Waiting for location access...</p>"
+	);
+	LocationManager.requestLocationAccess(function () {
+		_initDb();
+	}, function () {
+		$("#startup-image").attr("style", "display: none");
+		$("#startup-status").attr("style", "color: red");
+		$("#startup-status").html("Unable to get location access");
+		$("#startup-desc").html(
+			"<p>If you want to change how I should handle location, click the button below:</p>" +
+			"<input type=\"button\" class=\"btn btn-warning\" id=\"startup-locationaccess-change-btn\" value=\"Change\" /> <input type=\"button\" class=\"btn btn-default\" onclick=\"window.location = 'index.html'\" value=\"Refresh\" />"
+		);
+
+		$("#startup-locationaccess-change-btn").click(function () {
+			LocationManager.setConvention(CONVENTION_ASK_EVERYTIME);
+			window.location = "index.html";
+		});
+	});
+}
+
+function _initDb() {
 	$("#startup-status").html("Initializing Database");
 	$("#startup-desc").html(
 		"<div class=\"progress progress- striped active\">" +
@@ -127,7 +216,8 @@ function _postLoadScript() {
 		"</div>"
 	);
 
-	var mt = ETAManager.requestAllRoutes(false);
+	var startTime = new Date().getTime();
+	var mt = ETAManager.requestAllRoutes();
 	mt.progressChange(function (progress) {
 		console.log(progress);
 		$("#startup-progress").css("width", progress + "%");
@@ -135,13 +225,19 @@ function _postLoadScript() {
 	mt.done(function () {
 		$("#startup-progress").css("width", "100%");
 
-		setTimeout(function () {
+		var func = function () {
 			UIManager.home();
 			UIManager.show(true);
 
 			$("#startup").html("");
 			$("#startup").css("display", "none");
-		}, 250);
+		};
+
+		if ((new Date().getTime() - startTime) > 1000) {
+			setTimeout(func, 500);
+		} else {
+			func();
+		}
 	});
 }
 

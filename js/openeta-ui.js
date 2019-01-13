@@ -2,6 +2,8 @@
 
 var UIManager = function () {
 
+	this.timers = [];
+
 	this.home = function () {
 		$(".modal-header").html("<h5 class=\"modal-title\">OpenETA</h5>");
 
@@ -9,6 +11,7 @@ var UIManager = function () {
 			"<p style=\"text-align: center\">Licensed under MIT License. This software is only for educational purpose, and cannot be used in commerical or practical purposes.</p>"
 		);
 
+		var pos = map.getCenter();
 		var providers = ETAManager.getProviders();
 
 		if (providers.length == 0) {
@@ -23,6 +26,36 @@ var UIManager = function () {
 				"<div class=\"list-group\" id=\"home-nearbystops-listgroup\">" +
 				"</div>"
 			);
+
+			var lat = pos.lat();
+			var lng = pos.lng();
+			var range = 0.1;
+
+			var allNearbyStops = ETAManager.getAllStopsNearbyCoord(lat, lng, range);
+
+			if (allNearbyStops.length <= 0) {
+				var node = $("#home-nearbystops-listgroup");
+				node.html("");
+				node.append("<a href=\"#\" onclick=\"\" class=\"list-group-item\"><h5 class=\"list-group-item-heading\">No routes " + range * 1000 + "m nearby!</h5><p class=\"list-group-item-text\" id=\"\">Try adjusting your range settings.</p></a>");
+			} else {
+				var allNearbyRoutes = [];
+				for (var stop of allNearbyStops) {
+					if (allNearbyRoutes.length >= 20) {
+						break;
+					}
+					var routes = ETAManager.getRoutesOfStop(stop);
+					for (var route of routes) {
+						allNearbyRoutes.push([route, stop]);
+					}
+				}
+				var node = $("#home-nearbystops-listgroup");
+				node.html("");
+
+				for (var route of allNearbyRoutes) {
+					node.append("<a href=\"#\" onclick=\"\" class=\"list-group-item\"><h5 class=\"list-group-item-heading\">" + route[0].routeId + "</h5><span style=\"float: right\">" + route[0].provider.name + "</span><p class=\"list-group-item-text\" id=\"\">---<br />" + route[1].stopNameEng + "</p></a>");
+				}
+			}
+
 		}
 		EventManager.dispatchEvent(EVENTS.EVENT_UI_HOME);
 	}
