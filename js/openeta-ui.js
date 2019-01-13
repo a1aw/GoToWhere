@@ -23,10 +23,30 @@ var UIManager = function () {
 				"</div>"
 			);
 		} else {
-			$(".modal-body").html(
-				"<div class=\"list-group\" id=\"home-nearbystops-listgroup\">" +
-				"</div>"
-			);
+			$(".modal-body").html("");
+
+			$(".modal-body").append("<hr />")
+
+			var buttonScroll =
+				"<div class=\"hori-scroll\">" +
+				"    <button type=\"button\" class=\"btn btn-primary\"><i class=\"fa fa-reply-all\"></i><br />All</button> ";
+
+			for (var provider of providers) {
+				var image = "";
+				if (provider.transit == TransitType.TRANSIT_BUS) {
+					image = "fa-bus";
+				} else if (provider.transit == TransitType.TRANSIT_METRO || provider.transit == TransitType.TRANSIT_TRAIN) {
+					image = "fa-train";
+				} else {
+					image = "fa-question";
+				}
+				buttonScroll += "<button type=\"button\" class=\"btn btn-default\"><i class=\"fa " + image + "\"></i><br />" + provider.name + "</button>";
+			}
+
+			buttonScroll += "</div>";
+
+			$(".modal-body").append(buttonScroll);
+			
 
 			var lat = pos.lat();
 			var lng = pos.lng();
@@ -34,17 +54,28 @@ var UIManager = function () {
 
 			var allNearbyStops = ETAManager.getAllStopsNearbyCoord(lat, lng, range);
 
-			var node = $("#home-nearbystops-listgroup");
-			node.html("");
-
 			if (allNearbyStops.length <= 0) {
 				var testRange = range;
 				do {
 					testRange += 0.05;
 					allNearbyStops = ETAManager.getAllStopsNearbyCoord(lat, lng, testRange);
 				} while (allNearbyStops.length <= 0);
-				node.append("<p>No routes " + range * 1000 + "m nearby! The following routes are in " + Math.ceil(testRange * 1000) + " m range.</p>");
+
+				$(".modal-body").append(
+					"<br /><div class=\"alert alert-warning alert-dismissable\">" +
+					"<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\" >&#215;</button>" +
+					"No routes " + (range * 1000) + "m nearby! The following routes are in " + Math.ceil(testRange * 1000) + " m range." +
+					"</div>"
+				);
 			}
+
+			$(".modal-body").append(
+				"<div class=\"list-group\" id=\"home-nearbystops-listgroup\">" +
+				"</div>"
+			);
+
+			var node = $("#home-nearbystops-listgroup");
+			node.html("");
 
 			var allNearbyRoutes = [];
 			for (var stop of allNearbyStops) {

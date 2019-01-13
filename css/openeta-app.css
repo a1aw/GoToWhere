@@ -50,3 +50,15 @@ html, body {
 	padding-left: 33%;
 	padding-right: 33%;
 }
+
+div.hori-scroll {
+	overflow: auto;
+	white-space: nowrap;
+}
+
+div.hori-scroll button {
+	display: inline-block;
+	text-align: center;
+	padding: 14px;
+	text-decoration: none;
+}
