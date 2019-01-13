@@ -15,6 +15,8 @@ var LocationManager = function () {
 
 	this.currentPosition = 0;
 
+	this.currentLocationMarker = 0;
+
 	this.getConvention = function () {
 		var localStorage = window.localStorage;
 		if (!localStorage || !localStorage.getItem(LOCATION_MANAGER_CONVENTION_KEY)) {
@@ -45,6 +47,15 @@ var LocationManager = function () {
 				lng: position.coords.longitude
 			};
 
+			this.currentLocationMarker = new google.maps.Marker({
+				position: this.currentPosition,
+				map: map,
+				icon: "img/human.png"
+			});
+
+			map.setCenter(this.currentPosition);
+			map.setZoom(16);
+
 			this.watchId = navigator.geolocation.watchPosition(
 				global.onPositionChangeSuccess,
 				global.onPositionChangeError,
@@ -66,11 +77,15 @@ var LocationManager = function () {
 	}
 
 	this.onPositionChangeSuccess = function (position) {
-		console.log("Position change!");
+		this.currentPosition = {
+			lat: position.coords.latitude,
+			lng: position.coords.longitude
+		};
+		currentLocationMarker.setPosition(this.currentPosition);
 	}
 
 	this.onPositionChangeError = function (error) {
-		console.log("Position error!")
+		alert("TODO: Handle Position error!")
 	}
 
 }

@@ -80,8 +80,9 @@ function _postLoadScript() {
 		return;
 	}
 
-	_installCode = getParameter("install");
+	_installCode = window.location.hash;
 	if (_installCode) {
+		_installCode = _installCode.substring(1);
 		$("#startup-image").attr("style", "display: none");
 		var json;
 		try {

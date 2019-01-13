@@ -77,15 +77,6 @@ var ETAManager = function () {
 		return allStops;
 	}
 
-	this.getAllStopsNearbyCoordForce = function (lat, lng, range = 0.1) {
-		var stops = [];
-		while (stops.length <= 0) {
-			stops = this.getAllStopsNearbyCoord(lat, lng, range);
-			range += 0.1;
-		}
-		return stops;
-	}
-
 	this.getAllStopsNearbyCoord = function (lat, lng, range, sorted = true, withDistance = false) {
 		var allStops = this.getAllStops();
 		var stops = [];
