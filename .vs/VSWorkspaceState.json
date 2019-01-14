@@ -2,8 +2,9 @@
   "ExpandedNodes": [
     "",
     "\\css",
+    "\\img",
     "\\js"
   ],
-  "SelectedNode": "\\js\\openeta.js",
+  "SelectedNode": "\\js\\openeta-func.js",
   "PreviewInSolutionExplorer": false
 }

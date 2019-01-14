@@ -4,7 +4,10 @@ var UIManager = function () {
 
 	this.timers = [];
 
+	this.variables = {};
+
 	this.home = function () {
+		this.variables = {};
 		$(".modal-header").html("<h5 class=\"modal-title\">OpenETA</h5>");
 
 		$(".modal-footer").html(
@@ -43,7 +46,7 @@ var UIManager = function () {
 				buttonScroll += "<button type=\"button\" class=\"btn btn-default\"><i class=\"fa " + image + "\"></i><br />" + provider.name + "</button>";
 			}
 
-			buttonScroll += "</div>";
+			buttonScroll += "</div><br />";
 
 			$(".modal-body").append(buttonScroll);
 			
@@ -62,7 +65,7 @@ var UIManager = function () {
 				} while (allNearbyStops.length <= 0);
 
 				$(".modal-body").append(
-					"<br /><div class=\"alert alert-warning alert-dismissable\">" +
+					"<div class=\"alert alert-warning alert-dismissable\">" +
 					"<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\" >&#215;</button>" +
 					"No routes " + (range * 1000) + "m nearby! The following routes are in " + Math.ceil(testRange * 1000) + " m range." +
 					"</div>"
@@ -88,9 +91,18 @@ var UIManager = function () {
 				}
 			}
 
-			for (var route of allNearbyRoutes) {
-				node.append("<a href=\"#\" onclick=\"\" class=\"list-group-item\"><h5 class=\"list-group-item-heading\">" + route[0].routeId + "</h5><span style=\"float: right\">" + route[0].provider.name + "</span><p class=\"list-group-item-text\" id=\"\">---<br />" + route[1].stopNameEng + "</p></a>");
+			for (var i = 0; i < allNearbyRoutes.length; i++) {
+				var route = allNearbyRoutes[i];
+				node.append(
+					"<a href=\"#\" onclick=\"Func.call()\" class=\"list-group-item\">" +
+					"    <h5 class=\"list-group-item-heading\">" + route[0].routeId + "</h5>" +
+					"    <span style=\"float: right\">" + route[0].provider.name + "</span>" +
+					"    <p class=\"list-group-item-text\" id=\"\">---<br />" + route[1].stopNameEng + "</p>" +
+					"</a>"
+				);
 			}
+
+			this.variables.allNearbyRoutes = allNearbyRoutes;
 
 		}
 		EventManager.dispatchEvent(EVENTS.EVENT_UI_HOME);
