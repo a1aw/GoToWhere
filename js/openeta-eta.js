@@ -112,22 +112,41 @@ var ETAManager = function () {
 		}
 	}
 
-	this.getRoutesOfStop = function (stop) {
-		var routes = [];
+	this.getStopById = function (stopId) {
+		var allStops = this.getAllStops();
+		for (var stop of allStops) {
+			if (stopId === stop.stopId) {
+				return stop;
+			}
+		}
+		return false;
+	}
+
+	this.searchRoutesOfStop = function (stop) {
+		var out = [];
 
 		var allRoutes = this.getAllRoutes();
 		for (var route of allRoutes) {
 			var paths = route.paths;
-			for (var path of paths) {
+			for (var i = 0; i < paths.length; i++) {
+				var path = paths[i];
 				for (var stopId of path) {
 					if (stop.stopId === stopId) {
-						routes.push(route);
+						out.push([route, i]);
 					}
 				}
 			}
 		}
 
-		return routes;
+		return out;
+	}
+
+	this.getRoutesOfStop = function (stop) {
+		var result = this.searchRoutesOfStop(stop);
+
+		return result.map(function (value, index) {
+			return value[0];
+		});;
 	}
 
 	this.requestAllETA = function () {

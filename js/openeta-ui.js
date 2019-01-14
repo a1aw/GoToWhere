@@ -1,6 +1,20 @@
 //OpenETA Event Manager
 
+const UIMANAGER_FUNC_NEARBY_ROUTE_SELECT = "UIMANAGER_FUNC_NEARBY_ROUTE_SELECT";
+const UIMANAGER_VAR_ALL_NEARBY_ROUTES = "UIMANAGER_VAR_ALL_NEARBY_ROUTES";
+
 var UIManager = function () {
+
+	var global = this;
+
+	Func.registerFunction(UIMANAGER_FUNC_NEARBY_ROUTE_SELECT, function (index) {
+		global.hide();
+		var data = global.variables[UIMANAGER_VAR_ALL_NEARBY_ROUTES][index];
+		var route = data[0];
+		var pathIndex = data[1];
+		var selectedStop = data[2];
+		OpenETAMap.showRoute(route, pathIndex, selectedStop);
+	});
 
 	this.timers = [];
 
@@ -85,24 +99,24 @@ var UIManager = function () {
 				if (allNearbyRoutes.length >= 20) {
 					break;
 				}
-				var routes = ETAManager.getRoutesOfStop(stop);
+				var routes = ETAManager.searchRoutesOfStop(stop);
 				for (var route of routes) {
-					allNearbyRoutes.push([route, stop]);
+					allNearbyRoutes.push([route[0], route[1], stop]);
 				}
 			}
 
 			for (var i = 0; i < allNearbyRoutes.length; i++) {
 				var route = allNearbyRoutes[i];
 				node.append(
-					"<a href=\"#\" onclick=\"Func.call()\" class=\"list-group-item\">" +
+					"<a href=\"#\" onclick=\"Func.call('" + UIMANAGER_FUNC_NEARBY_ROUTE_SELECT + "', " + i + ")\" class=\"list-group-item\">" +
 					"    <h5 class=\"list-group-item-heading\">" + route[0].routeId + "</h5>" +
 					"    <span style=\"float: right\">" + route[0].provider.name + "</span>" +
-					"    <p class=\"list-group-item-text\" id=\"\">---<br />" + route[1].stopNameEng + "</p>" +
+					"    <p class=\"list-group-item-text\" id=\"\">---<br />" + route[2].stopNameEng + "</p>" +
 					"</a>"
 				);
 			}
 
-			this.variables.allNearbyRoutes = allNearbyRoutes;
+			this.variables[UIMANAGER_VAR_ALL_NEARBY_ROUTES] = allNearbyRoutes;
 
 		}
 		EventManager.dispatchEvent(EVENTS.EVENT_UI_HOME);

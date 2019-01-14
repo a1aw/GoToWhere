@@ -42,23 +42,23 @@ var LocationManager = function () {
 		var global = this;
 
 		navigator.geolocation.getCurrentPosition(function (position) {
-			this.currentPosition = {
+			global.currentPosition = {
 				lat: position.coords.latitude,
 				lng: position.coords.longitude
 			};
 
-			this.currentLocationMarker = new google.maps.Marker({
-				position: this.currentPosition,
+			global.currentLocationMarker = new google.maps.Marker({
+				position: global.currentPosition,
 				map: map,
 				icon: "img/human.png"
 			});
 
-			map.setCenter(this.currentPosition);
+			map.setCenter(global.currentPosition);
 			map.setZoom(16);
 
-			this.watchId = navigator.geolocation.watchPosition(
-				global.onPositionChangeSuccess,
-				global.onPositionChangeError,
+			global.watchId = navigator.geolocation.watchPosition(
+				function (p) { global.onPositionChangeSuccess(p) },
+				function (e) { global.onPositionChangeError(e) },
 				{
 				    enableHighAccuracy: false,
 				    timeout: 5000,
@@ -66,7 +66,7 @@ var LocationManager = function () {
 				}
 			);
 
-			successFunc(this.currentPosition);
+			successFunc(global.currentPosition);
 		}, function () {
 			errorFunc(ERROR_NO_ACCESS);
 		});
@@ -81,7 +81,7 @@ var LocationManager = function () {
 			lat: position.coords.latitude,
 			lng: position.coords.longitude
 		};
-		currentLocationMarker.setPosition(this.currentPosition);
+		this.currentLocationMarker.setPosition(this.currentPosition);
 	}
 
 	this.onPositionChangeError = function (error) {

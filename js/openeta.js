@@ -1,4 +1,6 @@
 // OpenETA script loader
+
+const _googleMapScript = "https://maps.googleapis.com/maps/api/js?key=AIzaSyBhdPFdLWLv5e4ozXpa8p7CVHrX_99BxWo&callback=initMap";
 const _scripts = [
 	"js/openeta-app.js",
 	"js/openeta-misc.js",
@@ -6,16 +8,19 @@ const _scripts = [
 	"js/openeta-event.js",
 	"js/openeta-eta.js",
 	"js/openeta-ui.js",
+	"js/openeta-func.js",
 	"js/openeta-location.js",
 	"js/openeta-requestlimiter.js",
 	"js/openeta-plugin.js",
-	"js/openeta-pluginloader.js"
+	"js/openeta-pluginloader.js",
+	_googleMapScript
 ];
 
 var PluginLoader;
 var RequestLimiter;
 var UIManager;
 var EventManager;
+var OpenETAMap;
 var ETAManager;
 var Misc;
 
@@ -25,7 +30,7 @@ var _installCode;
 $(document).ready(function () {
 	_loadScriptTasks = _scripts.length;
 	for (var i = 0; i < _scripts.length; i++) {
-		$("#startup-status").html("Loading OpenETA scripts... " + _scripts[i] + " (" + (i + 1) + "/" + _scripts.length + ")");
+		$("#startup-status").html("Loading OpenETA scripts... (" + (i + 1) + "/" + _scripts.length + ")");
 
 		var node = document.createElement("script");
 		node.src = _scripts[i];
@@ -64,6 +69,8 @@ function _postLoadScript() {
 	}
 
 	Misc = new Misc();
+	Func = new Func();
+	OpenETAMap = new OpenETAMap();
 	LocationManager = new LocationManager();
 	ETAManager = new ETAManager();
 	EventManager = new EventManager();
