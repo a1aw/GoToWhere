@@ -1,6 +1,6 @@
 // OpenETA script loader
 
-const _googleMapScript = "https://maps.googleapis.com/maps/api/js?key=AIzaSyBhdPFdLWLv5e4ozXpa8p7CVHrX_99BxWo&callback=initMap";
+const _googleMapScript = "https://maps.googleapis.com/maps/api/js?callback=initMap&key=";
 const _scripts = [
 	"js/openeta-app.js",
 	"js/openeta-misc.js",
@@ -12,8 +12,7 @@ const _scripts = [
 	"js/openeta-location.js",
 	"js/openeta-requestlimiter.js",
 	"js/openeta-plugin.js",
-	"js/openeta-pluginloader.js",
-	_googleMapScript
+	"js/openeta-pluginloader.js"
 ];
 
 var PluginLoader;
@@ -28,6 +27,7 @@ var _loadScriptTasks;
 var _installCode;
 
 $(document).ready(function () {
+	_scripts.push(_googleMapScript + _googleMapApiKey);
 	_loadScriptTasks = _scripts.length;
 	for (var i = 0; i < _scripts.length; i++) {
 		$("#startup-status").html("Loading OpenETA scripts... (" + (i + 1) + "/" + _scripts.length + ")");

@@ -15,25 +15,89 @@ var OpenETAMap = function () {
 
 	this.paths = [];
 
+	this.infoWindows = [];
+
 	this.removeAll = function () {
+		for (var infoWindow of this.infoWindows) {
+			infoWindow.close();
+		}
 		for (var marker of this.markers) {
 			marker.setMap(null);
 		}
 		for (var path of this.paths) {
 			path.setMap(null);
 		}
+		this.infoWindows = [];
 		this.markers = [];
 		this.paths = [];
 	}
 
+	this.showFullStopInfo = function (stopId) {
+		var stop = ETAManager.getStopById(stopId);
+
+		if (!stop) {
+			UIManager.setModal("Unable to show stop details", "The requested stop was not found. ", "");
+			UIManager.show();
+			return;
+		}
+
+		//TODO: Lang preference
+		var stopName = stop.stopNameEng;
+		var content =
+			"<h3>Details</h3>" +
+			"<hr />" +
+			"<p>Name (English): " + stop.stopNameEng + "</p>" +
+			"<p>Name (Chinese): " + stop.stopNameChi + "</p>" +
+			"<p>Address (English): " + stop.addrEng + "</p>" +
+			"<p>Address (Chinese): " + stop.addrChi + "</p><br />" +
+			"<p>Latitude: " + stop.lat + "</p>" +
+			"<p>Longitude: " + stop.lng + "</p>" +
+			"<br />" +
+			"<h3>Technical Information</h3>" +
+			"<hr />" +
+			"<p>Unique ID: " + stop.stopId + "</p>" +
+			"<p>Transit Type: " + stop.transit + "</p>" +
+			"<p>Provider: " + stop.provider.name;
+
+		UIManager.setModal(stopName, content, "<button class=\"btn btn-default\" onclick=\"UIManager.hide()\">Close</button>");
+		UIManager.show();
+	}
+
+	this.showStopETAInfo = function (marker) {
+		var key = marker.route.routeId + "-" + marker.selectedPath + "-" + marker.stop.stopId;
+		var stopName = marker.stop.stopNameEng;
+		//TODO: Lang preference
+
+		var content =
+			"<p>" + stopName + "</p>" +
+			"<hr />" + 
+			"<div class=\"table-responsive\">" +
+			"    <table id=\"openeta-map-stopetainfo-" + key + "\" class=\"table openeta-map-stopetainfo\">" +
+			"        <tr class=\"table-warning\">" +
+			"            <td>Requesting</td>" +
+			"            <td>---</td>" +
+			"        </tr>" +
+			"    </table>" +
+			"</div>" +
+			"<hr />" +
+			"<a href=\"#\" onclick=\"OpenETAMap.showFullStopInfo('" + marker.stop.stopId + "')\">Stop Details</a><br /><a href=\"#\" onclick=\"OpenETAMap.returnHome()\">Return</a>"
+		;
+		this.showInfoWindow(marker, content);
+	}
+
 	this.showStopInfo = function (marker) {
-		var content = 
+		var content =
 			marker.stop.stopId + ": " + marker.stop.stopNameEng +
 			"<br /><a href=\"#\" onclick=\"OpenETAMap.returnHome()\">Return</a>";
+		this.showInfoWindow(marker, content);
+	}
+
+	this.showInfoWindow = function (marker, content) {
 		var iw = new google.maps.InfoWindow({
 			content: content
 		});
 		iw.open(map, marker);
+		this.infoWindows.push(iw);
 	}
 
 	this.returnHome = function () {
@@ -74,13 +138,14 @@ var OpenETAMap = function () {
 			});
 
 			if (selectedStop && stop.stopId == selectedStop.stopId) {
-				this.showStopInfo(marker);
+				this.showStopETAInfo(marker);
 				map.setCenter(coord);
 				map.setZoom(18);
 			}
 
 			marker.addListener('click', function () {
-				OpenETAMap.showStopInfo(this);
+				//OpenETAMap.showStopInfo(this);
+				OpenETAMap.showStopETAInfo(this);
 			});
 
 			this.markers.push(marker);

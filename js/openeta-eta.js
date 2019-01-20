@@ -40,7 +40,7 @@ var ETAManager = function () {
 	}
 
 	this.removeHandler = function (handler) {
-		var i = this.handlers.indexOf(phandler);
+		var i = this.handlers.indexOf(handler);
 		if (i == -1) {
 			return;
 		}
@@ -150,7 +150,7 @@ var ETAManager = function () {
 	}
 
 	this.requestAllETA = function () {
-		for (var handler in handlers) {
+		for (var handler of handlers) {
 			if (handler) {
 				var _handler = handler;
 				RequestLimiter.queue(function () {

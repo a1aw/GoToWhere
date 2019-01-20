@@ -122,6 +122,12 @@ var UIManager = function () {
 		EventManager.dispatchEvent(EVENTS.EVENT_UI_HOME);
 	}
 
+	this.setModal = function (header, body, footer) {
+		$(".modal-header").html(header);
+		$(".modal-body").html(body);
+		$(".modal-footer").html(footer);
+	}
+
 	this.show = function (lock = false, options = {}) {
 		if (lock) {
 			options.backdrop = "static";
