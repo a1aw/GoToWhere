@@ -225,7 +225,7 @@ function _initDb() {
 	);
 
 	var startTime = new Date().getTime();
-	var mt = ETAManager.requestAllRoutes();
+	var mt = ETAManager.requestAllDatabase();
 	mt.progressChange(function (progress) {
 		console.log(progress);
 		$("#startup-progress").css("width", progress + "%");

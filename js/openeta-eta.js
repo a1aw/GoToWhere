@@ -160,7 +160,7 @@ var ETAManager = function () {
 		}
 	}
 
-	this.requestAllRoutes = function () {
+	this.requestAllDatabase = function () {
 		var mt = new MultiTasker();
 		var tasks = [];
 		var args = [];
@@ -169,7 +169,7 @@ var ETAManager = function () {
 				args.push([provider, mt]);
 				tasks.push(function (arg) {
 					RequestLimiter.queue(function (arg) {
-						arg[0].fetchRoutes().done(function () {
+						arg[0].fetchDatabase().done(function () {
 							arg[1].dispatch();
 						}).progressChange(function (progress) {
 							arg[1].setTaskProgress(progress);
@@ -310,7 +310,7 @@ class ETAProvider {
 		return null;
 	}
 
-	fetchRoutes() {
+	fetchDatabase() {
 		return null;
 	}
 
@@ -343,7 +343,6 @@ class ProgressListener {
 	}
 
 	setProgress(value) {
-		console.log("seting to " + value)
 		if (value < 0) {
 			value = 0;
 		} else if (value > 100) {
@@ -353,7 +352,6 @@ class ProgressListener {
 
 		for (var pcHandler of this.pcHandlers) {
 			if (pcHandler && typeof pcHandler === 'function') {
-				console.log("reporting")
 				pcHandler(this.progress);
 			}
 		}
@@ -417,11 +415,68 @@ class ETAHandler extends TransitObject{
 
 }
 
-class ETAData extends TransitObject{
+class ETAData {
 
-	constructor(options) {
-		super(options);
+	constructor(schedules, serverTime) {
+		this.schedules = schedules;
+		this.serverTime = serverTime;
 	}
+
+	getRemainingMinutes(schedule) {
+		if (typeof schedule === "undefined") {
+			if (this.schedules.length == 0) {
+				return false;
+			}
+			schedule = this.schedules[0];
+		} else if (typeof schedule === "number") {
+
+			schedule = this.schedules[schedule];
+		}
+
+		if (typeof schedule === "TransitSchedule") {
+			return schedule.getRemainingMinutes(this.serverTime);
+		} else {
+			return false;
+		}
+	}
+}
+
+class TransitTime {
+
+	constructor(hr, min) {
+		this.hr = hr;
+		this.min = min;
+	}
+
+	difference(time) {
+		var a = this.hr * 60 + this.min;
+		var b = time.hr * 60 + time.min;
+		return a - b;
+	}
+
+}
+
+class TransitSchedule extends TransitObject {
+
+	constructor(data) {
+		super(data);
+		const { isLive, isOutdated, hasTime, hasMsg, time, msg, features } = data;
+		this.isLive = isLive;
+		this.isOutdated = isOutdated;
+		this.hasTime = hasTime;
+		this.hasMsg = hasMsg;
+		this.time = time;
+		this.msg = msg;
+		this.features = features;
+	}
+
+	getRemainingMinutes(serverTime) {
+		if (!this.hasTime || !this.time) {
+			return false;
+		}
+		return this.time.difference(serverTime);
+	}
+
 }
 
 class Route extends TransitObject{

@@ -21,4 +21,8 @@ var Misc = function () {
 		return false;
 	}
 
+	this.fillZero = function (number) {
+		return number < 10 ? ("0" + number) : number;
+	}
+
 }
