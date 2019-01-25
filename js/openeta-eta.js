@@ -82,7 +82,6 @@ var ETAManager = function () {
 		var stops = [];
 		var stop;
 		var d;
-		console.log(allStops);
 		for (var i = 0; i < allStops.length; i++) {
 			stop = allStops[i];
 			d = Misc.geoDistance(lat, lng, stop.lat, stop.lng);

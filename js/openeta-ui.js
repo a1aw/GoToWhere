@@ -29,7 +29,6 @@ var UIManager = function () {
 		);
 
 		var pos = map.getCenter();
-		console.log(pos)
 		var providers = ETAManager.getProviders();
 
 		if (providers.length == 0) {

@@ -77,117 +77,113 @@ var OpenETAMap = function () {
 
 		ETAManager.addHandler(h);
 
-		var content =
+		var prefix =
 			"<p>" + stopName + "</p>" +
 			"<hr />" + 
 			"<div class=\"table-responsive\">" +
 			"    <p><u>Estimated Time Arrival</u></p>" +
-			"    <table id=\"openeta-map-stopetainfo-" + key + "\" class=\"table openeta-map-stopetainfo\">" +
-			"        <tr class=\"table-warning\">" +
-			"            <td>Requesting</td>" +
-			"            <td>---</td>" +
-			"        </tr>" +
+			"    <table id=\"openeta-map-stopetainfo-" + key + "\" class=\"table openeta-map-stopetainfo\">"
+        ;
+        var suffix =
 			"    </table>" +
 			"</div>" +
 			"<hr />" +
 			"<a href=\"#\" onclick=\"OpenETAMap.showFullStopInfo('" + marker.stop.stopId + "')\">Stop Details</a><br /><a href=\"#\" onclick=\"OpenETAMap.returnHome()\">Return</a>"
 		;
-		this.showInfoWindow(marker, content);
 
 		var doneListener = h.fetchETA();
+        if (!doneListener) {
+			var content = 
+				"<tr class=\"table-dark\">" +
+				"    <td>Not available to this route</td>" +
+				"    <td>---</td>" +
+				"</tr>"
+			;
+		   this.showInfoWindow(marker, prefix + content + suffix);
+		} else {
+            var global = this;
+			doneListener.done(function () {
+                var content = "";
+				var data = h.getETA();
+				if (data.schedules.length == 0) {
+					content = 
+						"<tr class=\"table-dark\">" +
+						"    <td>No schedules pending</td>" +
+						"    <td>---</td>" +
+						"</tr>"
+                    ;
+				} else {
+                    var active = false;
+				    for (var schedule of data.schedules) {
+					    var eta = schedule.getRemainingMinutes(data.serverTime);
+					    var html = "<tr class=\"table-";
 
-		setTimeout(function () {
-			
-			if (!doneListener) {
-				$("#openeta-map-stopetainfo-" + key).html(
-					"<tr class=\"table-dark\">" +
-					"    <td>Not available to this route</td>" +
-					"    <td>---</td>" +
-					"</tr>"
-				);
-			} else {
-				doneListener.done(function () {
-					$("#openeta-map-stopetainfo-" + key).html("");
-					var data = h.getETA();
-					if (data.schedules.length == 0) {
-						$("#openeta-map-stopetainfo-" + key).html(
-							"<tr class=\"table-dark\">" +
-							"    <td>No schedules pending</td>" +
-							"    <td>---</td>" +
-							"</tr>"
-						);
-						return;
-					}
-					var active = false;
-					for (var schedule of data.schedules) {
-						var eta = schedule.getRemainingMinutes(data.serverTime);
-						var html = "<tr class=\"table-";
+				    	if (eta >= 20) {
+					    	html += "secondary";
+				    	} else if (eta >= 15) {
+				    		html += "info";
+				    	} else if (eta >= 10) {
+					    	html += "success";
+					    } else if (eta >= 5) {
+					    	html += "warning";
+					    } else if (eta >= 1) {
+					    	html += "danger"
+					    } else {
+					    	html += "dark";
+					    }
 
-						if (eta >= 20) {
-							html += "secondary";
-						} else if (eta >= 15) {
-							html += "info";
-						} else if (eta >= 10) {
-							html += "success";
-						} else if (eta >= 5) {
-							html += "warning";
-						} else if (eta >= 1) {
-							html += "danger"
-						} else {
-							html += "dark";
-						}
+					    if (!active && schedule.isLive && eta > 0) {
+					    	active = true;
+					    	html += " active";
+					    }
 
-						if (!active && schedule.isLive && eta > 0) {
-							active = true;
-							html += " active";
-						}
+					    html += "\"><td>";
 
-						html += "\"><td>";
+				    	//TODO: isOutdated
 
-						//TODO: isOutdated
+				    	if (schedule.hasMsg) {
+				    		html += schedule.msg;
+				    	}
+				    	if (schedule.hasTime) {
+					    	if (schedule.hasMsg) {
+					    		html += "<br />";
+					    	}
+					    	if (eta > 1) {
+					    		html += eta + " mins";
+					    	} else if (eta == 1) {
+					    		html += eta + " min";
+					    	} else {
+					    		html += "Arrived/Left";
+					    	}
+				    	}
 
-						if (schedule.hasMsg) {
-							html += schedule.msg;
-						}
+					    if (schedule.isLive) {
+					    	html += " <span style=\"color: red; float: right; font-size: 10px;\"><i class=\"fa fa-circle\"></i> Live</span>";
+				    	} else {
+				    		html += " <span style=\"font-size: 10px; float: right; font-style: italic;\">Scheduled</span>";
+				    	}
 
-						if (schedule.hasTime) {
-							if (schedule.hasMsg) {
-								html += "<br />";
-							}
-							if (eta > 1) {
-								html += eta + " mins";
-							} else if (eta == 1) {
-								html += eta + " min";
-							} else {
-								html += "Arrived/Left";
-							}
-						}
+				    	html += "</td><td>";
 
-						if (schedule.isLive) {
-							html += " <span style=\"color: red; float: right; font-size: 10px;\"><i class=\"fa fa-circle\"></i> Live</span>";
-						} else {
-							html += " <span style=\"font-size: 10px; float: right; font-style: italic;\">Scheduled</span>";
-						}
+					    if (schedule.hasTime) {
+					    	html += Misc.fillZero(schedule.time.hr) + ":" + Misc.fillZero(schedule.time.min);
+				    	} else {
+				    		html += "---";
+					    }
 
-						html += "</td><td>";
+					    html += "</td>";
 
-						if (schedule.hasTime) {
-							html += Misc.fillZero(schedule.time.hr) + ":" + Misc.fillZero(schedule.time.min);
-						} else {
-							html += "---";
-						}
+				    	//TODO: Features
+    
+				    	html += "</tr>"
+				    	content += html;
+				    }
+                }
 
-						html += "</td>";
-
-						//TODO: Features
-
-						html += "</tr>"
-						$("#openeta-map-stopetainfo-" + key).append(html);
-					}
-				});
-			}
-
-		}, 1000);
+                
+		        global.showInfoWindow(marker, prefix + content + suffix);
+			});
+		}
 	}
 
 	this.showStopInfo = function (marker) {
