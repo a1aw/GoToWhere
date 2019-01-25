@@ -51,6 +51,15 @@ html, body {
 	padding-right: 33%;
 }
 
+div.loading-modal {
+    text-align: center;
+}
+
+div.loading-modal img {
+    width: 64px;
+    height: 64px;
+}
+
 div.hori-scroll {
 	overflow: auto;
 	white-space: nowrap;

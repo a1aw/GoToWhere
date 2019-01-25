@@ -101,8 +101,14 @@ var OpenETAMap = function () {
 			;
 		   this.showInfoWindow(marker, prefix + content + suffix);
 		} else {
+            UIManager.setModal(
+               "Requesting",
+               "<div class=\"loading-modal\"><img src=\"img/loading.gif\" /> Requesting ETA data from plugins...</div>",  
+               ""
+            );
             var global = this;
 			doneListener.done(function () {
+                UIManager.hide();
                 var content = "";
 				var data = h.getETA();
 				if (data.schedules.length == 0) {

@@ -8,7 +8,7 @@ var UIManager = function () {
 	var global = this;
 
 	Func.registerFunction(UIMANAGER_FUNC_NEARBY_ROUTE_SELECT, function (index) {
-		global.hide();
+		//global.hide();
 		var data = global.variables[UIMANAGER_VAR_ALL_NEARBY_ROUTES][index];
 		var route = data[0];
 		var pathIndex = data[1];
