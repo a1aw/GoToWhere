@@ -121,6 +121,20 @@ var ETAManager = function () {
 		return false;
 	}
 
+	this.getStopIndex = function (route, stop, selectedPath) {
+		if (selectedPath < 0 || selectedPath >= route.paths.length) {
+			return -1;
+		}
+		var path = route.paths[selectedPath];
+		for (var i = 0; i < path.length; i++) {
+			var stopId = path[i];
+			if (stop.stopId === stopId) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
 	this.searchRoutesOfStop = function (stop) {
 		var out = [];
 
@@ -410,6 +424,10 @@ class ETAHandler extends TransitObject{
 
 	getETA() {
 		return this.provider.getETA(this);
+	}
+
+	toKey() {
+		return this.route.routeId + "-" + this.stop.stopId + "-" + this.selectedPath;
 	}
 
 }
