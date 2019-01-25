@@ -140,4 +140,8 @@ var UIManager = function () {
 		$(".modal").modal("hide");
 		EventManager.dispatchEvent(EVENTS.EVENT_UI_HIDE);
 	}
+
+    this.isShown = function(){
+        return ($(".modal").data('bs.modal') || {})._isShown;
+    }
 }
