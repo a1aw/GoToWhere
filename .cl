@@ -12,11 +12,11 @@
   <meta name="author" content="">
   <title>OpenETA</title>
   <!-- Bootstrap core CSS-->
-  <link href="https://raw.githubusercontent.com/mob41/OpenETA/master/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://mob41.github.io/OpenETA/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
   <!-- Custom fonts for this template-->
-  <link href="https://raw.githubusercontent.com/mob41/OpenETA/master/vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+  <link href="https://mob41.github.io/OpenETA/vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
   <!-- OpenETA CSS-->
-  <link href="https://raw.githubusercontent.com/mob41/OpenETA/master/css/openeta-app.css" rel="stylesheet">
+  <link href="https://mob41.github.io/OpenETA/css/openeta-app.css" rel="stylesheet">
 </head>
 
 <body>
@@ -26,7 +26,7 @@
 	<div id="startup">
 		<h1>OpenETA</h1>
 
-		<img id="startup-image" src="https://raw.githubusercontent.com/mob41/OpenETA/master/img/loading.gif" /><h5 id="startup-status">Initializing...</h5>
+		<img id="startup-image" src="https://mob41.github.io/OpenETA/img/loading.gif" /><h5 id="startup-status">Initializing...</h5>
 		<p class="startup-oneforth" id="startup-desc"></p>
 		<p>Licensed under MIT License.</p>
 		<p class="startup-onethird">This software is only for educational purpose, and cannot be used in commerical or practical purposes.</p>
@@ -47,24 +47,24 @@
     </div>
 	
     <!-- Bootstrap core JavaScript-->
-    <script src="https://raw.githubusercontent.com/mob41/OpenETA/master/vendor/jquery/jquery.min.js"></script>
-    <script src="https://raw.githubusercontent.com/mob41/OpenETA/master/vendor/popper/popper.min.js"></script>
-    <script src="https://raw.githubusercontent.com/mob41/OpenETA/master/vendor/bootstrap/js/bootstrap.min.js"></script>
+    <script src="https://mob41.github.io/OpenETA/vendor/jquery/jquery.min.js"></script>
+    <script src="https://mob41.github.io/OpenETA/vendor/popper/popper.min.js"></script>
+    <script src="https://mob41.github.io/OpenETA/vendor/bootstrap/js/bootstrap.min.js"></script>
     <!-- Core plugin JavaScript-->
-    <script src="https://raw.githubusercontent.com/mob41/OpenETA/master/vendor/jquery-easing/jquery.easing.min.js"></script>
+    <script src="https://mob41.github.io/OpenETA/vendor/jquery-easing/jquery.easing.min.js"></script>
     <!-- Page level plugin JavaScript-->
-    <script src="https://raw.githubusercontent.com/mob41/OpenETA/master/vendor/chart.js/Chart.min.js"></script>
-    <script src="https://raw.githubusercontent.com/mob41/OpenETA/master/vendor/datatables/jquery.dataTables.js"></script>
-    <script src="https://raw.githubusercontent.com/mob41/OpenETA/master/vendor/datatables/dataTables.bootstrap4.js"></script>
+    <script src="https://mob41.github.io/OpenETA/vendor/chart.js/Chart.min.js"></script>
+    <script src="https://mob41.github.io/OpenETA/vendor/datatables/jquery.dataTables.js"></script>
+    <script src="https://mob41.github.io/OpenETA/vendor/datatables/dataTables.bootstrap4.js"></script>
     <!-- Custom scripts for all pages-->
-    <script src="https://raw.githubusercontent.com/mob41/OpenETA/master/js/sb-admin.min.js"></script>
+    <script src="https://mob41.github.io/OpenETA/js/sb-admin.min.js"></script>
     <!-- Custom scripts for this page-->
-	<script src="https://raw.githubusercontent.com/mob41/OpenETA/master/js/base64.js"></script>
-	<script src="https://raw.githubusercontent.com/mob41/OpenETA/master/js/zlib.min.js"></script>
-	<script src="https://raw.githubusercontent.com/mob41/OpenETA/master/js/gzip.min.js"></script>
-	<script src="https://raw.githubusercontent.com/mob41/OpenETA/master/js/gunzip.min.js"></script>
-	<script src="https://raw.githubusercontent.com/mob41/OpenETA/master/js/openeta-config.js"></script>
-	<script src="https://raw.githubusercontent.com/mob41/OpenETA/master/js/openeta.js"></script>
+	<script src="https://mob41.github.io/OpenETA/js/base64.js"></script>
+	<script src="https://mob41.github.io/OpenETA/js/zlib.min.js"></script>
+	<script src="https://mob41.github.io/OpenETA/js/gzip.min.js"></script>
+	<script src="https://mob41.github.io/OpenETA/js/gunzip.min.js"></script>
+	<script src="https://mob41.github.io/OpenETA/js/openeta-config.js"></script>
+	<script src="https://mob41.github.io/OpenETA/js/openeta.js"></script>
 </body>
 
 </html>
