@@ -12,7 +12,7 @@
 "https://mob41.github.io/OpenETA/js/gzip.min.js",
 "https://mob41.github.io/OpenETA/js/gunzip.min.js",
 "https://mob41.github.io/OpenETA/js/openeta-config.js",
-"https://mob41.github.io/OpenETA/js/_codelauncher.js"
+"https://mob41.github.io/OpenETA/js/codelauncher.js"
 ]}
 ##########
 <!DOCTYPE html>
