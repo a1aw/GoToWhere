@@ -14,7 +14,7 @@ var Misc = function () {
 
 	this.isSamePropertyValueInArray = function (array, name, value) {
 		for (var object of array) {
-			if (object[name] && object[name] === value) {
+			if (object[name] === value) {
 				return true;
 			}
 		}

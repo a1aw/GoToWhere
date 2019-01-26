@@ -135,9 +135,14 @@ var ETAManager = function () {
 		return -1;
 	}
 
+	this.legacy = 0;
+
 	this.searchRoutesOfStop = function (stop) {
 		var out = [];
 
+		console.log("Para: " + stop.stopId);
+		console.log(this.legacy);
+		this.legacy += 1;
 		var allRoutes = this.getAllRoutes();
 		for (var route of allRoutes) {
 			var paths = route.paths;
@@ -145,6 +150,7 @@ var ETAManager = function () {
 				var path = paths[i];
 				for (var stopId of path) {
 					if (stop.stopId === stopId) {
+						console.log("Found: " + route.routeId);
 						out.push([route, i]);
 					}
 				}

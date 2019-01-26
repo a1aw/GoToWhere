@@ -45,7 +45,7 @@ var UIManager = function () {
 
 			var buttonScroll =
 				"<div class=\"hori-scroll\">" +
-				"    <button type=\"button\" class=\"btn btn-primary\"><i class=\"fa fa-reply-all\"></i><br />All</button> ";
+				"    <button type=\"button\" class=\"btn btn-primary\"><i class=\"fa fa-reply-all\"></i><br />All</button>";
 
 			for (var provider of providers) {
 				var image = "";
@@ -56,7 +56,7 @@ var UIManager = function () {
 				} else {
 					image = "fa-question";
 				}
-				buttonScroll += "<button type=\"button\" class=\"btn btn-default\"><i class=\"fa " + image + "\"></i><br />" + provider.name + "</button>";
+				buttonScroll += " <button type=\"button\" class=\"btn btn-default\"><i class=\"fa " + image + "\"></i><br />" + provider.name + "</button>";
 			}
 
 			buttonScroll += "</div><br />";
@@ -93,6 +93,7 @@ var UIManager = function () {
 			var node = $("#home-nearbystops-listgroup");
 			node.html("");
 
+			console.log(allNearbyStops);
 			var allNearbyRoutes = [];
 			for (var stop of allNearbyStops) {
 				if (allNearbyRoutes.length >= 20) {
@@ -100,9 +101,13 @@ var UIManager = function () {
 				}
 				var routes = ETAManager.searchRoutesOfStop(stop);
 				for (var route of routes) {
+					console.log(route[0].routeId + ", " + route[1] + ", " + stop.stopId);
 					allNearbyRoutes.push([route[0], route[1], stop]);
 				}
 			}
+			console.log(allNearbyRoutes);
+
+			var hs = [];
 
 			for (var i = 0; i < allNearbyRoutes.length; i++) {
 				var route = allNearbyRoutes[i];
@@ -110,10 +115,83 @@ var UIManager = function () {
 					"<a href=\"#\" onclick=\"Func.call('" + UIMANAGER_FUNC_NEARBY_ROUTE_SELECT + "', " + i + ")\" class=\"list-group-item\">" +
 					"    <h5 class=\"list-group-item-heading\">" + route[0].routeId + "</h5>" +
 					"    <span style=\"float: right\">" + route[0].provider.name + "</span>" +
-					"    <p class=\"list-group-item-text\" id=\"\">---<br />" + route[2].stopNameEng + "</p>" +
+					"    <p class=\"list-group-item-text\" id=\"openeta-nearbyeta-" + route[0].provider.name + "-" + route[0].routeId + "-" + route[1] + "-" + route[2].stopId + "\">---</p>" + route[2].stopNameEng + "" +
 					"</a>"
 				);
+				hs.push(route[0].provider.makeHandler({
+					route: route[0],
+					selectedPath: route[1],
+					stop: route[2]
+				}));
 			}
+
+			hs.forEach(function (h) {
+				h.fetchETA().done(function () {
+					var text = "";
+					var eta = h.getETA();
+					if (!eta || !eta.schedules || !eta.serverTime) {
+						text = "ETA Not available";
+					} else if (eta.schedules.length == 0) {
+						text = "No schedules pending";
+					} else {
+						var schedule = eta.schedules[0];
+
+						var eta = schedule.getRemainingMinutes(eta.serverTime);
+						var css = "";
+
+						if (eta >= 20) {
+							css = "secondary";
+						} else if (eta >= 15) {
+							css = "info";
+						} else if (eta >= 10) {
+							css = "success";
+						} else if (eta >= 5) {
+							css = "warning";
+						} else if (eta >= 1) {
+							css = "danger"
+						} else {
+							css = "dark";
+						}
+
+						//TODO: isOutdated
+
+						if (schedule.hasMsg) {
+							text = schedule.msg;
+						}
+						if (schedule.hasTime) {
+							if (schedule.hasMsg) {
+								text += "<br />";
+							}
+							if (eta > 1) {
+								text += eta + " mins";
+							} else if (eta == 1) {
+								text += eta + " min";
+							} else {
+								text += "Arrived/Left";
+							}
+						}
+
+						if (schedule.isLive) {
+							text += " <span style=\"color: red; float: right; font-size: 10px;\"><i class=\"fa fa-circle\"></i> Live</span>";
+						} else {
+							text += " <span style=\"font-size: 10px; float: right; font-style: italic;\">Scheduled</span>";
+						}
+
+						/*
+						if (schedule.hasTime) {
+							text += Misc.fillZero(schedule.time.hr) + ":" + Misc.fillZero(schedule.time.min);
+						} else {
+							text += "---";
+						}
+						*/
+
+						//TODO: Features
+					}
+					var node = $("#openeta-nearbyeta-" + h.route.provider.name + "-" + h.route.routeId + "-" + h.selectedPath + "-" + h.stop.stopId);
+					node.html(text);
+					node.parent().attr("class", "list-group-item list-group-item-" + css)
+				});
+			});
 
 			this.variables[UIMANAGER_VAR_ALL_NEARBY_ROUTES] = allNearbyRoutes;
 
