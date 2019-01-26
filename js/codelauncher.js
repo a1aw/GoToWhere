@@ -88,9 +88,9 @@ function _postLoadScript() {
 	}
 
 	_installCode = window.location.hash;
-	if (_installCode) {
-		_installCode = _installCode.substring(1);
-		$("#startup-image").attr("style", "display: none");
+	var installKey = "install:";
+	if (_installCode && _installCode.startsWith(installKey)) {
+		_installCode = _installCode.substring(installKey.length + 1);
 		var json;
 		try {
 			json = PluginLoader.decode(_installCode);
