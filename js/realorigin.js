@@ -11,7 +11,7 @@ function install() {
 		start("&r:install:" + c);
 	} else {
 		$(".modal-header").html("Error");
-		$(".modal-body").html("No install code detected. Make sure your install code is put in the following format:<br /><code>https://www.openeta.ml/install#&#x3C;InstallCodeHere&#x3C;</code>");
+		$(".modal-body").html("No install code detected. Make sure your install code is put in the following format:<br /><code>https://www.openeta.ml/install#&#x3C;InstallCodeHere&#x3E;</code>");
 		$(".modal").modal();
 	}
 }
