@@ -2,17 +2,17 @@
 
 const _googleMapScript = "https://maps.googleapis.com/maps/api/js?callback=initMap&key=";
 const _scripts = [
-	"https://mob41.github.io/OpenETA/js/openeta-app.js",
-	"https://mob41.github.io/OpenETA/js/openeta-misc.js",
-	"https://mob41.github.io/OpenETA/js/openeta-map.js",
-	"https://mob41.github.io/OpenETA/js/openeta-event.js",
-	"https://mob41.github.io/OpenETA/js/openeta-eta.js",
-	"https://mob41.github.io/OpenETA/js/openeta-ui.js",
-	"https://mob41.github.io/OpenETA/js/openeta-func.js",
-	"https://mob41.github.io/OpenETA/js/openeta-location.js",
-	"https://mob41.github.io/OpenETA/js/openeta-requestlimiter.js",
-	"https://mob41.github.io/OpenETA/js/openeta-plugin.js",
-	"https://mob41.github.io/OpenETA/js/openeta-pluginloader.js"
+	"https://www.openeta.ml/js/openeta-app.js",
+	"https://www.openeta.ml/js/openeta-misc.js",
+	"https://www.openeta.ml/js/openeta-map.js",
+	"https://www.openeta.ml/js/openeta-event.js",
+	"https://www.openeta.ml/js/openeta-eta.js",
+	"https://www.openeta.ml/js/openeta-ui.js",
+	"https://www.openeta.ml/js/openeta-func.js",
+	"https://www.openeta.ml/js/openeta-location.js",
+	"https://www.openeta.ml/js/openeta-requestlimiter.js",
+	"https://www.openeta.ml/js/openeta-plugin.js",
+	"https://www.openeta.ml/js/openeta-pluginloader.js"
 ];
 
 var PluginLoader;
