@@ -1,18 +1,18 @@
 ﻿{"scripts": [
-"https://mob41.github.io/OpenETA/vendor/jquery/jquery.min.js",
-"https://mob41.github.io/OpenETA/vendor/popper/popper.min.js",
-"https://mob41.github.io/OpenETA/vendor/bootstrap/js/bootstrap.min.js",
-"https://mob41.github.io/OpenETA/vendor/jquery-easing/jquery.easing.min.js",
-"https://mob41.github.io/OpenETA/vendor/chart.js/Chart.min.js",
-"https://mob41.github.io/OpenETA/vendor/datatables/jquery.dataTables.js",
-"https://mob41.github.io/OpenETA/vendor/datatables/dataTables.bootstrap4.js",
-"https://mob41.github.io/OpenETA/js/sb-admin.min.js",
-"https://mob41.github.io/OpenETA/js/base64.js",
-"https://mob41.github.io/OpenETA/js/zlib.min.js",
-"https://mob41.github.io/OpenETA/js/gzip.min.js",
-"https://mob41.github.io/OpenETA/js/gunzip.min.js",
-"https://mob41.github.io/OpenETA/js/openeta-config.js",
-"https://mob41.github.io/OpenETA/js/codelauncher.js"
+"https://www.openeta.ml/vendor/jquery/jquery.min.js",
+"https://www.openeta.ml/vendor/popper/popper.min.js",
+"https://www.openeta.ml/vendor/bootstrap/js/bootstrap.min.js",
+"https://www.openeta.ml/vendor/jquery-easing/jquery.easing.min.js",
+"https://www.openeta.ml/vendor/chart.js/Chart.min.js",
+"https://www.openeta.ml/vendor/datatables/jquery.dataTables.js",
+"https://www.openeta.ml/vendor/datatables/dataTables.bootstrap4.js",
+"https://www.openeta.ml/js/sb-admin.min.js",
+"https://www.openeta.ml/js/base64.js",
+"https://www.openeta.ml/js/zlib.min.js",
+"https://www.openeta.ml/js/gzip.min.js",
+"https://www.openeta.ml/js/gunzip.min.js",
+"https://www.openeta.ml/js/openeta-config.js",
+"https://www.openeta.ml/js/codelauncher.js"
 ]}
 ##########
 <!DOCTYPE html>
@@ -29,11 +29,11 @@
   <meta name="author" content="">
   <title>OpenETA</title>
   <!-- Bootstrap core CSS-->
-  <link href="https://mob41.github.io/OpenETA/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://www.openeta.ml/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
   <!-- Custom fonts for this template-->
-  <link href="https://mob41.github.io/OpenETA/vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+  <link href="https://www.openeta.ml/vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
   <!-- OpenETA CSS-->
-  <link href="https://mob41.github.io/OpenETA/css/openeta-app.css" rel="stylesheet">
+  <link href="https://www.openeta.ml/css/openeta-app.css" rel="stylesheet">
 </head>
 
 <body>
@@ -43,7 +43,7 @@
 	<div id="startup">
 		<h1>OpenETA</h1>
 
-		<img id="startup-image" src="https://mob41.github.io/OpenETA/img/loading.gif" /><h5 id="startup-status">Initializing...</h5>
+		<img id="startup-image" src="https://www.openeta.ml/img/loading.gif" /><h5 id="startup-status">Initializing...</h5>
 		<p class="startup-oneforth" id="startup-desc"></p>
 		<p>Licensed under MIT License.</p>
 		<p class="startup-onethird">This software is only for educational purpose, and cannot be used in commerical or practical purposes.</p>
