@@ -26,14 +26,15 @@
 	<div id="startup">
 		<h1>OpenETA</h1>
 
-		<h5 id="startup-status">Start App</h5>
-		<p class="startup-oneforth">This application is designed to escape from <code>Origin</code>, <code>Referer</code> headers tracking. For more details, please read the wiki. Press below to start the application.
-		
-		<input type="button" class="btn btn-success" value="Start" onclick="start()" />
-		</p>
+		<img id="startup-image" src="img/loading.gif" /><h5 id="startup-status">Initializing...</h5>
+		<p class="startup-oneforth" id="startup-desc"></p>
 		<p>Licensed under MIT License.</p>
 		<p class="startup-onethird">This software is only for educational purpose, and cannot be used in commerical or practical purposes.</p>
 	</div>
+
+    <div class="container">
+		<div id="map"></div>
+    </div>
 
     <div class="modal fade" tabindex="-1" role="dialog">
       <div class="modal-dialog" role="document">
@@ -57,6 +58,13 @@
     <script src="vendor/datatables/dataTables.bootstrap4.js"></script>
     <!-- Custom scripts for all pages-->
     <script src="js/sb-admin.min.js"></script>
+    <!-- Custom scripts for this page-->
+	<script src="js/base64.js"></script>
+	<script src="js/zlib.min.js"></script>
+	<script src="js/gzip.min.js"></script>
+	<script src="js/gunzip.min.js"></script>
+	<script src="js/openeta-config.js"></script>
+	<script src="js/openeta.js"></script>
 </body>
 
 </html>
