@@ -88,9 +88,9 @@ function _postLoadScript() {
 	}
 
 	_installCode = window.location.hash;
-	var installKey = "install:";
+	var installKey = "#install:";
 	if (_installCode && _installCode.startsWith(installKey)) {
-		_installCode = _installCode.substring(installKey.length + 1);
+		_installCode = decodeURIComponent(_installCode.substring(installKey.length));
 		$("#startup-image").attr("style", "display: none");
 		var json;
 		try {

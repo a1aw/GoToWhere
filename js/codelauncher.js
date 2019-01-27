@@ -90,7 +90,7 @@ function _postLoadScript() {
 	_installCode = window.location.hash;
 	var installKey = "#install:";
 	if (_installCode && _installCode.startsWith(installKey)) {
-		_installCode = _installCode.substring(installKey.length);
+		_installCode = decodeURIComponent(_installCode.substring(installKey.length));
 		var json;
 		try {
 			json = PluginLoader.decode(_installCode);
