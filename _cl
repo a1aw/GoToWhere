@@ -12,7 +12,7 @@
 "https://www.openeta.ml/app/js/gzip.min.js",
 "https://www.openeta.ml/app/js/gunzip.min.js",
 "https://www.openeta.ml/app/js/openeta-config.js",
-"https://www.openeta.ml/app/cl.js"
+"https://www.openeta.ml/js/cl.js"
 ]}
 ##########
 <!DOCTYPE html>
