@@ -1,18 +1,19 @@
 // OpenETA script loader
 
 const _googleMapScript = "https://maps.googleapis.com/maps/api/js?callback=initMap&key=";
+const _urlPrefix = "https://www.openeta.ml/app/js/";
 const _scripts = [
-	"https://www.openeta.ml/js/openeta-app.js",
-	"https://www.openeta.ml/js/openeta-misc.js",
-	"https://www.openeta.ml/js/openeta-map.js",
-	"https://www.openeta.ml/js/openeta-event.js",
-	"https://www.openeta.ml/js/openeta-eta.js",
-	"https://www.openeta.ml/js/openeta-ui.js",
-	"https://www.openeta.ml/js/openeta-func.js",
-	"https://www.openeta.ml/js/openeta-location.js",
-	"https://www.openeta.ml/js/openeta-requestlimiter.js",
-	"https://www.openeta.ml/js/openeta-plugin.js",
-	"https://www.openeta.ml/js/openeta-pluginloader.js"
+	_urlPrefix + "js/openeta-app.js",
+	_urlPrefix + "js/openeta-misc.js",
+	_urlPrefix + "js/openeta-map.js",
+	_urlPrefix + "js/openeta-event.js",
+	_urlPrefix + "js/openeta-eta.js",
+	_urlPrefix + "js/openeta-ui.js",
+	_urlPrefix + "js/openeta-func.js",
+	_urlPrefix + "js/openeta-location.js",
+	_urlPrefix + "js/openeta-requestlimiter.js",
+	_urlPrefix + "js/openeta-plugin.js",
+	_urlPrefix + "js/openeta-pluginloader.js"
 ];
 
 var PluginLoader;

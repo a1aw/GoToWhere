@@ -103,7 +103,7 @@ var OpenETAMap = function () {
 		} else {
             UIManager.setModal(
                "Requesting",
-               "<div class=\"loading-modal\"><img src=\"img/loading.gif\" /> Requesting ETA data from plugins...</div>",  
+               "<div class=\"loading-modal\"><img src=\"" + _urlPrefix + "img/loading.gif\" /> Requesting ETA data from plugins...</div>",  
                ""
             );
             if (!UIManager.isShown()){
