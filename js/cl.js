@@ -1,7 +1,7 @@
 // OpenETA script loader
 
 const _googleMapScript = "https://maps.googleapis.com/maps/api/js?callback=initMap&key=";
-const _urlPrefix = "https://www.openeta.ml/app/js/";
+const _urlPrefix = "https://www.openeta.ml/app/";
 const _scripts = [
 	_urlPrefix + "js/openeta-app.js",
 	_urlPrefix + "js/openeta-misc.js",
