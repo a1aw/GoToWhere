@@ -3,7 +3,15 @@ An interface to display city data using a simple map.
 
 ## Web Demo
 The web interface is still in heavy development until it can allows plugins for development.
-[http://mob41.github.io/OpenETA](http://mob41.github.io/OpenETA)
+[https://www.openeta.ml/](https://www.openeta.ml)
+
+## Structure
+
+```www.openeta.ml``` hosts wiki and application launcher files.
+
+```app.openeta.ml``` contains application files.
+
+```<random domain>``` contains mostly nothing but a JavaScript for launching the application.
 
 ## Background
 Most of the data in a city are discrete and difficult to compare with each other, such as bus ETA of companies in Hong Kong are totally separated and not centralized. It means that when you have to check for a cross-company route (e.g. 101, 107, 111), you have to check ETA from two apps of two companies! It wastes your time and messes up tourists to Hong Kong.
