@@ -112,7 +112,7 @@ var UIManager = function () {
 			for (var i = 0; i < allNearbyRoutes.length; i++) {
 				var route = allNearbyRoutes[i];
 				node.append(
-					"<a onclick=\"Func.call('" + UIMANAGER_FUNC_NEARBY_ROUTE_SELECT + "', " + i + ")\" class=\"list-group-item\">" +
+					"<a href=\"#\" onclick=\"Func.call('" + UIMANAGER_FUNC_NEARBY_ROUTE_SELECT + "', " + i + ")\" class=\"list-group-item\">" +
 					"    <h5 class=\"list-group-item-heading\">" + route[0].routeId + "</h5>" +
 					"    <span style=\"float: right\">" + route[0].provider.name + "</span>" +
 					"    <p class=\"list-group-item-text\" id=\"openeta-nearbyeta-" + route[0].provider.name + "-" + route[0].routeId + "-" + route[1] + "-" + route[2].stopId + "\">---</p>" + route[2].stopNameEng + "" +
