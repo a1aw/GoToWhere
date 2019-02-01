@@ -116,7 +116,14 @@ var OpenETAMap = function () {
                 }, 500);
                 var content = "";
 				var data = h.getETA();
-				if (data.schedules.length == 0) {
+				if (!data || !data.schedules || !data.serverTime) {
+					content =
+						"<tr class=\"table-dark\">" +
+						"    <td>Not available to this route</td>" +
+						"    <td>---</td>" +
+						"</tr>"
+						;
+				} else if (data.schedules.length == 0) {
 					content = 
 						"<tr class=\"table-dark\">" +
 						"    <td>No schedules pending</td>" +

@@ -50,7 +50,7 @@ var LocationManager = function () {
 			global.currentLocationMarker = new google.maps.Marker({
 				position: global.currentPosition,
 				map: map,
-				icon: "img/human.png"
+				icon: _urlPrefix + "img/human.png"
 			});
 
 			map.setCenter(global.currentPosition);
