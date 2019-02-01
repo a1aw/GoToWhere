@@ -134,12 +134,8 @@ function _postLoadScript() {
 			"<div class=\"card text-white bg-primary\">" +
 			"    <div class=\"card-body\">" +
 			"        <label for=\"openeta-pluginloader-installcode\">Enter the install code below:</label>" +
-			"        <div class=\"input-group\">" +
-			"            <input type=\"text\" class=\"form-control\" id=\"openeta-pluginloader-installcode\" />" +
-			"            <div class=\"input-group-append\">" +
-			"                <button class=\"btn btn-success\" type=\"button\" id=\"openeta-pluginloader-installcode-btn\" >Install</button>" +
-			"            </div>" +
-			"        </div>" +
+			"        <textarea row=\"1\" class=\"form-control\" id=\"openeta-pluginloader-installcode\" />" +
+			"        <button class=\"btn btn-success btn-block\" type=\"button\" id=\"openeta-pluginloader-installcode-btn\" >Install</button>" +
 			"    </div>" +
 			"</div><br>" +
 			"<b>OR</b><br><br>" +
