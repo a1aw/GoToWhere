@@ -127,10 +127,13 @@ function _postLoadScript() {
 	}
 
 	//Remove the weird behaviour in iOS web app
-	$("a").click(function (event) {
-		event.preventDefault();
-		window.location = $(this).attr("href");
-	});
+	var a = document.getElementsByTagName("a");
+	for (var i = 0; i < a.length; i++) {
+		a[i].onclick = function () {
+			window.location = this.getAttribute("href");
+			return false;
+		}
+	}
 
 	if (PluginLoader.getLoadedPlugins() == 0) {
 		var isWebApp = (window.navigator.standalone == true) || (window.matchMedia('(display-mode: standalone)').matches);
