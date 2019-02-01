@@ -126,10 +126,13 @@ function _postLoadScript() {
 		return;
 	}
 
+
 	if (PluginLoader.getLoadedPlugins() == 0) {
+		var isWebApp = (window.navigator.standalone == true) || (window.matchMedia('(display-mode: standalone)').matches);
+
 		$("#startup-image").attr("style", "display: none");
 		$("#startup-status").html("Welcome!");
-		$("#startup-desc").html(
+		var text =
 			"OpenETA is just an interface without implementations to fetch city data. You need to install plugins to start up OpenETA.<br><br>" +
 			"<div class=\"card text-white bg-primary\">" +
 			"    <div class=\"card-body\">" +
@@ -137,12 +140,19 @@ function _postLoadScript() {
 			"        <textarea row=\"1\" class=\"form-control\" id=\"openeta-pluginloader-installcode\" />" +
 			"        <button class=\"btn btn-success btn-block\" type=\"button\" id=\"openeta-pluginloader-installcode-btn\" >Install</button>" +
 			"    </div>" +
-			"</div><br>" +
-			"<b>OR</b><br><br>" +
-			"Clicking on a link with the following format: <br /><code>https://www.openeta.ml/install#&#x3C;InstallCodeHere&#x3E;</code>" +
-			"<br><br>" + 
-			"You can start by searching <b>openeta-plugin</b> in GitHub for plugins!"
-		);
+			"</div><br>";
+
+		if (!isWebApp) {
+			text +=
+				"<b>OR</b><br><br>" +
+				"Clicking on a link with the following format: <br /><code>https://www.openeta.ml/install#&#x3C;InstallCodeHere&#x3E;</code>";
+		} else {
+			text += "Web-app <b>does not support</b> installations using the URL link method. You can use plugin packs for installing bunch of plugins at a time.";
+		}
+			
+		text += "<br><br>You can start by searching <b>openeta-plugin</b> in GitHub for plugins!";
+
+		$("#startup-desc").html(text);
 
 		$("#openeta-pluginloader-installcode-btn").click(function () {
 			var installCode = $("#openeta-pluginloader-installcode").val();
