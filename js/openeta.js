@@ -1,6 +1,6 @@
 // OpenETA script loader
 
-if (!_urlPrefix){
+if (!window["_urlPrefix"]){
     window._urlPrefix = "";
 }
 
@@ -128,12 +128,31 @@ function _postLoadScript() {
 
 	if (PluginLoader.getLoadedPlugins() == 0) {
 		$("#startup-image").attr("style", "display: none");
-		$("#startup-status").html("You need plugins to run OpenETA!");
+		$("#startup-status").html("Welcome!");
 		$("#startup-desc").html(
-			"OpenETA is just an interface to display city data using a simple map.<br><br>" +
-			"However, it does not contain code to get any kinds of data from the public. Plugins are here to add colours to the OpenETA interface.<br><br>" +
+			"OpenETA is just an interface without implementations to fetch city data. You need to install plugins to start up OpenETA.<br><br>" +
+			"<div class=\"card text-white bg-primary\">" +
+			"    <div class=\"card-body\">" +
+			"        <label for=\"openeta-pluginloader-installcode\">Enter the install code below:</label>" +
+			"        <div class=\"input-group\">" +
+			"            <input type=\"text\" class=\"form-control\" id=\"openeta-pluginloader-installcode\" />" +
+			"            <div class=\"input-group-append\">" +
+			"                <button class=\"btn btn-success\" type=\"button\" id=\"openeta-pluginloader-installcode-btn\" >Install</button>" +
+			"            </div>" +
+			"        </div>" +
+			"    </div>" +
+			"</div><br>" +
+			"<b>OR</b><br><br>" +
+			"Clicking on a link with the following format: <br /><code>https://www.openeta.ml/install#&#x3C;InstallCodeHere&#x3E;</code>" +
+			"<br><br>" + 
 			"You can start by searching <b>openeta-plugin</b> in GitHub for plugins!"
 		);
+
+		$("#openeta-pluginloader-installcode-btn").click(function () {
+			var installCode = $("#openeta-pluginloader-installcode").val();
+			window.location = "index.html#install:" + installCode;
+			window.location.reload();
+		});
 		return;
 	}
 

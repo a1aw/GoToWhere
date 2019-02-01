@@ -1,5 +1,5 @@
-//OpenETA Request Limiter
+//OpenETA CORS
 
-var RequestLimiter = function () {
+var Cors = function () {
 
 };
