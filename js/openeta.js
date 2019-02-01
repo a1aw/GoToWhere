@@ -151,7 +151,9 @@ function _postLoadScript() {
 		$("#openeta-pluginloader-installcode-btn").click(function () {
 			var installCode = $("#openeta-pluginloader-installcode").val();
 			window.location = "index.html#install:" + installCode;
-			window.location.reload();
+			$(window).on('hashchange', function () {
+				window.location.reload();
+			});
 		});
 		return;
 	}
