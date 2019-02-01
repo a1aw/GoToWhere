@@ -11,8 +11,10 @@
 "https://app.openeta.ml/js/zlib.min.js",
 "https://app.openeta.ml/js/gzip.min.js",
 "https://app.openeta.ml/js/gunzip.min.js",
+"https://app.openeta.ml/js/xhook.min.js",
+"https://www.openeta.ml/js/cl.js",
 "https://www.openeta.ml/js/openeta-config.js",
-"https://www.openeta.ml/js/cl.js"
+"https://app.openeta.ml/js/openeta.js"
 ]}
 ##########
 <!DOCTYPE html>
