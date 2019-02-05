@@ -84,3 +84,21 @@ table.openeta-map-stopetainfo tr.active {
 	font-size: 24px;
 	font-weight: bold;
 }
+
+button.openeta-toolbar-btn span {
+	display: none;
+}
+
+button.openeta-toolbar-btn:hover span {
+	display: inline;
+}
+
+.btn-circle {
+	width: 30px;
+	height: 30px;
+	padding: 6px 0px;
+	border-radius: 15px;
+	text-align: center;
+	font-size: 12px;
+	line-height: 1.42857;
+}

@@ -17,17 +17,57 @@ var UIManager = function () {
 		OpenETAMap.showRoute(route, pathIndex, selectedStop);
 	});
 
-    Func.registerFunction(UIMANAGER_FUNC_SHOW_SETTINGS, function () {
-        alert("Settings");
+	Func.registerFunction(UIMANAGER_FUNC_SHOW_SETTINGS, function () {
+		UIManager.settings();
     });
 
 	this.timers = [];
 
 	this.variables = {};
 
+	this.settings = function () {
+		this.variables = {};
+		$(".modal-header").html("<h5 class=\"modal-title\">Settings</h5><span style=\"float: right;\"><button class=\"btn btn-default openeta-toolbar-btn\" type=\"button\" onclick=\"UIManager.home();\"><i class=\"fa fa-reply\"></i><span> Return to Home</span></button>");
+
+		var html = "";
+
+		var val;
+		for (var setting of SETTINGS) {
+			val = Settings.get(setting.key, setting.def);
+			html +=
+				"<div class=\"form-group\">" +
+				"    <label><b>" + setting.name + ":</b><p>" + setting.desc + "</p></label>";
+			if (setting.type == "number") {
+				html += "    <input class=\"form-control\" type=\"text\" onkeyup=\"this.value = this.value.replace(/[^\d]/, '')\" value=\"" + val + "\"/>";
+			} else if (setting.type == "boolean") {
+				html += "    <select class=\"form-control\">";
+				if (val) {
+					html +=
+						"        <option selected>Yes</option>" +
+						"        <option>No</option>";
+				} else {
+					html +=
+						"        <option>Yes</option>" +
+						"        <option selected>No</option>";
+				}
+				html += "    </select>"
+			} else {
+				html += "    <input class=\"form-control\" type=\"text\" value=\"" + val + "\"/>";
+			}
+			html += "</div>"
+
+		}
+
+		$(".modal-body").html(html);
+
+		$(".modal-footer").html(
+			"<p style=\"text-align: center\">Licensed under MIT License. This software is only for educational purpose, and cannot be used in commerical or practical purposes.</p>"
+		);
+	};
+
 	this.home = function () {
 		this.variables = {};
-		$(".modal-header").html("<h5 class=\"modal-title\">OpenETA</h5><span style=\"float: right;\"><button class=\"btn btn-light\" type=\"button\" onclick=\"Func.call(UIMANAGER_FUNC_SHOW_SETTINGS);\"><i class=\"fa fa-gear\"></i></button></span>");
+		$(".modal-header").html("<h5 class=\"modal-title\">OpenETA</h5><span style=\"float: right;\"><button class=\"btn btn-default openeta-toolbar-btn\" type=\"button\" onclick=\"Func.call(UIMANAGER_FUNC_SHOW_SETTINGS);\"><i class=\"fa fa-gear\"></i><span> Settings</span></button></span>");
 
 		$(".modal-footer").html(
 			"<p style=\"text-align: center\">Licensed under MIT License. This software is only for educational purpose, and cannot be used in commerical or practical purposes.</p>"
@@ -117,11 +157,11 @@ var UIManager = function () {
 			for (var i = 0; i < allNearbyRoutes.length; i++) {
 				var route = allNearbyRoutes[i];
 				node.append(
-					"<a href=\"#\" onclick=\"Func.call('" + UIMANAGER_FUNC_NEARBY_ROUTE_SELECT + "', " + i + ")\" class=\"list-group-item\">" +
+					"<div onclick=\"Func.call('" + UIMANAGER_FUNC_NEARBY_ROUTE_SELECT + "', " + i + ")\" class=\"list-group-item\">" +
 					"    <h5 class=\"list-group-item-heading\">" + route[0].routeId + "</h5>" +
 					"    <span style=\"float: right\">" + route[0].provider.name + "</span>" +
 					"    <p class=\"list-group-item-text\" id=\"openeta-nearbyeta-" + route[0].provider.name + "-" + route[0].routeId + "-" + route[1] + "-" + route[2].stopId + "\">---</p>" + route[2].stopNameEng + "" +
-					"</a>"
+					"</div>"
 				);
 				hs.push(route[0].provider.makeHandler({
 					route: route[0],

@@ -7,6 +7,7 @@ if (!window["_urlPrefix"]){
 const _googleMapScript = "https://maps.googleapis.com/maps/api/js?callback=initMap&key=";
 const _scripts = [
 	_urlPrefix + "js/openeta-app.js",
+	_urlPrefix + "js/openeta-settings.js",
 	_urlPrefix + "js/openeta-misc.js",
 	_urlPrefix + "js/openeta-map.js",
 	_urlPrefix + "js/openeta-event.js",
@@ -19,6 +20,7 @@ const _scripts = [
 	_urlPrefix + "js/openeta-pluginloader.js"
 ];
 
+var Settings;
 var PluginLoader;
 var RequestLimiter;
 var UIManager;
@@ -72,6 +74,7 @@ function _postLoadScript() {
 		return;
 	}
 
+	Settings = new Settings();
 	Misc = new Misc();
 	Func = new Func();
 	OpenETAMap = new OpenETAMap();
@@ -126,6 +129,7 @@ function _postLoadScript() {
 		return;
 	}
 
+	/*
 	//Remove the weird behaviour in iOS web app
 	var a = document.getElementsByTagName("a");
 	for (var i = 0; i < a.length; i++) {
@@ -134,6 +138,7 @@ function _postLoadScript() {
 			return false;
 		}
 	}
+	*/
 
 	if (PluginLoader.getLoadedPlugins() == 0) {
 		var isWebApp = (window.navigator.standalone == true) || (window.matchMedia('(display-mode: standalone)').matches);
