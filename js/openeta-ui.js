@@ -22,7 +22,7 @@ var UIManager = function () {
 
 	this.home = function () {
 		this.variables = {};
-		$(".modal-header").html("<h5 class=\"modal-title\">OpenETA</h5>");
+		$(".modal-header").html("<h5 class=\"modal-title\">OpenETA</h5><span style=\"float: right;\"><button type=\"button\" onclick=\"\"><i class=\"fa fa-gear\"></i></button></span>");
 
 		$(".modal-footer").html(
 			"<p style=\"text-align: center\">Licensed under MIT License. This software is only for educational purpose, and cannot be used in commerical or practical purposes.</p>"
