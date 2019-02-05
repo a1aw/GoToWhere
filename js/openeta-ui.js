@@ -1,6 +1,7 @@
 //OpenETA Event Manager
 
 const UIMANAGER_FUNC_NEARBY_ROUTE_SELECT = "UIMANAGER_FUNC_NEARBY_ROUTE_SELECT";
+const UIMANAGER_FUNC_SHOW_SETTINGS = "UIMANAGER_FUNC_SHOW_SETTINGS";
 const UIMANAGER_VAR_ALL_NEARBY_ROUTES = "UIMANAGER_VAR_ALL_NEARBY_ROUTES";
 
 var UIManager = function () {
@@ -16,13 +17,17 @@ var UIManager = function () {
 		OpenETAMap.showRoute(route, pathIndex, selectedStop);
 	});
 
+    Func.registerFunction(UIMANAGER_FUNC_SHOW_SETTINGS, function () {
+        alert("Settings");
+    });
+
 	this.timers = [];
 
 	this.variables = {};
 
 	this.home = function () {
 		this.variables = {};
-		$(".modal-header").html("<h5 class=\"modal-title\">OpenETA</h5><span style=\"float: right;\"><button class=\"btn btn-default\" type=\"button\" onclick=\"\"><i class=\"fa fa-gear\"></i></button></span>");
+		$(".modal-header").html("<h5 class=\"modal-title\">OpenETA</h5><span style=\"float: right;\"><button class=\"btn btn-light\" type=\"button\" onclick=\"Func.call(UIMANAGER_FUNC_SHOW_SETTINGS);\"><i class=\"fa fa-gear\"></i></button></span>");
 
 		$(".modal-footer").html(
 			"<p style=\"text-align: center\">Licensed under MIT License. This software is only for educational purpose, and cannot be used in commerical or practical purposes.</p>"
