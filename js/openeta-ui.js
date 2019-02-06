@@ -29,6 +29,10 @@ var UIManager = function () {
 			} else {
 				out = val;
 			}
+			if (setting.checkfunc && !setting.checkfunc(out)) {
+				alert("The value for \"" + setting.name + "\" is invalid.");
+				return;
+			}
 			Settings.set(setting.key, out);
 		}
 		Settings.save();

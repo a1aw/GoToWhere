@@ -74,7 +74,7 @@ function _postLoadScript() {
 		_loadScriptTasks--;
 		return;
 	}
-
+	
 	Settings = new Settings();
 	Settings.load();
 	Cors = new Cors();

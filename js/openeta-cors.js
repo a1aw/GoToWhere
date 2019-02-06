@@ -19,7 +19,8 @@ var Cors = function () {
 		if (cors) {
 			var host = Cors.extractHost(request.url);
 
-			if (!Cors.domains[host]) {
+			var config = Cors.domains[host];
+			if (!config) {
 				console.error("openeta-cors: The request to \"" + host + "\" was dropped, because this cross-domain host was not registered before performing AJAX.");
 				callback({
 					status: 403,
@@ -42,6 +43,17 @@ var Cors = function () {
 					});
 					return;
 				}
+			} else if (Settings.get("cors_check_bypass", false)) {
+				callback();
+				return;
+			} else if (!config.allowCors) {
+				console.error("openeta-cors: The request was dropped because there are no proxy available to handle CORS requests.");
+				callback({
+					status: 403,
+					statusText: 'The request was dropped because there are no proxy available to handle CORS requests.',
+					headers: {}
+				});
+				return;
 			}
 		}
 		

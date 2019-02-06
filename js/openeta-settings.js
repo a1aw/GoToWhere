@@ -23,8 +23,15 @@ const DEFAULT_SETTINGS = [
 		desc: "It must be a secure URL starting with \"https://\" and ending with a slash \"/\".",
 		def: "",
 		checkfunc: function (val) {
-
+			return val.startsWith("https://") && val.endsWith("/")
 		}
+	},
+	{
+		key: "cors_check_bypass",
+		type: "boolean",
+		name: "Bypass OpenETA-CORS Check",
+		desc: "For development use only. This will bypass OpenETA's internal CORS check, disable CORS proxy. Requests will only work if the web browser's CORS policy is disabled.",
+		def: false
 	}
 ];
 
