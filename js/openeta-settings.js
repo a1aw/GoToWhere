@@ -8,11 +8,11 @@ const VALUE_TYPES = {
 	boolean: "boolean"
 };
 
-const SETTINGS = [
+const DEFAULT_SETTINGS = [
 	{
-		key: "cors_proxy_enabled",
+		key: "use_cors_proxy",
 		type: "boolean",
-		name: "Enable CORS Proxy",
+		name: "Use CORS Proxy",
 		desc: "For security reasons, browsers are not allowed to perform cross domain requests, aka CORS Policy. This will disallow plugins to fetch data from servers without required headers. This proxy is for adding Access-Control-Allow-Origin headers to server responses.",
 		def: false
 	},
@@ -34,7 +34,7 @@ var Settings = function () {
 
 	this.get = function (key, def = false) {
 		var val = this.json[key];
-		if (!val) {
+		if (val === null) {
 			return def;
 		}
 		return val;

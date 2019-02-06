@@ -8,6 +8,7 @@ const _googleMapScript = "https://maps.googleapis.com/maps/api/js?callback=initM
 const _scripts = [
 	_urlPrefix + "js/openeta-app.js",
 	_urlPrefix + "js/openeta-settings.js",
+	_urlPrefix + "js/openeta-cors.js",
 	_urlPrefix + "js/openeta-misc.js",
 	_urlPrefix + "js/openeta-map.js",
 	_urlPrefix + "js/openeta-event.js",
@@ -75,6 +76,8 @@ function _postLoadScript() {
 	}
 
 	Settings = new Settings();
+	Settings.load();
+	Cors = new Cors();
 	Misc = new Misc();
 	Func = new Func();
 	OpenETAMap = new OpenETAMap();

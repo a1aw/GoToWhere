@@ -1,7 +1,7 @@
 //OpenETA Event Manager
 
 const UIMANAGER_FUNC_NEARBY_ROUTE_SELECT = "UIMANAGER_FUNC_NEARBY_ROUTE_SELECT";
-const UIMANAGER_FUNC_SHOW_SETTINGS = "UIMANAGER_FUNC_SHOW_SETTINGS";
+const UIMANAGER_FUNC_SAVE_SETTINGS = "UIMANAGER_FUNC_SAVE_SETTINGS";
 const UIMANAGER_VAR_ALL_NEARBY_ROUTES = "UIMANAGER_VAR_ALL_NEARBY_ROUTES";
 
 var UIManager = function () {
@@ -17,9 +17,25 @@ var UIManager = function () {
 		OpenETAMap.showRoute(route, pathIndex, selectedStop);
 	});
 
-	Func.registerFunction(UIMANAGER_FUNC_SHOW_SETTINGS, function () {
-		UIManager.settings();
-    });
+	Func.registerFunction(UIMANAGER_FUNC_SAVE_SETTINGS, function (args) {
+		var val;
+		var out;
+		for (var setting of DEFAULT_SETTINGS) {
+			val = $("#openeta-settings-" + setting.key).val();
+			if (setting.type == "boolean") {
+				out = val == "Yes";
+			} else if (setting.type == "number") {
+				out = parseInt(val);
+			} else {
+				out = val;
+			}
+			Settings.set(setting.key, out);
+		}
+		Settings.save();
+		if (args.length > 0 && args[0]) {
+			UIManager.home();
+		}
+	});
 
 	this.timers = [];
 
@@ -32,15 +48,13 @@ var UIManager = function () {
 		var html = "";
 
 		var val;
-		for (var setting of SETTINGS) {
+		for (var setting of DEFAULT_SETTINGS) {
 			val = Settings.get(setting.key, setting.def);
 			html +=
 				"<div class=\"form-group\">" +
 				"    <label><b>" + setting.name + ":</b><p>" + setting.desc + "</p></label>";
-			if (setting.type == "number") {
-				html += "    <input class=\"form-control\" type=\"text\" onkeyup=\"this.value = this.value.replace(/[^\d]/, '')\" value=\"" + val + "\"/>";
-			} else if (setting.type == "boolean") {
-				html += "    <select class=\"form-control\">";
+			if (setting.type == "boolean") {
+				html += "    <select class=\"form-control\" id=\"openeta-settings-" + setting.key + "\">";
 				if (val) {
 					html +=
 						"        <option selected>Yes</option>" +
@@ -52,11 +66,19 @@ var UIManager = function () {
 				}
 				html += "    </select>"
 			} else {
-				html += "    <input class=\"form-control\" type=\"text\" value=\"" + val + "\"/>";
+				html += "    <input class=\"form-control\" id=\"openeta-settings-" + setting.key + "\" type=\"text\"";
+				if (setting.type == "number") {
+					html += " onkeyup=\"this.value = this.value.replace(/[^\d]/, '')\"";
+				}
+				html += " value=\"" + val + "\"/>";
 			}
 			html += "</div>"
 
 		}
+
+		html +=
+			"<input type=\"button\" class=\"btn btn-success\" onclick=\"Func.call(UIMANAGER_FUNC_SAVE_SETTINGS, true);\" value=\"Save & Close\"/> " +
+			"<input type=\"button\" class=\"btn btn-default\" onclick=\"Func.call(UIMANAGER_FUNC_SAVE_SETTINGS, false);\" value=\"Apply\"/>";
 
 		$(".modal-body").html(html);
 
@@ -67,7 +89,7 @@ var UIManager = function () {
 
 	this.home = function () {
 		this.variables = {};
-		$(".modal-header").html("<h5 class=\"modal-title\">OpenETA</h5><span style=\"float: right;\"><button class=\"btn btn-default openeta-toolbar-btn\" type=\"button\" onclick=\"Func.call(UIMANAGER_FUNC_SHOW_SETTINGS);\"><i class=\"fa fa-gear\"></i><span> Settings</span></button></span>");
+		$(".modal-header").html("<h5 class=\"modal-title\">OpenETA</h5><span style=\"float: right;\"><button class=\"btn btn-default openeta-toolbar-btn\" type=\"button\" onclick=\"UIManager.settings();\"><i class=\"fa fa-gear\"></i><span> Settings</span></button></span>");
 
 		$(".modal-footer").html(
 			"<p style=\"text-align: center\">Licensed under MIT License. This software is only for educational purpose, and cannot be used in commerical or practical purposes.</p>"
