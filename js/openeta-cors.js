@@ -14,6 +14,10 @@ var Cors = function () {
 	}
 
 	xhook.before(function (request, callback) {
+		if (Settings.get("cors_check_bypass", false)) {
+			callback();
+			return;
+		}
 		var cors = Cors.isCors(request.url);
 
 		if (cors) {
@@ -43,9 +47,6 @@ var Cors = function () {
 					});
 					return;
 				}
-			} else if (Settings.get("cors_check_bypass", false)) {
-				callback();
-				return;
 			} else if (!config.allowCors) {
 				console.error("openeta-cors: The request was dropped because there are no proxy available to handle CORS requests.");
 				callback({

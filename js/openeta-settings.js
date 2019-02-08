@@ -10,6 +10,28 @@ const VALUE_TYPES = {
 
 const DEFAULT_SETTINGS = [
 	{
+		key: "min_nearby_transit_range",
+		type: "number",
+		name: "Minimum nearby transit search range",
+		desc: "Minimum range in metres to search for nearby transit. Must be less than 10000 m",
+		def: 200,
+		checkfunc: function (val) {
+			var x = parseInt(val);
+			return !Number.isNaN(x) && x < 10000;
+		}
+	},
+	{
+		key: "max_nearby_transit_to_display",
+		type: "number",
+		name: "Maximum nearby transit to be displayed",
+		desc: "Maxmium nearby transit to be displayed in the Home UI. Must be less than 100.",
+		def: 20,
+		checkfunc: function (val) {
+			var x = parseInt(val);
+			return !Number.isNaN(x) && x < 100;
+		}
+	},
+	{
 		key: "use_cors_proxy",
 		type: "boolean",
 		name: "Use CORS Proxy",
@@ -41,7 +63,7 @@ var Settings = function () {
 
 	this.get = function (key, def = false) {
 		var val = this.json[key];
-		if (val === null) {
+		if (typeof val === 'undefined') {
 			return def;
 		}
 		return val;

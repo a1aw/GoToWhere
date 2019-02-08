@@ -92,9 +92,9 @@ var ETAManager = function () {
 
 		if (sorted) {
 			stops.sort(function(a, b){
-				if(a.distance < b.distance){
+				if(a[1] < b[1]){
 					return -1;
-				} else if (a.distance > b.distance) {
+				} else if (a[1] > b[1]) {
 					return 1;
 				} else {
 					return 0;	
@@ -226,7 +226,7 @@ class MultiTasker {
 	}
 
 	getTotalProgress() {
-		return (this.tasks.length - this.remain + 1 + this.taskProgress / 100.0) / this.tasks.length * 100.0;
+		return ((this.tasks.length - this.remain) / this.tasks.length * 100.0) + this.taskProgress / this.tasks.length;
 	}
 
 	setTaskProgress(value) {

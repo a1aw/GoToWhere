@@ -137,15 +137,15 @@ var UIManager = function () {
 
 			var lat = pos.lat();
 			var lng = pos.lng();
-			var range = 0.1;
+			var range = Settings.get("min_nearby_transit_range", 200) / 1000.0;
 
-			var allNearbyStops = ETAManager.getAllStopsNearbyCoord(lat, lng, range);
+			var allNearbyStops = ETAManager.getAllStopsNearbyCoord(lat, lng, range, true, true);
 
 			if (allNearbyStops.length <= 0) {
 				var testRange = range;
 				do {
 					testRange += 0.05;
-					allNearbyStops = ETAManager.getAllStopsNearbyCoord(lat, lng, testRange);
+					allNearbyStops = ETAManager.getAllStopsNearbyCoord(lat, lng, testRange, true, true);
 				} while (allNearbyStops.length <= 0);
 
 				$(".modal-body").append(
@@ -164,16 +164,17 @@ var UIManager = function () {
 			var node = $("#home-nearbystops-listgroup");
 			node.html("");
 
+			var maxNearbyBusDisplay = Settings.get("max_nearby_transit_to_display", 20);
 			console.log(allNearbyStops);
 			var allNearbyRoutes = [];
 			for (var stop of allNearbyStops) {
-				if (allNearbyRoutes.length >= 20) {
+				if (allNearbyRoutes.length >= maxNearbyBusDisplay) {
 					break;
 				}
-				var routes = ETAManager.searchRoutesOfStop(stop);
+				var routes = ETAManager.searchRoutesOfStop(stop[0]);
 				for (var route of routes) {
-					console.log(route[0].routeId + ", " + route[1] + ", " + stop.stopId);
-					allNearbyRoutes.push([route[0], route[1], stop]);
+					console.log(route[0].routeId + ", " + route[1] + ", " + stop[0].stopId);
+					allNearbyRoutes.push([route[0], route[1], stop[0], stop[1]]);
 				}
 			}
 			console.log(allNearbyRoutes);
@@ -182,12 +183,13 @@ var UIManager = function () {
 
 			for (var i = 0; i < allNearbyRoutes.length; i++) {
 				var route = allNearbyRoutes[i];
+				var d = Math.round(route[3] * 1000);
 				node.append(
 					"<div onclick=\"Func.call('" + UIMANAGER_FUNC_NEARBY_ROUTE_SELECT + "', " + i + ")\" class=\"list-group-item\">" +
 					"    <h5 class=\"list-group-item-heading\">" + route[0].routeId + "</h5>" +
 					"    <span style=\"float: right\">" + route[0].provider.name + "</span>" +
-					"    <p class=\"list-group-item-text\" id=\"openeta-nearbyeta-" + route[0].provider.name + "-" + route[0].routeId + "-" + route[1] + "-" + route[2].stopId + "\">---</p>" + route[2].stopNameEng + "" +
-					"</div>"
+					"    <p class=\"list-group-item-text\" id=\"openeta-nearbyeta-" + route[0].provider.name + "-" + route[0].routeId + "-" + route[1] + "-" + route[2].stopId + "\">---</p>" + route[2].stopNameEng + " (" + d +
+					"m)</div>"
 				);
 				hs.push(route[0].provider.makeHandler({
 					route: route[0],
