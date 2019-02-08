@@ -76,8 +76,7 @@ var UIManager = function () {
                 } else {
                     html += "text";
                 }
-           }
-				html += " value=\"" + val + "\"/>";
+				html += "\" value=\"" + val + "\"/>";
 			}
 			html += "</div>"
 
