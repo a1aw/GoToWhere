@@ -2,6 +2,8 @@
 
 const UIMANAGER_FUNC_NEARBY_ROUTE_SELECT = "UIMANAGER_FUNC_NEARBY_ROUTE_SELECT";
 const UIMANAGER_FUNC_SAVE_SETTINGS = "UIMANAGER_FUNC_SAVE_SETTINGS";
+const UIMANAGER_FUNC_SORT_COMPANY = "UIMANAGER_FUNC_SORT_COMPANY";
+const UIMANAGER_FUNC_UNSORT_COMPANY = "UIMANAGER_FUNC_UNSORT_COMPANY";
 const UIMANAGER_VAR_ALL_NEARBY_ROUTES = "UIMANAGER_VAR_ALL_NEARBY_ROUTES";
 
 var UIManager = function () {
@@ -15,6 +17,24 @@ var UIManager = function () {
 		var pathIndex = data[1];
 		var selectedStop = data[2];
 		OpenETAMap.showRoute(route, pathIndex, selectedStop);
+	});
+
+	Func.registerFunction(UIMANAGER_FUNC_SORT_COMPANY, function (company) {
+		company = company.toString();
+		$(".openeta-company").css("display", "none");
+		$(".openeta-company-" + company.trim()).css("display", "");
+		$(".openeta-sortcompany").removeClass("btn-primary");
+		$(".openeta-sortcompany").addClass("btn-default");
+		$(".openeta-sortcompany-" + company.trim()).addClass("btn-primary");
+		$(".openeta-sortcompany-" + company.trim()).removeClass("btn-default");
+	});
+
+	Func.registerFunction(UIMANAGER_FUNC_UNSORT_COMPANY, function () {
+		$(".openeta-company").css("display", "");
+		$(".openeta-sortcompany").removeClass("btn-primary");
+		$(".openeta-sortcompany").addClass("btn-default");
+		$(".openeta-unsortcompany").addClass("btn-primary");
+		$(".openeta-unsortcompany").removeClass("btn-default");
 	});
 
 	Func.registerFunction(UIMANAGER_FUNC_SAVE_SETTINGS, function (args) {
@@ -118,7 +138,7 @@ var UIManager = function () {
 
 			var buttonScroll =
 				"<div class=\"hori-scroll\">" +
-				"    <button type=\"button\" class=\"btn btn-primary\"><i class=\"fa fa-reply-all\"></i><br />All</button>";
+				"    <button type=\"button\" class=\"btn btn-primary openeta-sortcompany openeta-unsortcompany\" onclick=\"Func.call(UIMANAGER_FUNC_UNSORT_COMPANY)\"><i class=\"fa fa-reply-all\"></i><br />All</button>";
 
 			for (var provider of providers) {
 				var image = "";
@@ -129,7 +149,7 @@ var UIManager = function () {
 				} else {
 					image = "fa-question";
 				}
-				buttonScroll += " <button type=\"button\" class=\"btn btn-default\"><i class=\"fa " + image + "\"></i><br />" + provider.name + "</button>";
+				buttonScroll += " <button type=\"button\" class=\"btn btn-default openeta-sortcompany openeta-sortcompany-" + provider.name.trim() + "\" onclick=\"Func.call(UIMANAGER_FUNC_SORT_COMPANY, '" + provider.name.trim() + "')\"><i class=\"fa " + image + "\"></i><br />" + provider.name + "</button>";
 			}
 
 			buttonScroll += "</div><br />";
@@ -159,11 +179,20 @@ var UIManager = function () {
 			}
 
 			$(".modal-body").append(
+				"<div class=\"table-responsive\">" +
+				"    <table id=\"home-nearbystops-table\" class=\"table openeta-nearbystops-table\">" +
+				"    </table>" +
+				"</div>"
+			);
+			/*
+			$(".modal-body").append(
 				"<div class=\"list-group\" id=\"home-nearbystops-listgroup\">" +
 				"</div>"
 			);
+			*/
 
-			var node = $("#home-nearbystops-listgroup");
+			var node = $("#home-nearbystops-table");
+			//var node = $("#home-nearbystops-listgroup");
 			node.html("");
 
 			var maxNearbyBusDisplay = Settings.get("max_nearby_transit_to_display", 20);
@@ -186,13 +215,24 @@ var UIManager = function () {
 			for (var i = 0; i < allNearbyRoutes.length; i++) {
 				var route = allNearbyRoutes[i];
 				var d = Math.round(route[3] * 1000);
+				var nodeText =
+					"<tr onclick=\"Func.call('" + UIMANAGER_FUNC_NEARBY_ROUTE_SELECT + "', " + i + ")\" class=\"eta openeta-company openeta-company-" + route[0].provider.name.toString().trim() + "\">" +
+					"    <td><span>" + route[0].provider.name + "</span><br /><b>" + route[0].routeId + "</b></td>" +
+					"    <td>" + route[2].stopNameEng + " (" + d + "m)" + "</td>" +
+					"    <td><span class=\"list-group-item-text\" id=\"openeta-nearbyeta-" + route[0].provider.name + "-" + route[0].routeId + "-" + route[1] + "-" + route[2].stopId + "\">---</span></td>" +
+					"    <td><i class=\"fa fa-arrow-right\"></i></td>" +
+					"</tr>"
+					;
+				node.append(nodeText);
+				/*
 				node.append(
-					"<div onclick=\"Func.call('" + UIMANAGER_FUNC_NEARBY_ROUTE_SELECT + "', " + i + ")\" class=\"list-group-item\">" +
+					"<div onclick=\"Func.call('" + UIMANAGER_FUNC_NEARBY_ROUTE_SELECT + "', " + i + ")\" class=\"list-group-item openeta-company openeta-company-" + route[0].provider.name.toString().trim() + "\">" +
 					"    <h5 class=\"list-group-item-heading\">" + route[0].routeId + "</h5>" +
 					"    <span style=\"float: right\">" + route[0].provider.name + "</span>" +
 					"    <p class=\"list-group-item-text\" id=\"openeta-nearbyeta-" + route[0].provider.name + "-" + route[0].routeId + "-" + route[1] + "-" + route[2].stopId + "\">---</p>" + route[2].stopNameEng + " (" + d +
 					"m)</div>"
 				);
+				*/
 				hs.push(route[0].provider.makeHandler({
 					route: route[0],
 					selectedPath: route[1],
@@ -204,6 +244,10 @@ var UIManager = function () {
 				h.fetchETA().done(function () {
 					var text = "";
 					var eta = h.getETA();
+
+					var key = h.route.provider.name + "-" + h.route.routeId + "-" + h.selectedPath + "-" + h.stop.stopId;
+					var node = $("#openeta-nearbyeta-" + key);
+
 					if (!eta || !eta.schedules || !eta.serverTime) {
 						text = "ETA Not available";
 					} else if (eta.schedules.length == 0) {
@@ -261,10 +305,9 @@ var UIManager = function () {
 						*/
 
 						//TODO: Features
+						node.parent().parent().addClass("table-" + css)
 					}
-					var node = $("#openeta-nearbyeta-" + h.route.provider.name + "-" + h.route.routeId + "-" + h.selectedPath + "-" + h.stop.stopId);
 					node.html(text);
-					node.parent().attr("class", "list-group-item list-group-item-" + css)
 				});
 			});
 

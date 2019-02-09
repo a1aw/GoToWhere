@@ -85,6 +85,29 @@ table.openeta-map-stopetainfo tr.active {
 	font-weight: bold;
 }
 
+table.openeta-nearbystops-table tr td {
+	vertical-align: middle;
+	text-align: center;
+}
+
+table.openeta-nearbystops-table tr td:nth-child(1) {
+	width: 10%;
+	font-size: x-large;
+}
+
+table.openeta-nearbystops-table tr td:nth-child(1) span {
+	font-size: small;
+}
+
+table.openeta-nearbystops-table tr td:nth-child(2) {
+	width: 55%;
+	font-size: small;
+}
+
+table.openeta-nearbystops-table tr td:nth-child(3) {
+	width: 35%;
+}
+
 button.openeta-toolbar-btn span {
 	display: none;
 }
