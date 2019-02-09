@@ -70,11 +70,13 @@ var UIManager = function () {
 				}
 				html += "    </select>"
 			} else {
-				html += "    <input class=\"form-control\" id=\"openeta-settings-" + setting.key + "\" type=\"text\"";
-				if (setting.type == "number") {
-					html += " onkeyup=\"this.value = this.value.replace(/[^\d]/, '')\"";
-				}
-				html += " value=\"" + val + "\"/>";
+				html += "    <input class=\"form-control\" id=\"openeta-settings-" + setting.key + "\" type=\"";
+                if (setting.type == "number") {
+                    html += "number";
+                } else {
+                    html += "text";
+                }
+				html += "\" value=\"" + val + "\"/>";
 			}
 			html += "</div>"
 
