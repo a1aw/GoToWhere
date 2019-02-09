@@ -1,4 +1,5 @@
 ﻿{"scripts": [
+"https://www.openeta.ml/js/clinit.js",
 "https://app.openeta.ml/vendor/jquery/jquery.min.js",
 "https://app.openeta.ml/vendor/popper/popper.min.js",
 "https://app.openeta.ml/vendor/bootstrap/js/bootstrap.min.js",
