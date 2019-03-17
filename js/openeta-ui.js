@@ -11,6 +11,7 @@ var UIManager = function () {
 	var global = this;
 
 	Func.registerFunction(UIMANAGER_FUNC_NEARBY_ROUTE_SELECT, function (index) {
+		global.clearUp();
 		//global.hide();
 		var data = global.variables[UIMANAGER_VAR_ALL_NEARBY_ROUTES][index];
 		var route = data[0];
@@ -65,7 +66,14 @@ var UIManager = function () {
 
 	this.variables = {};
 
+	this.clearUp = function () {
+		for (var timer of this.timers) {
+			clearInterval(timer);
+		}
+	}
+
 	this.settings = function () {
+		this.clearUp();
 		this.variables = {};
 		$(".modal-header").html("<h5 class=\"modal-title\">Settings</h5><span style=\"float: right;\"><button class=\"btn btn-default openeta-toolbar-btn\" type=\"button\" onclick=\"UIManager.home();\"><i class=\"fa fa-reply\"></i><span> Return to Home</span></button>");
 
@@ -114,6 +122,7 @@ var UIManager = function () {
 	};
 
 	this.home = function () {
+		this.clearUp();
 		this.variables = {};
 		$(".modal-header").html("<h5 class=\"modal-title\">OpenETA</h5><span style=\"float: right;\"><button class=\"btn btn-default openeta-toolbar-btn\" type=\"button\" onclick=\"UIManager.settings();\"><i class=\"fa fa-gear\"></i><span> Settings</span></button></span>");
 
@@ -156,7 +165,6 @@ var UIManager = function () {
 
 			$(".modal-body").append(buttonScroll);
 			
-
 			var lat = pos.lat();
 			var lng = pos.lng();
 			var range = Settings.get("min_nearby_transit_range", 200) / 1000.0;
@@ -210,7 +218,7 @@ var UIManager = function () {
 			}
 			console.log(allNearbyRoutes);
 
-			var hs = [];
+			//var hs = [];
 
 			for (var i = 0; i < allNearbyRoutes.length; i++) {
 				var route = allNearbyRoutes[i];
@@ -233,88 +241,112 @@ var UIManager = function () {
 					"m)</div>"
 				);
 				*/
-				hs.push(route[0].provider.makeHandler({
+				ETAManager.request({
+					provider: route[0].provider,
 					route: route[0],
 					selectedPath: route[1],
 					stop: route[2]
-				}));
+				});
 			}
 
+			/*
 			hs.forEach(function (h) {
 				h.fetchETA().done(function () {
-					var text = "";
-					var eta = h.getETA();
-
-					var key = h.route.provider.name + "-" + h.route.routeId + "-" + h.selectedPath + "-" + h.stop.stopId;
-					var node = $("#openeta-nearbyeta-" + key);
-
-					if (!eta || !eta.schedules || !eta.serverTime) {
-						text = "ETA Not available";
-					} else if (eta.schedules.length == 0) {
-						text = "No schedules pending";
-					} else {
-						var schedule = eta.schedules[0];
-
-						var eta = schedule.getRemainingMinutes(eta.serverTime);
-						var css = "";
-
-						if (eta >= 20) {
-							css = "secondary";
-						} else if (eta >= 15) {
-							css = "info";
-						} else if (eta >= 10) {
-							css = "success";
-						} else if (eta >= 5) {
-							css = "warning";
-						} else if (eta >= 1) {
-							css = "danger"
-						} else {
-							css = "dark";
-						}
-
-						//TODO: isOutdated
-
-						if (schedule.hasMsg) {
-							text = schedule.msg;
-						}
-						if (schedule.hasTime) {
-							if (schedule.hasMsg) {
-								text += "<br />";
-							}
-							if (eta > 1) {
-								text += eta + " mins";
-							} else if (eta == 1) {
-								text += eta + " min";
-							} else {
-								text += "Arrived/Left";
-							}
-						}
-
-						if (schedule.isLive) {
-							text += " <span style=\"color: red; float: right; font-size: 10px;\"><i class=\"fa fa-circle\"></i> Live</span>";
-						} else {
-							text += " <span style=\"font-size: 10px; float: right; font-style: italic;\">Scheduled</span>";
-						}
-
-						/*
-						if (schedule.hasTime) {
-							text += Misc.fillZero(schedule.time.hr) + ":" + Misc.fillZero(schedule.time.min);
-						} else {
-							text += "---";
-						}
-						*/
-
-						//TODO: Features
-						node.parent().parent().addClass("table-" + css)
-					}
-					node.html(text);
 				});
 			});
+			*/
+
+			var global = this;
+			this.timers.push(setInterval(function () {
+				console.log("Update UI!");
+				global.updateEtaUi();
+			}, 1000));
 
 			this.variables[UIMANAGER_VAR_ALL_NEARBY_ROUTES] = allNearbyRoutes;
 
 		}
 		EventManager.dispatchEvent(EVENTS.EVENT_UI_HOME);
+	}
+
+	this.updateEtaUi = function () {
+		var routes = this.variables[UIMANAGER_VAR_ALL_NEARBY_ROUTES];
+
+		for (var route of routes) {
+			var h = ETAManager.request({
+				provider: route[0].provider,
+				route: route[0],
+				selectedPath: route[1],
+				stop: route[2]
+			});
+
+			var text = "";
+			var eta = h.getETA();
+
+			var key = h.route.provider.name + "-" + h.route.routeId + "-" + h.selectedPath + "-" + h.stop.stopId;
+			var node = $("#openeta-nearbyeta-" + key);
+
+			if (!eta || !eta.schedules || !eta.serverTime) {
+				text = "ETA Not available";
+			} else if (eta.schedules.length == 0) {
+				text = "No schedules pending";
+			} else {
+				var schedule = eta.schedules[0];
+
+				var eta = schedule.getRemainingMinutes(eta.serverTime);
+				var css = "";
+
+				if (eta >= 20) {
+					css = "secondary";
+				} else if (eta >= 15) {
+					css = "info";
+				} else if (eta >= 10) {
+					css = "success";
+				} else if (eta >= 5) {
+					css = "warning";
+				} else if (eta >= 1) {
+					css = "danger"
+				} else {
+					css = "dark";
+				}
+
+				//TODO: isOutdated
+
+				if (schedule.hasMsg) {
+					text = schedule.msg;
+				}
+				if (schedule.hasTime) {
+					if (schedule.hasMsg) {
+						text += "<br />";
+					}
+					if (eta > 1) {
+						text += eta + " mins";
+					} else if (eta == 1) {
+						text += eta + " min";
+					} else {
+						text += "Arrived/Left";
+					}
+				}
+
+				if (schedule.isLive) {
+					text += " <span style=\"color: red; float: right; font-size: 10px;\"><i class=\"fa fa-circle\"></i> Live</span>";
+				} else {
+					text += " <span style=\"font-size: 10px; float: right; font-style: italic;\">Scheduled</span>";
+				}
+
+				/*
+				if (schedule.hasTime) {
+					text += Misc.fillZero(schedule.time.hr) + ":" + Misc.fillZero(schedule.time.min);
+				} else {
+					text += "---";
+				}
+				*/
+
+				//TODO: Features
+				node.parent().parent().addClass("table-" + css)
+			}
+			node.html(text);
+		}
+		
 	}
 
 	this.setModal = function (header, body, footer) {

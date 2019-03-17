@@ -69,13 +69,12 @@ var OpenETAMap = function () {
 		var provider = marker.route.provider;
 		//TODO: Lang preference
 
-		var h = provider.makeHandler({
+		var h = ETAManager.request({
+			provider: marker.route.provider,
 			route: marker.route,
-			stop: marker.stop,
-			selectedPath: marker.selectedPath
+			selectedPath: marker.selectedPath,
+			stop: marker.stop
 		});
-
-		ETAManager.addHandler(h);
 
 		var prefix =
 			"<p>" + stopName + "</p>" +

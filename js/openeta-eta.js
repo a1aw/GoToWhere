@@ -9,9 +9,37 @@ const TransitType = {
 
 var ETAManager = function () {
 
+	this.timer = 0;
+
 	this.providers = [];
 
-	this.handlers = [];
+	this.handlers = {};
+
+	this.forceUpdate = function () {
+		console.log("Updating!")
+		var d = new Date();
+		var cache;
+		for (var key in this.handlers) {
+			cache = this.handlers[key];
+			if (cache.lastAccess && d.getTime() - cache.lastAccess > 60000) {
+				console.log("Invalidate inuse ETA cache: " + key)
+				delete this.handlers[key];
+			} else {
+				cache.handler.fetchETA();
+			}
+		}
+	}
+
+	this.start = function () {
+		var global = this;
+		this.timer = setInterval(function () {
+			global.forceUpdate();
+		}, 30000);
+	}
+
+	this.stop = function () {
+		clearInterval(this.timer);
+	}
 
 	this.registerProvider = function (provider) {
 		if (!(provider instanceof ETAProvider)) {
@@ -32,19 +60,26 @@ var ETAManager = function () {
 		return this.providers;
 	}
 
-	this.addHandler = function (handler) {
-		if (!(handler instanceof ETAHandler)) {
-			throw new TypeError("The variable 'handler' must be a 'ETAHandler'.");
-		}
-		this.handlers.push(handler);
-	}
+	this.request = function (options) {
+		var key = options.provider.name + "-" + options.route.routeId + "-" + options.selectedPath + "-" + options.stop.stopId;
 
-	this.removeHandler = function (handler) {
-		var i = this.handlers.indexOf(handler);
-		if (i == -1) {
-			return;
+		var d = new Date();
+		var cache = this.handlers[key];
+		if (cache) {
+			this.handlers[key].lastAccess = d.getTime();
+			return cache.handler;
+		} else {
+			var h = options.provider.makeHandler({
+				route: options.route,
+				selectedPath: options.selectedPath,
+				stop: options.stop
+			});
+			this.handlers[key] = {
+				lastAccess: d.getTime(),
+				handler: h
+			};
+			return h;
 		}
-		this.handlers.splice(i, 1);
 	}
 
 	this.getHandlers = function () {
@@ -506,9 +541,10 @@ class Route extends TransitObject{
 
 	constructor(data) {
 		super(data);
-		const { routeId, paths } = data;
+		const { routeId, paths, ext } = data;
 		this.routeId = routeId;
 		this.paths = paths;
+		this.ext = ext;
 	}
 
 }
@@ -517,7 +553,7 @@ class Stop extends TransitObject {
 
 	constructor(data) {
 		super(data);
-		const { stopId, stopNameChi, stopNameEng, addrChi, addrEng, lat, lng } = data;
+		const { stopId, stopNameChi, stopNameEng, addrChi, addrEng, lat, lng, ext } = data;
 		this.stopId = stopId;
 		this.stopNameChi = stopNameChi;
 		this.stopNameEng = stopNameEng;
@@ -525,6 +561,7 @@ class Stop extends TransitObject {
 		this.addrEng = addrEng;
 		this.lat = lat;
 		this.lng = lng;
+		this.ext = ext;
 	}
 
 }

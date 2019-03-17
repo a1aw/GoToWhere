@@ -62,6 +62,9 @@ var Cors = function () {
 	});
 
 	this.extractHost = function (url) {
+		if (url.startsWith("file://")) {
+			return "___file___";
+		}
 		var i = url.indexOf("://");
 		var last = url.substring(i + 3);
 

@@ -83,6 +83,7 @@ function _postLoadScript() {
 	OpenETAMap = new OpenETAMap();
 	LocationManager = new LocationManager();
 	ETAManager = new ETAManager();
+	ETAManager.start();
 	EventManager = new EventManager();
 	UIManager = new UIManager();
 	RequestLimiter = new RequestLimiter();
@@ -284,6 +285,7 @@ function _initDb() {
 		var func = function () {
 			UIManager.home();
 			UIManager.show(true);
+			ETAManager.forceUpdate();
 
 			$("#startup").html("");
 			$("#startup").css("display", "none");
