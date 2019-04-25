@@ -35,10 +35,9 @@ var _installCode;
 
 $(document).ready(function () {
 	_scripts.push(_googleMapScript + _googleMapApiKey);
-	_loadScriptTasks = _scripts.length;
+    _loadScriptTasks = _scripts.length;
+    $("#startup-status").html("Loading OpenETA scripts... (" + _scripts.length + "/" + _scripts.length + " left)");
 	for (var i = 0; i < _scripts.length; i++) {
-		$("#startup-status").html("Loading OpenETA scripts... (" + (i + 1) + "/" + _scripts.length + ")");
-
 		var node = document.createElement("script");
 		node.src = _scripts[i];
 		node.onload = function () {
@@ -70,6 +69,7 @@ function _makeInstall() {
 }
 
 function _postLoadScript() {
+    $("#startup-status").html("Loading OpenETA scripts... (" + _loadScriptTasks + "/" + _scripts.length + " left)");
 	if (_loadScriptTasks > 1) {
 		_loadScriptTasks--;
 		return;
