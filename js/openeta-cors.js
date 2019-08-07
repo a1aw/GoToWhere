@@ -21,7 +21,12 @@ var Cors = function () {
 		var cors = Cors.isCors(request.url);
 
 		if (cors) {
-			var host = Cors.extractHost(request.url);
+            var host = Cors.extractHost(request.url);
+
+            if (!host || host === "") {
+                callback();
+                return;
+            }
 
 			var config = Cors.domains[host];
 			if (!config) {
