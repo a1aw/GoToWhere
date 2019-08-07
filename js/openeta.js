@@ -101,7 +101,8 @@ function _postLoadScript() {
 	UIManager = new UIManager();
 	RequestLimiter = new RequestLimiter();
     RequestLimiter.start();
-    
+
+    Cors.register("", true);
     Cors.register("www.openeta.ml", true);
     Cors.register("plugins.openeta.ml", true);
 
