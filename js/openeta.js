@@ -34,6 +34,19 @@ var _loadScriptTasks;
 var _installCode;
 
 $(document).ready(function () {
+
+    console.log(
+        "   ____                   ______ _______       \n" +
+        "  / __ \\                 |  ____|__   __|/\\    \n" +
+        " | |  | |_ __   ___ _ __ | |__     | |  /  \\   \n" +
+        " | |  | | '_ \\ / _ \\ '_ \\|  __|    | | / /\\ \\  \n" +
+        " | |__| | |_) |  __/ | | | |____   | |/ ____ \\ \n" +
+        "  \\____/| .__/ \\___|_| |_|______|  |_/_/    \\_\\\n" +
+        "        | |                                    \n" +
+        "        |_|                                    "
+    );
+    console.log("OpenETA (c) 2019. Licensed under the MIT License.");
+    
 	_scripts.push(_googleMapScript + _googleMapApiKey);
     _loadScriptTasks = _scripts.length;
     $("#startup-status").html("Loading OpenETA scripts... (" + _scripts.length + "/" + _scripts.length + " left)");
@@ -87,51 +100,80 @@ function _postLoadScript() {
 	EventManager = new EventManager();
 	UIManager = new UIManager();
 	RequestLimiter = new RequestLimiter();
-	RequestLimiter.start();
+    RequestLimiter.start();
+    
+    Cors.register("www.openeta.ml", true);
+    Cors.register("plugins.openeta.ml", true);
 
-	$("#startup-status").html("Loading plugins...");
-	PluginLoader = new PluginLoader();
-	if (!PluginLoader.load()) {
+    $("#startup-status").html("Downloading plugins...");
+    $("#startup-desc").html(
+        "<div class=\"progress progress- striped active\">" +
+        "    <div class=\"progress-bar progress-bar-success\" id=\"startup-progress\" role=\"progressbar\" aria-valuenow=\"40\" aria-valuemin=\"0\" aria-valuemax=\"100\" style=\"width: 0%\">" +
+        "    </div>" +
+        "</div>"
+    );
+    PluginLoader = new PluginLoader();
+    var mt = PluginLoader.download();
+	if (!mt) {
 		$("#startup-image").attr("style", "display: none");
 		$("#startup-status").attr("style", "color: red");
-		$("#startup-status").html("Load plugins failed<br>Check console log for more details.");
+		$("#startup-status").html("Your browser does not support local storage.");
 		return;
-	}
+    }
+    mt.progressChange(function (progress) {
+        console.log(progress);
+        $("#startup-progress").css("width", progress + "%");
+    })
+    mt.done(function () {
+        $("#startup-progress").css("width", "100%");
+        _postDownloadPlugin();
+    });
+}
 
-	_installCode = window.location.hash;
-	var installKey = "#install:";
-	if (_installCode && _installCode.startsWith(installKey)) {
-		_installCode = decodeURIComponent(_installCode.substring(installKey.length));
-		$("#startup-image").attr("style", "display: none");
-		var json;
-		try {
-			json = PluginLoader.decode(_installCode);
-		} catch (err) {
-			$("#startup-status").attr("style", "color: red");
-			$("#startup-status").html("Install Code Parsing Error");
-			$("#startup-desc").html("The install code you provided is invalid. Please either copy and paste the code again, or try to use the online installation method.");
-			return;
-		}
-		var calcSize = byteCount(_installCode);
-		$("#startup-status").html("Are you sure to install this plugin?");
-		$("#startup-desc").html(
-			"<span style=\"color: red;\">Only install plugins from trusted sources. These plugins are able to access your location and do processing on your device.</span><br /><br />" +
-			"<b>Name:</b> " + json.fullName + "<br />" +
-			"<b>Package:</b> openeta-plugin-" + json.name + "<br />" +
-			"<b>Author:</b> " + json.author + "<br /><br />" +
-			"<b>Method:</b> " + (json.script ? "<span style=\"color: red; font-weight: bold\">Offline**</span>" : "Online") + "<br />" +
-			"<b>Checksum:</b> " + json.checksum + "<br />" +
-			"<b>Size:</b> " + autoSizeText(calcSize) + " <br /><br />" +
-			"<b>GitHub Project:</b> " + json.githubProject + " <br /><br />" +
-			"<input type=\"button\" class=\"btn btn-success\" value=\"Install Plugin\" onclick=\"_makeInstall()\" /> <input type=\"button\" class=\"btn btn-default\" value=\"Cancel\" onclick=\"window.location='index.html'\" />"
-		);
-		if (json.script) {
-			$("#startup-desc").append(
-				"<br /><br /><span style=\"color: red;\"><b>**Caution:</b> Make sure you trust the source of the install code for offline installation. The application is unable to verify offline sources automatically.</span>"
-			);
-		}
-		return;
-	}
+function _postDownloadPlugin() {
+    $("#startup-status").html("Loading plugins...");
+    var pm = PluginLoader.load();
+    $("#startup-desc").html("");
+    pm.then(function () {
+        _postLoadPlugin();
+    });
+}
+
+function _postLoadPlugin() {
+    _installCode = window.location.hash;
+    var installKey = "#install:";
+    if (_installCode && _installCode.startsWith(installKey)) {
+        _installCode = decodeURIComponent(_installCode.substring(installKey.length));
+        $("#startup-image").attr("style", "display: none");
+        var json;
+        try {
+            json = PluginLoader.decode(_installCode);
+        } catch (err) {
+            $("#startup-status").attr("style", "color: red");
+            $("#startup-status").html("Install Code Parsing Error");
+            $("#startup-desc").html("The install code you provided is invalid. Please either copy and paste the code again, or try to use the online installation method.");
+            return;
+        }
+        var calcSize = byteCount(_installCode);
+        $("#startup-status").html("Are you sure to install this plugin?");
+        $("#startup-desc").html(
+            "<span style=\"color: red;\">Only install plugins from trusted sources. These plugins are able to access your location and do processing on your device.</span><br /><br />" +
+            "<b>Name:</b> " + json.fullName + "<br />" +
+            "<b>Package:</b> openeta-plugin-" + json.name + "<br />" +
+            "<b>Author:</b> " + json.author + "<br /><br />" +
+            "<b>Method:</b> " + (json.script ? "<span style=\"color: red; font-weight: bold\">Offline**</span>" : "Online") + "<br />" +
+            "<b>Checksum:</b> " + json.checksum + "<br />" +
+            "<b>Size:</b> " + autoSizeText(calcSize) + " <br /><br />" +
+            "<b>GitHub Project:</b> " + json.githubProject + " <br /><br />" +
+            "<input type=\"button\" class=\"btn btn-success\" value=\"Install Plugin\" onclick=\"_makeInstall()\" /> <input type=\"button\" class=\"btn btn-default\" value=\"Cancel\" onclick=\"window.location='index.html'\" />"
+        );
+        if (json.script) {
+            $("#startup-desc").append(
+                "<br /><br /><span style=\"color: red;\"><b>**Caution:</b> Make sure you trust the source of the install code for offline installation. The application is unable to verify offline sources automatically.</span>"
+            );
+        }
+        return;
+    }
 
 	/*
 	//Remove the weird behaviour in iOS web app
@@ -144,83 +186,46 @@ function _postLoadScript() {
 	}
 	*/
 
-	if (PluginLoader.getLoadedPlugins() == 0) {
-		var isWebApp = (window.navigator.standalone == true) || (window.matchMedia('(display-mode: standalone)').matches);
+    $("#startup-status").html("Location Access");
+    var convention = LocationManager.getConvention();
+    if (convention == CONVENTION_ASK_EVERYTIME) {
+        $("#startup-image").attr("style", "display: none");
+        $("#startup-desc").html(
+            "<div class=\"form-group\">" +
+            "    <label>How should I handle location?</label>" +
+            "    <select class=\"form-control\" id=\"startup-locationaccess-how\">" +
+            "        <option value=\"0\">Ask for location access</option>" +
+            "        <option value=\"1\">Directly request location access</option>" +
+            "        <option value=\"2\">Only use custom location</option>" +
+            "    </select>" +
+            "    <div class=\"checkbox\">" +
+            "        <label>" +
+            "            <input type=\"checkbox\" id=\"startup-locationaccess-askeverytime\" />" +
+            "            Ask everytime for this" +
+            "        </label>" +
+            "    </div>" +
+            "</div>" +
+            "<input type=\"button\" class=\"btn btn-success\" id=\"startup-locationaccess-how-btn\" value=\"OK\" />"
+        );
 
-		$("#startup-image").attr("style", "display: none");
-		$("#startup-status").html("Welcome!");
-		var text =
-			"OpenETA is just an interface without implementations to fetch city data. You need to install plugins to start up OpenETA.<br><br>" +
-			"<div class=\"card text-white bg-primary\">" +
-			"    <div class=\"card-body\">" +
-			"        <label for=\"openeta-pluginloader-installcode\">Enter the install code below:</label>" +
-			"        <textarea row=\"1\" class=\"form-control\" id=\"openeta-pluginloader-installcode\" />" +
-			"        <button class=\"btn btn-success btn-block\" type=\"button\" id=\"openeta-pluginloader-installcode-btn\" >Install</button>" +
-			"    </div>" +
-			"</div><br>";
+        $("#startup-locationaccess-how-btn").click(function () {
+            var val = $("#startup-locationaccess-how").val();
+            var ask = $("#startup-locationaccess-askeverytime").is(":checked")
+            var list = [
+                CONVENTION_ASK_LOCATION_ACCESS,
+                CONVENTION_DIRECT_LOCATION_ACCESS,
+                CONVENTION_CUSTOM_LOCATION
+            ];
+            var selected = list[val];
+            if (!ask) {
+                LocationManager.setConvention(selected);
+            }
 
-		if (!isWebApp) {
-			text +=
-				"<b>OR</b><br><br>" +
-				"Clicking on a link with the following format: <br /><code>https://www.openeta.ml/install#&#x3C;InstallCodeHere&#x3E;</code>";
-		} else {
-			text += "Web-app <b>does not support</b> installations using the URL link method. You can use plugin packs for installing bunch of plugins at a time.";
-		}
-			
-		text += "<br><br>You can start by searching <b>openeta-plugin</b> in GitHub for plugins!";
-
-		$("#startup-desc").html(text);
-
-		$("#openeta-pluginloader-installcode-btn").click(function () {
-			var installCode = $("#openeta-pluginloader-installcode").val();
-			window.location = "index.html#install:" + installCode;
-			$(window).on('hashchange', function () {
-				window.location.reload();
-			});
-		});
-		return;
-	}
-
-	$("#startup-status").html("Location Access");
-	var convention = LocationManager.getConvention();
-	if (convention == CONVENTION_ASK_EVERYTIME) {
-		$("#startup-image").attr("style", "display: none");
-		$("#startup-desc").html(
-			"<div class=\"form-group\">" +
-			"    <label>How should I handle location?</label>" +
-			"    <select class=\"form-control\" id=\"startup-locationaccess-how\">" +
-			"        <option value=\"0\">Ask for location access</option>" +
-			"        <option value=\"1\">Directly request location access</option>" +
-			"        <option value=\"2\">Only use custom location</option>" +
-			"    </select>" +
-			"    <div class=\"checkbox\">" +
-			"        <label>" +
-			"            <input type=\"checkbox\" id=\"startup-locationaccess-askeverytime\" />" +
-			"            Ask everytime for this" +
-			"        </label>" +
-			"    </div>" +
-			"</div>" +
-			"<input type=\"button\" class=\"btn btn-success\" id=\"startup-locationaccess-how-btn\" value=\"OK\" />"
-		);
-
-		$("#startup-locationaccess-how-btn").click(function () {
-			var val = $("#startup-locationaccess-how").val();
-			var ask = $("#startup-locationaccess-askeverytime").is(":checked")
-			var list = [
-				CONVENTION_ASK_LOCATION_ACCESS,
-				CONVENTION_DIRECT_LOCATION_ACCESS,
-				CONVENTION_CUSTOM_LOCATION
-			];
-			var selected = list[val];
-			if (!ask) {
-				LocationManager.setConvention(selected);
-			}
-
-			_initLoc(selected);
-		});
-	} else {
-		_initLoc(convention);
-	}
+            _initLoc(selected);
+        });
+    } else {
+        _initLoc(convention);
+    }
 }
 
 function _initLoc(convention) {
@@ -280,23 +285,20 @@ function _initDb() {
 		$("#startup-progress").css("width", progress + "%");
 	})
 	mt.done(function () {
-		$("#startup-progress").css("width", "100%");
-
-		var func = function () {
-			UIManager.home();
-			UIManager.show(true);
-			ETAManager.forceUpdate();
-
-			$("#startup").html("");
-			$("#startup").css("display", "none");
-		};
-
-		if ((new Date().getTime() - startTime) > 1000) {
-			setTimeout(func, 500);
-		} else {
-			func();
-		}
+        $("#startup-progress").css("width", "100%");
+        _initUi();
 	});
+}
+
+function _initUi() {
+    $("#startup-status").html("Loading UI Layouts");
+    UIManager.loadUiLayouts(function () {
+        UIManager.show("home");
+        ETAManager.forceUpdate();
+
+        $("#startup").html("");
+        $("#startup").css("display", "none");
+    });
 }
 
 function autoSizeText(count) {

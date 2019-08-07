@@ -1,0 +1,40 @@
+<div class="modal fade ui-modal-pluginmanager" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Plugin Manager</h5> <button type="button" class="close"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <div class="input-group">
+                        <span class="input-group-addon">openeta-plugin-</span>
+                        <input type="text" class="form-control" placeholder="xyz" />
+                        <span class="input-group-btn">
+                            <button type="button" class="btn btn-success btn-flat">Search</button>
+                        </span>
+                    </div>
+                </div>
+                <hr />
+                <nav>
+                    <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                        <a class="nav-item nav-link active" id="nav-all-tab" data-toggle="tab" href="#nav-all" role="tab" aria-controls="nav-all" aria-selected="true">All</a>
+                        <a class="nav-item nav-link" id="nav-installed-tab" data-toggle="tab" href="#nav-installed" role="tab" aria-controls="nav-installed" aria-selected="false">Installed</a>
+                        <a class="nav-item nav-link" id="nav-transit-tab" data-toggle="tab" href="#nav-transit" role="tab" aria-controls="nav-transit" aria-selected="false">Transit</a>
+                        <a class="nav-item nav-link" id="nav-lib-tab" data-toggle="tab" href="#nav-lib" role="tab" aria-controls="nav-lib" aria-selected="false">Libraries</a>
+                        <a class="nav-item nav-link" id="nav-others-tab" data-toggle="tab" href="#nav-others" role="tab" aria-controls="nav-others" aria-selected="false">Others</a>
+                    </div>
+                </nav>
+                <div class="tab-content" id="nav-tabContent">
+                    <div class="tab-pane fade show active" id="nav-all" role="tabpanel" aria-labelledby="nav-all-tab">Loading...</div>
+                    <div class="tab-pane fade" id="nav-installed" role="tabpanel" aria-labelledby="nav-installed-tab">Loading...</div>
+                    <div class="tab-pane fade" id="nav-transit" role="tabpanel" aria-labelledby="nav-transit-tab">Loading...</div>
+                    <div class="tab-pane fade" id="nav-lib" role="tabpanel" aria-labelledby="nav-lib-tab">Loading...</div>
+                    <div class="tab-pane fade" id="nav-others" role="tabpanel" aria-labelledby="nav-others-tab">Loading...</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <p style="text-align: center">Licensed under MIT License. This software is only for educational purpose, and cannot be used in commerical or practical purposes.</p>
+            </div>
+        </div>
+    </div>
+</div>

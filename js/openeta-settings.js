@@ -8,7 +8,7 @@ const VALUE_TYPES = {
 	boolean: "boolean"
 };
 
-const DEFAULT_SETTINGS = [
+var DEFAULT_SETTINGS = [
 	{
 		key: "min_nearby_transit_range",
 		type: "number",
