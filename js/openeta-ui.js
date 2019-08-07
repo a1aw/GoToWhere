@@ -138,6 +138,13 @@ var UIManager = function () {
         }
     }
 
+    this.hideModal = function () {
+        $(".modal").modal("hide");
+        setTimeout(function () {
+            $(".modal").remove();
+        }, 500);
+    }
+
     this.hideLayoutModal = function (layout) {
         var key = "modal-" + layout;
         var mKey = ".ui-" + key;
@@ -384,9 +391,9 @@ var UIManager = function () {
             });
 
             if (providers.length > 0) {
-                $(".ui-modal-home.modal-body").html("");
+                $(".ui-modal-home .modal-body").html("");
 
-                $(".ui-modal-home.modal-body").append("<hr />");
+                $(".ui-modal-home .modal-body").append("<hr />");
 
                 var buttonScroll =
                     "<div class=\"hori-scroll\">" +
@@ -406,7 +413,7 @@ var UIManager = function () {
 
                 buttonScroll += "</div><br />";
 
-                $(".ui-modal-home.modal-body").append(buttonScroll);
+                $(".ui-modal-home .modal-body").append(buttonScroll);
 
                 var lat = pos.lat();
                 var lng = pos.lng();
@@ -421,7 +428,7 @@ var UIManager = function () {
                         allNearbyStops = ETAManager.getAllStopsNearbyCoord(lat, lng, testRange, true, true);
                     } while (allNearbyStops.length <= 0);
 
-                    $(".ui-modal-home.modal-body").append(
+                    $(".ui-modal-home .modal-body").append(
                         "<div class=\"alert alert-warning alert-dismissable\">" +
                         "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\" >&#215;</button>" +
                         "No routes " + (range * 1000) + "m nearby! The following routes are in " + Math.ceil(testRange * 1000) + " m range." +
@@ -429,7 +436,7 @@ var UIManager = function () {
                     );
                 }
 
-                $(".ui-modal-home.modal-body").append(
+                $(".ui-modal-home .modal-body").append(
                     "<div class=\"table-responsive\">" +
                     "    <table id=\"home-nearbystops-table\" class=\"table openeta-nearbystops-table\">" +
                     "    </table>" +
@@ -497,14 +504,13 @@ var UIManager = function () {
                     });
                 });
                 */
-
-                var global = this;
-                this.timers.push(setInterval(function () {
+                
+                UIManager.timers.push(setInterval(function () {
                     console.log("Update UI!");
-                    global.updateEtaUi();
+                    UIManager.updateEtaUi();
                 }, 1000));
 
-                this.variables[UIMANAGER_VAR_ALL_NEARBY_ROUTES] = allNearbyRoutes;
+                UIManager.variables[UIMANAGER_VAR_ALL_NEARBY_ROUTES] = allNearbyRoutes;
 
             }
             EventManager.dispatchEvent(EVENTS.EVENT_UI_HOME);

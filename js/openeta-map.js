@@ -99,7 +99,8 @@ var OpenETAMap = function () {
 				"</tr>"
 			;
 		   this.showInfoWindow(marker, prefix + content + suffix);
-		} else {
+        } else {
+            /*
             UIManager.setModal(
                "Requesting",
                "<div class=\"loading-modal\"><img src=\"" + _urlPrefix + "img/loading.gif\" /> Requesting ETA data from plugins...</div>",  
@@ -108,10 +109,11 @@ var OpenETAMap = function () {
             if (!UIManager.isShown()){
                 UIManager.show();
             }
+            */
             var global = this;
 			doneListener.done(function () {
                 setTimeout(function(){
-                    UIManager.hide();
+                    UIManager.hideModal();
                 }, 500);
                 var content = "";
 				var data = h.getETA();
@@ -222,8 +224,7 @@ var OpenETAMap = function () {
 		this.removeAll();
 		map.setCenter(LocationManager.getCurrentPosition());
 		map.setZoom(16);
-		UIManager.home();
-		UIManager.show();
+		UIManager.show("home");
 	}
 
 	this.showRoute = function (route, selectedPath, selectedStop = false) {

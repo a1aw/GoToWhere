@@ -294,7 +294,9 @@ function _initUi() {
     $("#startup-status").html("Loading UI Layouts");
     UIManager.loadUiLayouts(function () {
         UIManager.show("home");
-        ETAManager.forceUpdate();
+        setTimeout(function () {
+            ETAManager.forceUpdate();
+        }, 1000);
 
         $("#startup").html("");
         $("#startup").css("display", "none");
