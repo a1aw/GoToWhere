@@ -1,15 +1,15 @@
-﻿# 去邊㗎 HeuiBin.ga (Go Where)
+﻿# 去邊㗎 HeuiBin.ga (GoToWhere)
 An interface to display city data using a simple map.
 
 ## Web Demo
 The web interface is still in heavy development until it can allows plugins for development.
-[https://www.go-where.ga/](https://www.go-where.ga/)
+[https://www.gotowhere.ga/](https://www.gotowhere.ga/)
 
 ## Redirects
-There are three domains that allows you to access GoWhere, all redirects back to https://www.go-where.ga:
+There are three domains that allows you to access GoWhere, all redirects back to https://www.gotowhere.ga:
 
-- Chingish spelling (English with Hong Kong style) - https://www.go-where.ga/
-- English spelling (with grammar) - https://www.gotowhere.ga/
+- English - https://www.gotowhere.ga/
+- Chingish (probably?) - https://www.go-where.ga/
 - Cantonese spelling of <code>去邊㗎</code> - https://www.heuibin.ga/
 
 ## Old and new scripts
