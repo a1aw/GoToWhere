@@ -41,19 +41,18 @@ var ETAManager = function () {
 		clearInterval(this.timer);
 	}
 
-	this.registerProvider = function (provider) {
-		if (!(provider instanceof ETAProvider)) {
-			throw new TypeError("The variable 'provider' must be a 'ETAProvider'.");
-		}
-		this.providers.push(provider);
+    this.registerProvider = function (package, providerObjName, transit, name) {
+        this.providers.push(new ETAProvider(package, providerObjName, transit, name));
 	}
 
-	this.unregisterProvider = function (provider) {
-		var i = this.providers.indexOf(provider);
-		if (i == -1) {
-			return;
-		}
-		this.providers.splice(i, 1);
+    this.unregisterProvider = function (name) {
+        var found = -1;
+        for (var i = 0; i < this.providers.length; i++) {
+            if (this.providers[i].name === name) {
+                found = i;
+            }
+        }
+		this.providers.splice(found, 1);
 	}
 
 	this.getProviders = function () {
@@ -222,12 +221,17 @@ var ETAManager = function () {
 			if (provider) {
 				args.push([provider, mt]);
 				tasks.push(function (arg) {
-					RequestLimiter.queue(function (arg) {
+                    RequestLimiter.queue(function (arg) {
+                        arg[0].fetchDatabase().then(function () {
+                            arg[1].dispatch();
+                        });
+                        /*
 						arg[0].fetchDatabase().done(function () {
 							arg[1].dispatch();
 						}).progressChange(function (progress) {
 							arg[1].setTaskProgress(progress);
-						});
+						})
+                        */;
 					}, arg);
 				});
 			}
@@ -242,9 +246,16 @@ var ETAManager = function () {
 
 class ETAProvider {
 
-	constructor(transit, name) {
+    constructor(packageName, providerObjName, transit, name) {
+        this.packageName = packageName;
+        this.providerObjName = providerObjName;
 		this.transit = transit;
-		this.name = name;
+        this.name = name;
+        var plugin = PluginLoader.plugins[packageName];
+        if (!plugin) {
+            throw new Error("No such plugin \"" + packageName + "\" installed! Cannot initialize ETA provider.");
+        }
+        this.interpreter = plugin.interpreter;
 	}
 
 	makeHandler(options) {
@@ -257,26 +268,41 @@ class ETAProvider {
 		});
 	}
 
-	getRoutes() {
-		return null;
+    getRoutes() {
+        return this.runCode("getRoutes");
 	}
 
-	getStops() {
-		return null;
+    getStops() {
+        return this.runCode("getStops");
 	}
 
-	fetchDatabase() {
-		return null;
+    fetchDatabase() {
+        var global = this;
+        return new Promise(function (resolve, reject) {
+            global.runCode("fetchDatabase", resolve, reject);
+        });
 	}
 
-	getETA(etaHandler) {
-		return null;
+    getEta(etaHandler) {
+        return this.runCode("getEta", etaHandler);
 	}
 
-	fetchETA(etaHandler) {
-		return null;
-	}
+    fetchEta(etaHandler) {
+        return new Promise(function (resolve, reject) {
+            global.runCode("fetchEta", resolve, reject, etaHandler);
+        });
+    }
 
+    runCode(codeName, ...args) {
+        if (args) {
+            this.interpreter.setProperty(this.interpreter.getScope(), "_args", this.interpreter.nativeToPseudo(args));
+            this.interpreter.appendCode(this.providerObjName + "." + codeName + ".apply(this, _args);");
+        } else {
+            this.interpreter.appendCode(this.providerObjName + "." + codeName + "();");
+        }
+        this.interpreter.run();
+        return this.interpreter.value;
+    }
 }
 
 class ProgressListener {
@@ -454,12 +480,10 @@ class Stop extends TransitObject {
 
 	constructor(data) {
 		super(data);
-		const { stopId, stopNameChi, stopNameEng, addrChi, addrEng, lat, lng, ext } = data;
+		const { stopId, stopName, addr, lat, lng, ext } = data;
 		this.stopId = stopId;
-		this.stopNameChi = stopNameChi;
-		this.stopNameEng = stopNameEng;
-		this.addrChi = addrChi;
-		this.addrEng = addrEng;
+		this.stopName = stopName;
+		this.addr = addr;
 		this.lat = lat;
 		this.lng = lng;
 		this.ext = ext;

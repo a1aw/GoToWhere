@@ -1,17 +1,19 @@
-# OpenETA
+﻿# 去邊㗎 HeuiBin.ga (Go Where)
 An interface to display city data using a simple map.
 
 ## Web Demo
 The web interface is still in heavy development until it can allows plugins for development.
-[https://www.openeta.ml/](https://www.openeta.ml)
+[https://www.go-where.ga/](https://www.go-where.ga/)
 
-## Structure
+## Redirects
+There are three domains that allows you to access GoWhere, all redirects back to https://www.go-where.ga:
 
-```www.openeta.ml``` hosts wiki and application launcher files.
+- Chingish spelling (English with Hong Kong style) - https://www.go-where.ga/
+- English spelling (with grammar) - https://www.gotowhere.ga/
+- Cantonese spelling of <code>去邊㗎</code> - https://www.heuibin.ga/
 
-```app.openeta.ml``` contains application files.
-
-```<random domain>``` contains mostly nothing but a JavaScript for launching the application.
+## Old and new scripts
+The project was renamed from OpenETA. Some files might still remain OpenETA names.
 
 ## Background
 Most of the data in a city are discrete and difficult to compare with each other, such as bus ETA of companies in Hong Kong are totally separated and not centralized. It means that when you have to check for a cross-company route (e.g. 101, 107, 111), you have to check ETA from two apps of two companies! It wastes your time and messes up tourists to Hong Kong.
@@ -26,46 +28,6 @@ OpenETA contains a programming interface for plugin providing ETA to share their
 A large map is used instead of just using text to display city data. It is known that many people are confused where they are and where the stop is located. The map will be used to plot stops location and route paths into it.
 
 Estimated Transit Location is introduced is show the estimated location of the transportation. It is done by comparing different ETA data of a route. This is still experimental.
-
-## Development Stage
-- [x] Dynamic script loader
-- [x] ETA Interface
-- [ ] Plugin Interface
-- [ ] UI
-
-## Life-cycle
-```
-  --------------------------
-  |       Page Load        |
-  --------------------------
-              |
-              v
-  --------------------------
-  |  OpenETA Script Loader |
-  --------------------------
-              |
-              v
-  --------------------------      --------------------
-  |      Load Plugins      | ---> |      onload()    |
-  --------------------------      --------------------
-              | ---> Install Plugin via #install_code 
-              v
-  --------------------------
-  |     Location Access    |
-  --------------------------
-              |
-              v
-  ---------------------------
-  | Database Initialization |
-  |  (Request plugins to    |
-  |   download and init DB) |
-  ---------------------------
-              |
-              v
-  ---------------------------
-  |    Show Home UI Modal   |
-  ---------------------------
-```
 
 ## License
 [tl;dr](https://tldrlegal.com/license/mit-license) The project is licensed under the MIT License.

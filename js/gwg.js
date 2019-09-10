@@ -6,19 +6,19 @@ if (!window["_urlPrefix"]){
 
 const _googleMapScript = "https://maps.googleapis.com/maps/api/js?callback=initMap&key=";
 const _scripts = [
-	_urlPrefix + "js/openeta-app.js",
-	_urlPrefix + "js/openeta-settings.js",
-	_urlPrefix + "js/openeta-cors.js",
-	_urlPrefix + "js/openeta-misc.js",
-	_urlPrefix + "js/openeta-map.js",
-	_urlPrefix + "js/openeta-event.js",
-	_urlPrefix + "js/openeta-eta.js",
-	_urlPrefix + "js/openeta-ui.js",
-	_urlPrefix + "js/openeta-func.js",
-	_urlPrefix + "js/openeta-location.js",
-	_urlPrefix + "js/openeta-requestlimiter.js",
-	_urlPrefix + "js/openeta-plugin.js",
-	_urlPrefix + "js/openeta-pluginloader.js"
+	_urlPrefix + "js/gwg-app.js",
+	_urlPrefix + "js/gwg-settings.js",
+	_urlPrefix + "js/gwg-cors.js",
+	_urlPrefix + "js/gwg-misc.js",
+	_urlPrefix + "js/gwg-map.js",
+	_urlPrefix + "js/gwg-event.js",
+	_urlPrefix + "js/gwg-eta.js",
+	_urlPrefix + "js/gwg-ui.js",
+	_urlPrefix + "js/gwg-func.js",
+	_urlPrefix + "js/gwg-location.js",
+	_urlPrefix + "js/gwg-requestlimiter.js",
+	_urlPrefix + "js/gwg-plugin.js",
+	_urlPrefix + "js/gwg-pluginloader.js"
 ];
 
 var Settings;

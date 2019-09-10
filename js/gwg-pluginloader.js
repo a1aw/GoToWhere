@@ -118,21 +118,31 @@ var PluginLoader = function () {
 
         var pluginJson = this.plugins[seq.package];
         var json = pluginJson.info;
+        var interpreter = pluginJson.interpreter;
 
-        var plugin = new window[json.className]();
+        window["t"] = interpreter;
+        interpreter.run();
 
-        if (!(plugin instanceof OpenETAPlugin)) {
-            var t = "Error: Main class of \"" + key + "\" is not a child of OpenETAPlugin";
+        console.log(interpreter);
+
+        var scope = interpreter.getScope();
+
+        if (!interpreter.hasProperty(scope, "onload")) {
+            var t = "Error: Main class of \"" + pluginJson.package + "\" does not contain onload function";
             console.log(t);
             cmt = document.createComment(t);
             document.head.appendChild(cmt);
+            resolve();
             return;
         }
 
-        var promise = plugin.onload();
+        interpreter.appendCode("onload();");
+        interpreter.run();
 
-        if (!promise) {
-            var t = "Error: \"" + pluginJson.package + "\" reported error for onload() function after promise.";
+        var result = interpreter.value;
+
+        if (result) {
+            var t = "Error: \"" + pluginJson.package + "\" reported error " + result + " for onload() function.";
             pluginJson.status = -1;
             pluginJson.msg = t;
 
@@ -141,7 +151,7 @@ var PluginLoader = function () {
             alert(t);
             document.head.appendChild(cmt);
             PluginLoader._postLoadSeq(resolve, loadSeq);
-        } else if (promise instanceof Promise) {
+        /*} else if (promise instanceof Promise) {
             promise.then(function (status) {
                 pluginJson.status = 0;
                 delete pluginJson.msg;
@@ -157,7 +167,7 @@ var PluginLoader = function () {
                 alert(t);
                 document.head.appendChild(cmt);
                 PluginLoader._postLoadSeq(resolve, loadSeq);
-            });
+            });*/
         } else {
             pluginJson.status = 0;
             delete pluginJson.msg;
@@ -170,6 +180,46 @@ var PluginLoader = function () {
 		if (!localStorage) {
 			return false;
         }
+
+        var initFunc = function (interpreter, scope) {
+            //Expose APIs
+            interpreter.setProperty(scope, "atob", interpreter.createNativeFunction(function (x) {
+                return atob(x);
+            }));
+            interpreter.setProperty(scope, "btoa", interpreter.createNativeFunction(function (x) {
+                return btoa(x);
+            }));
+            interpreter.setProperty(scope, "console", interpreter.nativeToPseudo(console));
+            interpreter.setProperty(scope, "TransitType", interpreter.nativeToPseudo(TransitType));
+            interpreter.setProperty(scope, "registerEtaProvider", interpreter.createNativeFunction(function (package, providerObjName, transit, name) {
+                ETAManager.registerProvider(package, providerObjName, transit, name);
+            }));
+            interpreter.setProperty(scope, "registerCors", interpreter.createNativeFunction(function (domain, allowCors) {
+                Cors.register(domain, allowCors);
+            }));
+            interpreter.setProperty(scope, "ajax", interpreter.createNativeFunction(function (settings) {
+                var data = interpreter.pseudoToNative(settings);
+                var out = $.extend({}, data);
+                var funcKeys = ["beforeSend", "complete", "dataFilter", "error", "success", "xhr"];
+                for (var funcKey of funcKeys) {
+                    if (data[funcKey]) {
+                        const val = data[funcKey];
+                        out[funcKey] = function (...args) {
+                            console.log("Doing " + val);
+                            console.log(args);
+                            interpreter.setProperty(interpreter.getScope(), "_args", interpreter.nativeToPseudo(args));
+                            interpreter.appendCode(val + ".apply(this, _args);");
+                            interpreter.run();
+                            console.log("Done");
+                            return interpreter.value;
+                        };
+                    }
+                }
+                console.log(data);
+                console.log(out);
+                $.ajax(out);
+            }));
+        };
 
         var getInfoFunc = function (args) {
             var json = args[0];
@@ -206,6 +256,9 @@ var PluginLoader = function () {
                         node.innerHTML = pluginJs;
                         document.head.appendChild(node);
 
+                        console.log(pluginJs);
+                        var interpreter = new Interpreter(pluginJs, initFunc);
+
                         PluginLoader.plugins[json.package] = {
                             package: json.package,
                             local: localJson,
@@ -213,6 +266,7 @@ var PluginLoader = function () {
                             script: pluginJs,
                             priority: 100,
                             status: 1,
+                            interpreter: interpreter,
                             msg: "Not enabled"
                         };
 
@@ -258,8 +312,29 @@ var PluginLoader = function () {
                 continue;
             }
 
-            args.push([json, mt]);
-            tasks.push(getInfoFunc);
+            if (json.method === "online") {
+                args.push([json, mt]);
+                tasks.push(getInfoFunc);
+            } else if (json.method === "offline") {
+                if (!json.info || !json.script) {
+                    console.log("Error: Missing script or info");
+                    continue;
+                }
+
+                var interpreter = new Interpreter(json.script, initFunc);
+                PluginLoader.plugins[json.package] = {
+                    package: json.package,
+                    local: json,
+                    info: json.info,
+                    script: json.script,
+                    priority: 100,
+                    status: 1,
+                    interpreter: interpreter,
+                    msg: "Not enabled"
+                };
+            } else {
+                console.log("Error: Unknown plugin method");
+            }
         }
         mt.setArgs(args);
         mt.setTasks(tasks);
