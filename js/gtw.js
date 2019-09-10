@@ -6,19 +6,19 @@ if (!window["_urlPrefix"]){
 
 const _googleMapScript = "https://maps.googleapis.com/maps/api/js?callback=initMap&key=";
 const _scripts = [
-	_urlPrefix + "js/gwg-app.js",
-	_urlPrefix + "js/gwg-settings.js",
-	_urlPrefix + "js/gwg-cors.js",
-	_urlPrefix + "js/gwg-misc.js",
-	_urlPrefix + "js/gwg-map.js",
-	_urlPrefix + "js/gwg-event.js",
-	_urlPrefix + "js/gwg-eta.js",
-	_urlPrefix + "js/gwg-ui.js",
-	_urlPrefix + "js/gwg-func.js",
-	_urlPrefix + "js/gwg-location.js",
-	_urlPrefix + "js/gwg-requestlimiter.js",
-	_urlPrefix + "js/gwg-plugin.js",
-	_urlPrefix + "js/gwg-pluginloader.js"
+	_urlPrefix + "js/gtw-app.js",
+	_urlPrefix + "js/gtw-settings.js",
+	_urlPrefix + "js/gtw-cors.js",
+	_urlPrefix + "js/gtw-misc.js",
+	_urlPrefix + "js/gtw-map.js",
+	_urlPrefix + "js/gtw-event.js",
+	_urlPrefix + "js/gtw-eta.js",
+	_urlPrefix + "js/gtw-ui.js",
+	_urlPrefix + "js/gtw-func.js",
+	_urlPrefix + "js/gtw-location.js",
+	_urlPrefix + "js/gtw-requestlimiter.js",
+	_urlPrefix + "js/gtw-plugin.js",
+	_urlPrefix + "js/gtw-pluginloader.js"
 ];
 
 var Settings;
