@@ -175,7 +175,7 @@ var PluginLoader = function () {
         }
     }
 
-	this.download = function () {
+	this.download = function (pc) {
 		var localStorage = window.localStorage;
 		if (!localStorage) {
 			return false;
@@ -197,6 +197,32 @@ var PluginLoader = function () {
             interpreter.setProperty(scope, "registerCors", interpreter.createNativeFunction(function (domain, allowCors) {
                 Cors.register(domain, allowCors);
             }));
+            interpreter.setProperty(scope, "fast_arraySearch", interpreter.createNativeFunction(function (p_array, p_element) {
+                var i;
+                var array = interpreter.pseudoToNative(p_array);
+                var element = interpreter.pseudoToNative(p_element);
+                return array.includes(element);
+            }));
+            interpreter.setProperty(scope, "fast_createStopFromRoutePath", interpreter.createNativeFunction(function (p_stopsArray, p_pathArray, map) {
+                var i;
+                var stopsArray = interpreter.pseudoToNative(p_stopsArray);
+                var pathArray = interpreter.pseudoToNative(p_pathArray);
+                for (i = 0; i < stopsArray.length; i++) {
+                    var stop = stopsArray[i];
+                    if (!Misc.isSamePropertyValueInArray(stopsArray, map["stopId"], stop[map["stopId"]])) {
+                        return {
+                            transit: TransitType.TRANSIT_BUS,
+                            provider: map["provider"],
+                            stopId: stop[map["stopId"]],
+                            stopName: stop[map["stopName"]],
+                            addr: stop[map["addr"]],
+                            lat: parseFloat(stop[map["lat"]]),
+                            lng: parseFloat(stop[map["lng"]])
+                        };
+                    }
+                }
+                return false;
+            }));
             interpreter.setProperty(scope, "ajax", interpreter.createNativeFunction(function (settings) {
                 var data = interpreter.pseudoToNative(settings);
                 var out = $.extend({}, data);
@@ -210,7 +236,7 @@ var PluginLoader = function () {
                             interpreter.setProperty(interpreter.getScope(), "_args", interpreter.nativeToPseudo(args));
                             interpreter.appendCode(val + ".apply(this, _args);");
                             interpreter.run();
-                            console.log("Done");
+                            console.log("NSDone");
                             return interpreter.value;
                         };
                     }
@@ -221,30 +247,30 @@ var PluginLoader = function () {
             }));
         };
 
-        var getInfoFunc = function (args) {
-            var json = args[0];
+        var getInfoFunc = function (json) {
             var url = "https://plugins.openeta.ml/repos/" + json.package + "/info.json";
-            $.ajax({
-                url: url,
-                dataType: "json",
-                success: function (infoJson) {
-                    console.log(infoJson);
-                    getPluginFunc(args[1], json, infoJson);
-                },
-                error: function () {
-                    PluginLoader.plugins[json.package] = {
-                        package: json.package,
-                        local: json,
-                        status: -1,
-                        msg: "Could not fetch information from plugins server."
-                    };
-                    mt.dispatch();
-                }
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    url: url,
+                    dataType: "json",
+                    success: function (infoJson) {
+                        console.log(infoJson);
+                        getPluginFunc(resolve, reject, json, infoJson);
+                    },
+                    error: function () {
+                        PluginLoader.plugins[json.package] = {
+                            package: json.package,
+                            local: json,
+                            status: -1,
+                            msg: "Could not fetch information from plugins server."
+                        };
+                    }
+                });
             });
         };
 
-        var getPluginFunc = function (mt, localJson, json) {
-            $.ajax({
+        var getPluginFunc = function (resolve, reject, localJson, json) {
+            return $.ajax({
                 url: "https://plugins.openeta.ml/repos/" + json.package + "/plugin.js",
                 dataType: "text",
                 success: function (pluginJs) {
@@ -269,14 +295,13 @@ var PluginLoader = function () {
                             interpreter: interpreter,
                             msg: "Not enabled"
                         };
-
-                        mt.dispatch();
+                        resolve();
                     } catch (err) {
                         console.log("Error loading " + key + ": " + err);
-                        return false;
+                        reject(err);
                     }
                 },
-                error: function () {
+                error: function (err) {
                     PluginLoader.plugins[json.package] = {
                         package: json.package,
                         local: localJson,
@@ -284,21 +309,20 @@ var PluginLoader = function () {
                         status: -1,
                         msg: "Could not fetch plugin script from plugins server."
                     };
-                    mt.dispatch();
+                    reject(err);
                 }
             });
         }
 
-        var mt = new MultiTasker();
-        var tasks = [];
-        var args = [];
-        var x = 0;
+        var total = 0;
+        var completed = 0;
+        var proms = [];
         for (var i = 0; i < localStorage.length; i++) {
-			var key = localStorage.key(i);
-			if (!key.startsWith("openeta-plugin-")) {
-				continue;
+            var key = localStorage.key(i);
+            if (!key.startsWith("gtwp-")) {
+                continue;
             }
-            x++;
+            total++;
 
             var data = localStorage.getItem(key);
 
@@ -313,8 +337,7 @@ var PluginLoader = function () {
             }
 
             if (json.method === "online") {
-                args.push([json, mt]);
-                tasks.push(getInfoFunc);
+                proms.push(getInfoFunc(json));
             } else if (json.method === "offline") {
                 if (!json.info || !json.script) {
                     console.log("Error: Missing script or info");
@@ -336,13 +359,6 @@ var PluginLoader = function () {
                 console.log("Error: Unknown plugin method");
             }
         }
-        mt.setArgs(args);
-        mt.setTasks(tasks);
-        mt.done(function () {
-            var cmt = document.createComment("OpenETA Plugins (" + PluginLoader.plugins.length + " plugin(s) installed)");
-            document.head.appendChild(cmt);
-        });
-        mt.start();
-		return mt;
+        return Misc.allProgress(proms, pc);
 	}
 }

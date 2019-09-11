@@ -10,7 +10,19 @@ var Misc = function () {
 			(1 - c((lon2 - lon1) * p)) / 2;
 
 		return 12742 * Math.asin(Math.sqrt(a)); // 2 * R; R = 6371 km
-	}
+    }
+
+    this.allProgress = function (proms, progress_cb) {
+        let d = 0;
+        progress_cb(0);
+        for (const p of proms) {
+            p.then(() => {
+                d++;
+                progress_cb((d * 100) / proms.length);
+            });
+        }
+        return Promise.all(proms);
+    }
 
 	this.isSamePropertyValueInArray = function (array, name, value) {
 		for (var object of array) {

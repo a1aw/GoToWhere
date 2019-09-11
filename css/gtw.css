@@ -33,6 +33,10 @@
     z-index: 1;
 }
 
+.startup .progress-panel {
+    display: none;
+}
+
 /* Search panel CSS */
 
 .search-panel {

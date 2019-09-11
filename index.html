@@ -98,9 +98,9 @@
             </div>
         </div>
         <div class="progress-panel">
-            <small>Initializing</small>
+            <small id="startup-status">Initializing...</small>
             <div class="progress">
-                <div class="progress-bar" role="progressbar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">25%</div>
+                <div class="progress-bar" role="progressbar" id="startup-progress" style="width: 0%;"></div>
             </div>
         </div>
     </div>
@@ -125,9 +125,10 @@
 
     <!-- Dependencies -->
     <script src="js/xhook.min.js"></script>
+    <script src="js/acorn.js"></script>
+    <script src="js/interpreter.js"></script>
 
     <!-- GTW scripts -->
-    <script src="js/gtw-config.js"></script>
-    <script src="js/gtw.js"></script>
+    <script data-main="js/lib/gtw.js" src="js/require.js"></script>
 </body>
 </html>

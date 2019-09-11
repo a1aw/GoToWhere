@@ -213,33 +213,18 @@ var ETAManager = function () {
 		}
 	}
 
-	this.requestAllDatabase = function () {
-		var mt = new MultiTasker();
-		var tasks = [];
-		var args = [];
+    this.requestAllDatabase = function (pc) {
+        var proms = [];
+        var pm;
 		for (var provider of this.providers) {
 			if (provider) {
-				args.push([provider, mt]);
-				tasks.push(function (arg) {
-                    RequestLimiter.queue(function (arg) {
-                        arg[0].fetchDatabase().then(function () {
-                            arg[1].dispatch();
-                        });
-                        /*
-						arg[0].fetchDatabase().done(function () {
-							arg[1].dispatch();
-						}).progressChange(function (progress) {
-							arg[1].setTaskProgress(progress);
-						})
-                        */;
-					}, arg);
-				});
+                pm = provider.fetchDatabase();
+                if (pm) {
+                    proms.push(pm);
+                }
 			}
 		}
-		mt.setArgs(args);
-		mt.setTasks(tasks);
-		mt.start();
-		return mt;
+        return Misc.allProgress(proms, pc);;
 	}
 
 }
