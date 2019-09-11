@@ -34,18 +34,8 @@ var _loadScriptTasks;
 var _installCode;
 
 $(document).ready(function () {
-
-    console.log(
-        "   ____                   ______ _______       \n" +
-        "  / __ \\                 |  ____|__   __|/\\    \n" +
-        " | |  | |_ __   ___ _ __ | |__     | |  /  \\   \n" +
-        " | |  | | '_ \\ / _ \\ '_ \\|  __|    | | / /\\ \\  \n" +
-        " | |__| | |_) |  __/ | | | |____   | |/ ____ \\ \n" +
-        "  \\____/| .__/ \\___|_| |_|______|  |_/_/    \\_\\\n" +
-        "        | |                                    \n" +
-        "        |_|                                    "
-    );
-    console.log("OpenETA (c) 2019. Licensed under the MIT License.");
+    $(".startup .container").fadeIn(2000);
+    console.log("GoToWhere (c) 2019. Licensed under the MIT License.");
     
 	_scripts.push(_googleMapScript + _googleMapApiKey);
     _loadScriptTasks = _scripts.length;

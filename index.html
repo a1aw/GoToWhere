@@ -52,21 +52,57 @@
                         <a class="nav-link" href="#"><i class="fas fa-plus-circle"></i> Plugins</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#"><i class="fas fa-gear"></i> Settings</a>
+                        <a class="nav-link" href="#"><i class="fas fa-cog"></i> Settings</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="https://github.com/mob41/GoToWhere" target="_blank">GitHub</a>
+                        <a class="nav-link" href="https://github.com/mob41/GoToWhere" target="_blank"><i class="fab fa-github"></i> GitHub</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">About</a>
+                        <a class="nav-link" href="#"><i class="fas fa-info-circle"></i> About</a>
                     </li>
                 </ul>
             </div>
         </nav>
+
+
+        <div class="jumbotron jumbotron-fluid search-panel">
+            <div class="container-fluid">
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" id="keywords" placeholder="Keywords" aria-label="Keywords" aria-describedby="button-addon1">
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-success" type="button" id="search-btn">Search</button>
+                    </div>
+                </div>
+                <div class="filter-list">
+                    <button type="button" class="btn btn-success add-filter-btn"><i class="fas fa-plus"></i> <span>Add filter</span></button>
+                    <div class="btn-group" role="group" aria-label="Basic example">
+                        <button type="button" class="btn btn-outline-secondary"><i class="fas fa-times"></i></button>
+                        <button type="button" class="btn btn-secondary">Filter</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="jumbotron text-center footer" style="margin-bottom:0">
         <p class="text-center">Licensed under MIT License. This application is intented for educational researches, but NOT for commericial uses.</p>
+    </div>
+
+    <div class="startup">
+        <div class="container h-100">
+            <div class="d-flex h-100 text-center align-items-center">
+                <div class="w-100 text-dark">
+                    <h1 class="display-3">GoToWhere<small>.ga</small></h1>
+                    <p class="lead mb-0">Open city data map</p>
+                </div>
+            </div>
+        </div>
+        <div class="progress-panel">
+            <small>Initializing</small>
+            <div class="progress">
+                <div class="progress-bar" role="progressbar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">25%</div>
+            </div>
+        </div>
     </div>
 
     <div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
@@ -86,6 +122,9 @@
     <script src="js/jquery-3.4.1.min.js"></script>
     <script src="js/popper.min.js"></script>
     <script src="vendor/bootstrap-4.3.1-dist/js/bootstrap.min.js"></script>
+
+    <!-- Dependencies -->
+    <script src="js/xhook.min.js"></script>
 
     <!-- GTW scripts -->
     <script src="js/gtw-config.js"></script>

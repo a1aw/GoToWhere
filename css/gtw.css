@@ -1,13 +1,57 @@
+/* Startup DIV CSS */
+
+.startup {
+    position: relative;
+    background-color: white;
+    height: 100vh;
+    min-height: 25rem;
+    width: 100%;
+    overflow: hidden;
+}
+
+.startup .container {
+    display: none;
+    position: relative;
+    z-index: 2;
+}
+
+.startup .progress-panel {
+    position: absolute;
+    text-align: center;
+    width: 100%;
+    bottom: 0px;
+}
+
+.startup .overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    background-color: white;
+    opacity: 0.5;
+    z-index: 1;
+}
+
+/* Search panel CSS */
+
+.search-panel {
+    padding: 8px;
+    margin-bottom: 0px;
+}
+
 .eta-list .col-sm-2 {
     padding-left: 0px;
     padding-right: 0px;
 }
 
+/* Header, footer CSS */
+
 .header {
     position: fixed;
     top: 0;
     width: 100%;
-    z-index: 2;
+    z-index: 0;
 }
 
 .footer {
@@ -17,6 +61,8 @@
     bottom: 0;
     width: 100%;
 }
+
+/* Loading Overlay CSS */
 
 .loading-overlay {
     position: fixed;
