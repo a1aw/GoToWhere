@@ -3,7 +3,7 @@ An interface to display city data using a simple map.
 
 ## Web Demo
 The web interface is still in heavy development until it can allows plugins for development.
-[https://www.gotowhere.ga/](https://www.gotowhere.ga/)
+[https://www.go-where.ga/](https://www.go-where.ga/)
 
 ## Redirects
 There are three domains that allows you to access GoWhere, all redirects back to https://www.gotowhere.ga:

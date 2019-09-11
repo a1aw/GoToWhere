@@ -1,67 +1,94 @@
-﻿<!DOCTYPE html>
+﻿<!doctype html>
 <html lang="en">
-
 <head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="apple-mobile-web-app-title" content="OpenETA">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="">
-  <meta name="author" content="">
-  <title>GoToWhere</title>
-  <!-- Bootstrap core CSS-->
-  <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Custom fonts for this template-->
-  <link href="vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
-  <!-- OpenETA CSS-->
-  <link href="css/openeta-app.css" rel="stylesheet">
+    <!-- TODO: Google Analysis -->
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <!--
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-93953731-2"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', '');
+    </script>
+    -->
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="A cross-platform interface to display city data in a map" />
+    <meta name="keywords" content="eta,city data,open data,hong kong,interface,bus,train,metro" />
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="vendor/fontawesome-free-5.10.1-web/css/all.css">
+    <link rel="stylesheet" href="vendor/bootstrap-4.3.1-dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/gtw.css">
+
+    <title>GoToWhere</title>
 </head>
-
 <body>
-    <div id="toolbar">
+    <div class="container-fluid">
+        <div class="row eta-list">
+        </div>
     </div>
 
-    <div id="startup">
-        <h1>GoToWhere<small>.ga</small></h1>
-
-        <img id="startup-image" src="img/loading.gif" /><h5 id="startup-status">Initializing...</h5>
-        <p class="startup-oneforth" id="startup-desc"></p>
-        <p>Licensed under MIT License.</p>
-        <p class="startup-onethird">This software is only for educational purpose, and cannot be used in commerical or practical purposes.</p>
+    <div class="loading-overlay">
+        <div class="loading-spinner d-flex justify-content-center">
+            <div class="spinner-border m-5" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+        </div>
     </div>
 
-    <div class="container">
-        <div id="map"></div>
+    <div class="header">
+        <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
+            <a class="navbar-brand" href="#">GoToWhere</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="collapsibleNavbar">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-plus-circle"></i> Plugins</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-gear"></i> Settings</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://github.com/mob41/GoToWhere" target="_blank">GitHub</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">About</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
     </div>
 
-    <div id="ui">
-
+    <div class="jumbotron text-center footer" style="margin-bottom:0">
+        <p class="text-center">Licensed under MIT License. This application is intented for educational researches, but NOT for commericial uses.</p>
     </div>
 
-    <!-- Bootstrap core JavaScript-->
-    <script src="vendor/jquery/jquery.min.js"></script>
-    <script src="vendor/popper/popper.min.js"></script>
-    <script src="vendor/bootstrap/js/bootstrap.min.js"></script>
-    <!-- Core plugin JavaScript-->
-    <script src="vendor/jquery-easing/jquery.easing.min.js"></script>
-    <!-- Page level plugin JavaScript-->
-    <script src="vendor/chart.js/Chart.min.js"></script>
-    <script src="vendor/datatables/jquery.dataTables.js"></script>
-    <script src="vendor/datatables/dataTables.bootstrap4.js"></script>
-    <!-- Custom scripts for all pages-->
-    <script src="js/sb-admin.min.js"></script>
-    <!-- Custom scripts for this page-->
-    <script src="js/base64.js"></script>
-    <script src="js/zlib.min.js"></script>
-    <script src="js/gzip.min.js"></script>
-    <script src="js/gunzip.min.js"></script>
-    <script src="js/xhook.min.js"></script>
-    <script src="js/acorn.js"></script>
-    <script src="js/interpreter.js"></script>
+    <div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                </div>
+                <div class="modal-body">
+                </div>
+                <div class="modal-footer">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Layout scripts -->
+    <script src="js/jquery-3.4.1.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="vendor/bootstrap-4.3.1-dist/js/bootstrap.min.js"></script>
+
+    <!-- GTW scripts -->
     <script src="js/gtw-config.js"></script>
     <script src="js/gtw.js"></script>
 </body>
-
 </html>
