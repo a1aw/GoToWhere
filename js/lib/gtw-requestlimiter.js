@@ -1,47 +1,45 @@
-//OpenETA Request Limiter
+//GTW Request Limiter
 
-var RequestLimiter = function () {
+define(function (require, exports, module) {
+    exports.requests = [];
 
-	this.requests = [];
+    exports.duration = 1000;
 
-	this.duration = 1000;
+    exports.running = false;
 
-	this.running = false;
+    exports.queue = function (func, args) {
+        if (typeof func !== "function") {
+            throw new TypeError("The variable must be a 'function'.");
+        }
+        exports.requests.push([func, args]);
+        return func;
+    }
 
-	this.queue = function (func, args) {
-		if (typeof func !== "function") {
-			throw new TypeError("The variable must be a 'function'.");
-		}
-		this.requests.push([func, args]);
-		return func;
-	}
+    exports.start = function () {
+        if (exports.running) {
+            return;
+        }
 
-	this.start = function () {
-		if (this.running) {
-			return;
-		}
+        exports.running = true;
+        exports.dispatch();
+    }
 
-		this.running = true;
-		this.dispatch();
-	}
+    exports.dispatch = function () {
+        var next = exports.requests.shift();
+        var global = this;
 
-	this.dispatch = function () {
-		var next = this.requests.shift();
-		var global = this;
+        if (next && typeof next[0] === 'function') {
+            next[0](next[1]);
+        }
 
-		if (next && typeof next[0] === 'function') {
-			next[0](next[1]);
-		}
+        if (exports.running) {
+            setTimeout(function () {
+                global.dispatch();
+            }, exports.duration);
+        }
+    }
 
-		if (this.running) {
-			setTimeout(function () {
-				global.dispatch();
-			}, this.duration);
-		}
-	}
-
-	this.stop = function () {
-		this.running = false;
-	}
-
-};
+    exports.stop = function () {
+        exports.running = false;
+    }
+});

@@ -1,20 +1,51 @@
-// OpenETA Plugin Loader
+// GTW Plugin Loader
 
-var PluginLoader = function () {
+define(function (require, exports, module) {
+    var Misc = require("gtw-misc");
+    var Cors = require("gtw-cors");
+    var ETAManager = require("gtw-eta");
 
-    this.plugins = {};
+    var InterpreterRunner = function (interpreter, doneFunc) {
+        this.interpreter = interpreter;
+        this.doneFunc = doneFunc;
 
-	this.getLoadedPlugins = function () {
-		return this.plugins.length;
-	}
+        var global = this;
 
-	this.decode = function (code) {
-		var json = JSON.parse(Base64.decode(code));
-		//TODO Compression / encryption stuff
-		return json;
-	}
+        this.run = function () {
+            this.nextStep();
+        }
 
-    this.install = function (package, checksum) {
+        this.nextStep = function () {
+            var x = 0;
+            var st = false;
+            do {
+                st = global.interpreter.step();
+                x++;
+            } while (x < 1000 && st);
+            if (st) {
+                window.setTimeout(global.nextStep, 0);
+            } else {
+                console.log("ExecDone");
+                if (typeof global.doneFunc === "function") {
+                    global.doneFunc();
+                }
+            }
+        }
+    };
+
+    exports.plugins = {};
+
+    exports.getLoadedPlugins = function () {
+        return exports.plugins.length;
+    };
+
+    exports.decode = function (code) {
+        var json = JSON.parse(Base64.decode(code));
+        //TODO Compression / encryption stuff
+        return json;
+    };
+
+    exports.install = function (package, checksum) {
         var localStorage = window.localStorage;
         if (!localStorage) {
             return false;
@@ -24,11 +55,11 @@ var PluginLoader = function () {
         json.method = "online";
         json.checksum = checksum;
         json.package = package;
-		localStorage.setItem(package, JSON.stringify(json));
-		return true;
-    }
+        localStorage.setItem(package, JSON.stringify(json));
+        return true;
+    };
 
-    this.uninstall = function (package) {
+    exports.uninstall = function (package) {
         var localStorage = window.localStorage;
         if (!localStorage) {
             return false;
@@ -36,13 +67,13 @@ var PluginLoader = function () {
 
         localStorage.removeItem(package);
         return true;
-    }
+    };
 
-    this.getPlugin = function (package) {
-        return this.plugins[package];
-    }
+    exports.getPlugin = function (package) {
+        return exports.plugins[package];
+    };
 
-    this.compareVersion = function (ver0, ver1) {
+    exports.compareVersion = function (ver0, ver1) {
         var ver0sub = ver0.split(".");
         var ver1sub = ver1.split(".");
 
@@ -65,50 +96,50 @@ var PluginLoader = function () {
         }
 
         return 0;
-    }
+    };
 
-    this.load = function () {
+    exports.load = function () {
         var json;
-        for (var package in this.plugins) {
-            json = this.plugins[package];
+        for (var package in exports.plugins) {
+            json = exports.plugins[package];
 
             if (json.info.dependencies) {
                 for (var dependency in json.info.dependencies) {
-                    if (!this.plugins[dependency]) {
+                    if (!exports.plugins[dependency]) {
                         alert("The package \"" + package + "\" requires \"" + dependency + "\" to be installed. You must install it in Plugin Manager in order to enable this plugin.");
                         continue;
                     }
 
-                    if (this.compareVersion(this.plugins[dependency].info.version, json.info.dependencies[dependency]) == -1) {
+                    if (exports.compareVersion(exports.plugins[dependency].info.version, json.info.dependencies[dependency]) == -1) {
                         alert("The package \"" + package + "\" requires a newer version of \"" + dependency + "\" to be installed. You must install a new version in Plugin Manager in order to enable this plugin.");
                         continue;
                     }
 
-                    this.plugins[package].priority++;
-                    this.plugins[dependency].priority--;
+                    exports.plugins[package].priority++;
+                    exports.plugins[dependency].priority--;
                 }
             }
         }
 
-        console.log(this.plugins);
+        console.log(exports.plugins);
 
         var loadSeq = [];
-        for (var package in this.plugins) {
+        for (var package in exports.plugins) {
             loadSeq.push({
                 package: package,
-                priority: this.plugins[package].priority
+                priority: exports.plugins[package].priority
             });
         }
         loadSeq.sort(function (a, b) {
             return a.priority - b.priority;
         });
-        
-        return new Promise(function (resolve, reject) {
-            PluginLoader._postLoadSeq(resolve, loadSeq);
-        });
-    }
 
-    this._postLoadSeq = function (resolve, loadSeq) {
+        return new Promise(function (resolve, reject) {
+            exports._postLoadSeq(resolve, loadSeq);
+        });
+    };
+
+    exports._postLoadSeq = function (resolve, loadSeq) {
         var seq = loadSeq.shift();
 
         if (!seq) {
@@ -116,7 +147,7 @@ var PluginLoader = function () {
             return;
         }
 
-        var pluginJson = this.plugins[seq.package];
+        var pluginJson = exports.plugins[seq.package];
         var json = pluginJson.info;
         var interpreter = pluginJson.interpreter;
 
@@ -150,35 +181,35 @@ var PluginLoader = function () {
             cmt = document.createComment(t);
             alert(t);
             document.head.appendChild(cmt);
-            PluginLoader._postLoadSeq(resolve, loadSeq);
-        /*} else if (promise instanceof Promise) {
-            promise.then(function (status) {
-                pluginJson.status = 0;
-                delete pluginJson.msg;
-                PluginLoader._postLoadSeq(resolve, loadSeq);
-            });
-            promise.catch(function (error) {
-                var t = "Error: \"" + pluginJson.package + "\" reported error for onload() function after promise.";
-                pluginJson.status = -1;
-                pluginJson.msg = t;
-
-                console.log(t);
-                cmt = document.createComment(t);
-                alert(t);
-                document.head.appendChild(cmt);
-                PluginLoader._postLoadSeq(resolve, loadSeq);
-            });*/
+            exports._postLoadSeq(resolve, loadSeq);
+            /*} else if (promise instanceof Promise) {
+                promise.then(function (status) {
+                    pluginJson.status = 0;
+                    delete pluginJson.msg;
+                    exports._postLoadSeq(resolve, loadSeq);
+                });
+                promise.catch(function (error) {
+                    var t = "Error: \"" + pluginJson.package + "\" reported error for onload() function after promise.";
+                    pluginJson.status = -1;
+                    pluginJson.msg = t;
+    
+                    console.log(t);
+                    cmt = document.createComment(t);
+                    alert(t);
+                    document.head.appendChild(cmt);
+                    exports._postLoadSeq(resolve, loadSeq);
+                });*/
         } else {
             pluginJson.status = 0;
             delete pluginJson.msg;
-            PluginLoader._postLoadSeq(resolve, loadSeq);
+            exports._postLoadSeq(resolve, loadSeq);
         }
     }
 
-	this.download = function (pc) {
-		var localStorage = window.localStorage;
-		if (!localStorage) {
-			return false;
+    exports.download = function (pc) {
+        var localStorage = window.localStorage;
+        if (!localStorage) {
+            return false;
         }
 
         var initFunc = function (interpreter, scope) {
@@ -203,14 +234,15 @@ var PluginLoader = function () {
                 var element = interpreter.pseudoToNative(p_element);
                 return array.includes(element);
             }));
-            interpreter.setProperty(scope, "fast_createStopFromRoutePath", interpreter.createNativeFunction(function (p_stopsArray, p_pathArray, map) {
+            interpreter.setProperty(scope, "fast_createStopFromRoutePath", interpreter.createNativeFunction(function (p_stopsArray, p_pathArray, p_map) {
                 var i;
                 var stopsArray = interpreter.pseudoToNative(p_stopsArray);
                 var pathArray = interpreter.pseudoToNative(p_pathArray);
-                for (i = 0; i < stopsArray.length; i++) {
-                    var stop = stopsArray[i];
-                    if (!Misc.isSamePropertyValueInArray(stopsArray, map["stopId"], stop[map["stopId"]])) {
-                        return {
+                var map = interpreter.pseudoToNative(p_map);
+                for (i = 0; i < pathArray.length; i++) {
+                    var stop = pathArray[i];
+                    if (!Misc.isSamePropertyValueInArray(stopsArray, "stopId", stop[map["stopId"]])) {
+                        return interpreter.nativeToPseudo({
                             transit: TransitType.TRANSIT_BUS,
                             provider: map["provider"],
                             stopId: stop[map["stopId"]],
@@ -218,7 +250,7 @@ var PluginLoader = function () {
                             addr: stop[map["addr"]],
                             lat: parseFloat(stop[map["lat"]]),
                             lng: parseFloat(stop[map["lng"]])
-                        };
+                        });
                     }
                 }
                 return false;
@@ -235,7 +267,7 @@ var PluginLoader = function () {
                             console.log(args);
                             interpreter.setProperty(interpreter.getScope(), "_args", interpreter.nativeToPseudo(args));
                             interpreter.appendCode(val + ".apply(this, _args);");
-                            interpreter.run();
+                            new InterpreterRunner(interpreter).run();
                             console.log("NSDone");
                             return interpreter.value;
                         };
@@ -258,7 +290,7 @@ var PluginLoader = function () {
                         getPluginFunc(resolve, reject, json, infoJson);
                     },
                     error: function () {
-                        PluginLoader.plugins[json.package] = {
+                        exports.plugins[json.package] = {
                             package: json.package,
                             local: json,
                             status: -1,
@@ -285,7 +317,7 @@ var PluginLoader = function () {
                         console.log(pluginJs);
                         var interpreter = new Interpreter(pluginJs, initFunc);
 
-                        PluginLoader.plugins[json.package] = {
+                        exports.plugins[json.package] = {
                             package: json.package,
                             local: localJson,
                             info: json,
@@ -302,7 +334,7 @@ var PluginLoader = function () {
                     }
                 },
                 error: function (err) {
-                    PluginLoader.plugins[json.package] = {
+                    exports.plugins[json.package] = {
                         package: json.package,
                         local: localJson,
                         info: json,
@@ -345,7 +377,7 @@ var PluginLoader = function () {
                 }
 
                 var interpreter = new Interpreter(json.script, initFunc);
-                PluginLoader.plugins[json.package] = {
+                exports.plugins[json.package] = {
                     package: json.package,
                     local: json,
                     info: json.info,
@@ -360,5 +392,5 @@ var PluginLoader = function () {
             }
         }
         return Misc.allProgress(proms, pc);
-	}
-}
+    }
+});

@@ -7,350 +7,288 @@ const TransitType = {
 	TRANSIT_FERRY: "TRANSIT_FERRY"
 };
 
-var ETAManager = function () {
+define(function (require, exports, module) {
+    var Misc = require("gtw-misc");
+    var PluginLoader = require("gtw-pluginloader");
 
-	this.timer = 0;
-
-	this.providers = [];
-
-	this.handlers = {};
-
-	this.forceUpdate = function () {
-		console.log("Updating!")
-		var d = new Date();
-		var cache;
-		for (var key in this.handlers) {
-			cache = this.handlers[key];
-			if (cache.lastAccess && d.getTime() - cache.lastAccess > 60000) {
-				console.log("Invalidate inuse ETA cache: " + key)
-				delete this.handlers[key];
-			} else {
-				cache.handler.fetchETA();
-			}
-		}
-	}
-
-	this.start = function () {
-		var global = this;
-		this.timer = setInterval(function () {
-			global.forceUpdate();
-		}, 30000);
-	}
-
-	this.stop = function () {
-		clearInterval(this.timer);
-	}
-
-    this.registerProvider = function (package, providerObjName, transit, name) {
-        this.providers.push(new ETAProvider(package, providerObjName, transit, name));
-	}
-
-    this.unregisterProvider = function (name) {
-        var found = -1;
-        for (var i = 0; i < this.providers.length; i++) {
-            if (this.providers[i].name === name) {
-                found = i;
-            }
-        }
-		this.providers.splice(found, 1);
-	}
-
-	this.getProviders = function () {
-		return this.providers;
-	}
-
-	this.request = function (options) {
-		var key = options.provider.name + "-" + options.route.routeId + "-" + options.selectedPath + "-" + options.stop.stopId;
-
-		var d = new Date();
-		var cache = this.handlers[key];
-		if (cache) {
-			this.handlers[key].lastAccess = d.getTime();
-			return cache.handler;
-		} else {
-			var h = options.provider.makeHandler({
-				route: options.route,
-				selectedPath: options.selectedPath,
-				stop: options.stop
-			});
-			this.handlers[key] = {
-				lastAccess: d.getTime(),
-				handler: h
-			};
-			return h;
-		}
-	}
-
-	this.getHandlers = function () {
-		return this.handlers;
-	}
-
-	this.getAllRoutes = function () {
-		var allRoutes = [];
-		for (var provider of this.providers) {
-			if (provider) {
-				var routes = provider.getRoutes();
-				if (routes && routes.length > 0){
-					allRoutes = allRoutes.concat(routes);
-				}
-			}
-		}
-		return allRoutes;
-	}
-
-	this.getAllStops = function () {
-		var allStops = [];
-		for (var provider of this.providers) {
-			if (provider) {
-				var stops = provider.getStops();
-				if (stops && stops.length > 0) {
-					allStops = allStops.concat(stops);
-				}
-			}
-		}
-		return allStops;
-	}
-
-	this.getAllStopsNearbyCoord = function (lat, lng, range, sorted = true, withDistance = false) {
-		var allStops = this.getAllStops();
-		var stops = [];
-		var stop;
-		var d;
-		for (var i = 0; i < allStops.length; i++) {
-			stop = allStops[i];
-			d = Misc.geoDistance(lat, lng, stop.lat, stop.lng);
-			if (d <= range) {
-				stops.push([stop, d]);
-			}
-		}
-
-		if (sorted) {
-			stops.sort(function(a, b){
-				if(a[1] < b[1]){
-					return -1;
-				} else if (a[1] > b[1]) {
-					return 1;
-				} else {
-					return 0;	
-				}
-			});
-		}
-
-		if (!withDistance) {
-			return stops.map(function (value, index) {
-				return value[0];
-			});
-		} else {
-			return stops;
-		}
-	}
-
-	this.getStopById = function (stopId) {
-		var allStops = this.getAllStops();
-		for (var stop of allStops) {
-			if (stopId === stop.stopId) {
-				return stop;
-			}
-		}
-		return false;
-	}
-
-	this.getStopIndex = function (route, stop, selectedPath) {
-		if (selectedPath < 0 || selectedPath >= route.paths.length) {
-			return -1;
-		}
-		var path = route.paths[selectedPath];
-		for (var i = 0; i < path.length; i++) {
-			var stopId = path[i];
-			if (stop.stopId === stopId) {
-				return i;
-			}
-		}
-		return -1;
-	}
-
-	this.legacy = 0;
-
-	this.searchRoutesOfStop = function (stop) {
-		var out = [];
-
-		console.log("Para: " + stop.stopId);
-		console.log(this.legacy);
-		this.legacy += 1;
-		var allRoutes = this.getAllRoutes();
-		for (var route of allRoutes) {
-			var paths = route.paths;
-			for (var i = 0; i < paths.length; i++) {
-				var path = paths[i];
-				for (var stopId of path) {
-					if (stop.stopId === stopId) {
-						console.log("Found: " + route.routeId);
-						out.push([route, i]);
-					}
-				}
-			}
-		}
-
-		return out;
-	}
-
-	this.getRoutesOfStop = function (stop) {
-		var result = this.searchRoutesOfStop(stop);
-
-		return result.map(function (value, index) {
-			return value[0];
-		});;
-	}
-
-	this.requestAllETA = function () {
-		for (var handler of handlers) {
-			if (handler) {
-				var _handler = handler;
-				RequestLimiter.queue(function () {
-					_handler.fetchETA();
-				});
-			}
-		}
-	}
-
-    this.requestAllDatabase = function (pc) {
-        var proms = [];
-        var pm;
-		for (var provider of this.providers) {
-			if (provider) {
-                pm = provider.fetchDatabase();
-                if (pm) {
-                    proms.push(pm);
-                }
-			}
-		}
-        return Misc.allProgress(proms, pc);;
-	}
-
-}
-
-class ETAProvider {
-
-    constructor(packageName, providerObjName, transit, name) {
+    var ETAProvider = function (packageName, providerObjName, transit, name) {
         this.packageName = packageName;
         this.providerObjName = providerObjName;
-		this.transit = transit;
+        this.transit = transit;
         this.name = name;
         var plugin = PluginLoader.plugins[packageName];
         if (!plugin) {
             throw new Error("No such plugin \"" + packageName + "\" installed! Cannot initialize ETA provider.");
         }
         this.interpreter = plugin.interpreter;
-	}
 
-	makeHandler(options) {
-		return new ETAHandler({
-			transit: this.transit,
-			provider: this,
-			route: options.route,
-			stop: options.stop,
-			selectedPath: options.selectedPath
-		});
-	}
-
-    getRoutes() {
-        return this.runCode("getRoutes");
-	}
-
-    getStops() {
-        return this.runCode("getStops");
-	}
-
-    fetchDatabase() {
-        var global = this;
-        return new Promise(function (resolve, reject) {
-            global.runCode("fetchDatabase", resolve, reject);
-        });
-	}
-
-    getEta(etaHandler) {
-        return this.runCode("getEta", etaHandler);
-	}
-
-    fetchEta(etaHandler) {
-        return new Promise(function (resolve, reject) {
-            global.runCode("fetchEta", resolve, reject, etaHandler);
-        });
-    }
-
-    runCode(codeName, ...args) {
-        if (args) {
-            this.interpreter.setProperty(this.interpreter.getScope(), "_args", this.interpreter.nativeToPseudo(args));
-            this.interpreter.appendCode(this.providerObjName + "." + codeName + ".apply(this, _args);");
-        } else {
-            this.interpreter.appendCode(this.providerObjName + "." + codeName + "();");
+        this.makeHandler = function(options) {
+            return new ETAHandler({
+                transit: this.transit,
+                provider: this,
+                route: options.route,
+                stop: options.stop,
+                selectedPath: options.selectedPath
+            });
         }
-        this.interpreter.run();
-        return this.interpreter.value;
+
+        this.getRoutes = function () {
+            return this.runCode("getRoutes");
+        }
+
+        this.getStops = function () {
+            return this.runCode("getStops");
+        }
+
+        this.fetchDatabase = function () {
+            var global = this;
+            return new Promise(function (resolve, reject) {
+                global.runCode("fetchDatabase", resolve, reject);
+            });
+        }
+
+        this.getEta = function (etaHandler) {
+            return this.runCode("getEta", etaHandler);
+        }
+
+        this.fetchEta = function (etaHandler) {
+            return new Promise(function (resolve, reject) {
+                global.runCode("fetchEta", resolve, reject, etaHandler);
+            });
+        }
+
+        this.runCode = function (codeName, ...args) {
+            if (args) {
+                this.interpreter.setProperty(this.interpreter.getScope(), "_args", this.interpreter.nativeToPseudo(args));
+                this.interpreter.appendCode(this.providerObjName + "." + codeName + ".apply(this, _args);");
+            } else {
+                this.interpreter.appendCode(this.providerObjName + "." + codeName + "();");
+            }
+            this.interpreter.run();
+            return this.interpreter.pseudoToNative(this.interpreter.value);
+        }
     }
-}
 
-class ProgressListener {
+    exports.timer = 0;
 
-	constructor() {
-		this.completed = false;
-		this.pcHandlers = [];
-		this.handlers = [];
-		this.progress = 0;
-	}
+    exports.providers = [];
 
-	dispatch() {
-		this.completed = true;
-		for (var handler of this.handlers) {
-			if (handler && typeof handler === 'function') {
-				handler(arguments);
-			}
-		}
-	}
+    exports.handlers = {};
 
-	setProgress(value) {
-		if (value < 0) {
-			value = 0;
-		} else if (value > 100) {
-			value = 100;
-		}
-		this.progress = value;
+    exports.forceUpdate = function () {
+        console.log("Updating!")
+        var d = new Date();
+        var cache;
+        for (var key in exports.handlers) {
+            cache = exports.handlers[key];
+            if (cache.lastAccess && d.getTime() - cache.lastAccess > 60000) {
+                console.log("Invalidate inuse ETA cache: " + key)
+                delete exports.handlers[key];
+            } else {
+                cache.handler.fetchETA();
+            }
+        }
+    }
 
-		for (var pcHandler of this.pcHandlers) {
-			if (pcHandler && typeof pcHandler === 'function') {
-				pcHandler(this.progress);
-			}
-		}
-	}
+    exports.start = function () {
+        var global = this;
+        exports.timer = setInterval(function () {
+            global.forceUpdate();
+        }, 30000);
+    }
 
-	getProgress() {
-		return progress;
-	}
+    exports.stop = function () {
+        clearInterval(exports.timer);
+    }
 
-	progressChange(func) {
-		if (func && typeof func === 'function') {
-			if (this.completed) {
-				func(100.0);
-			} else if (this.progress != 0) {
-				func(this.progress);
-			}
-			this.pcHandlers.push(func);
-		}
-		return this;
-	}
+    exports.registerProvider = function (package, providerObjName, transit, name) {
+        exports.providers.push(new ETAProvider(package, providerObjName, transit, name));
+    }
 
-	done(func) {
-		if (func && typeof func === 'function') {
-			if (this.completed) {
-				func();
-			}
-			this.handlers.push(func);
-		}
-		return this;
-	}
+    exports.unregisterProvider = function (name) {
+        var found = -1;
+        for (var i = 0; i < exports.providers.length; i++) {
+            if (exports.providers[i].name === name) {
+                found = i;
+            }
+        }
+        exports.providers.splice(found, 1);
+    }
 
-}
+    exports.getProviders = function () {
+        return exports.providers;
+    }
 
+    exports.request = function (options) {
+        var key = options.provider.name + "-" + options.route.routeId + "-" + options.selectedPath + "-" + options.stop.stopId;
+
+        var d = new Date();
+        var cache = exports.handlers[key];
+        if (cache) {
+            exports.handlers[key].lastAccess = d.getTime();
+            return cache.handler;
+        } else {
+            var h = options.provider.makeHandler({
+                route: options.route,
+                selectedPath: options.selectedPath,
+                stop: options.stop
+            });
+            exports.handlers[key] = {
+                lastAccess: d.getTime(),
+                handler: h
+            };
+            return h;
+        }
+    }
+
+    exports.getHandlers = function () {
+        return exports.handlers;
+    }
+
+    exports.getAllRoutes = function () {
+        var allRoutes = [];
+        for (var provider of exports.providers) {
+            if (provider) {
+                var routes = provider.getRoutes();
+                if (routes && routes.length > 0) {
+                    allRoutes = allRoutes.concat(routes);
+                }
+            }
+        }
+        return allRoutes;
+    }
+
+    exports.getAllStops = function () {
+        var allStops = [];
+        for (var provider of exports.providers) {
+            if (provider) {
+                var stops = provider.getStops();
+                if (stops && stops.length > 0) {
+                    allStops = allStops.concat(stops);
+                }
+            }
+        }
+        return allStops;
+    }
+
+    exports.getAllStopsNearbyCoord = function (lat, lng, range, sorted = true, withDistance = false) {
+        var allStops = exports.getAllStops();
+        var stops = [];
+        var stop;
+        var d;
+        for (var i = 0; i < allStops.length; i++) {
+            stop = allStops[i];
+            d = Misc.geoDistance(lat, lng, stop.lat, stop.lng);
+            if (d <= range) {
+                stops.push([stop, d]);
+            }
+        }
+
+        if (sorted) {
+            stops.sort(function (a, b) {
+                if (a[1] < b[1]) {
+                    return -1;
+                } else if (a[1] > b[1]) {
+                    return 1;
+                } else {
+                    return 0;
+                }
+            });
+        }
+
+        if (!withDistance) {
+            return stops.map(function (value, index) {
+                return value[0];
+            });
+        } else {
+            return stops;
+        }
+    }
+
+    exports.getStopById = function (stopId) {
+        var allStops = exports.getAllStops();
+        for (var stop of allStops) {
+            if (stopId === stop.stopId) {
+                return stop;
+            }
+        }
+        return false;
+    }
+
+    exports.getStopIndex = function (route, stop, selectedPath) {
+        if (selectedPath < 0 || selectedPath >= route.paths.length) {
+            return -1;
+        }
+        var path = route.paths[selectedPath];
+        for (var i = 0; i < path.length; i++) {
+            var stopId = path[i];
+            if (stop.stopId === stopId) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    exports.legacy = 0;
+
+    exports.searchRoutesOfStop = function (stop) {
+        var out = [];
+
+        console.log("Para: " + stop.stopId);
+        console.log(exports.legacy);
+        exports.legacy += 1;
+        var allRoutes = exports.getAllRoutes();
+        for (var route of allRoutes) {
+            var paths = route.paths;
+            for (var i = 0; i < paths.length; i++) {
+                var path = paths[i];
+                for (var stopId of path) {
+                    if (stop.stopId === stopId) {
+                        console.log("Found: " + route.routeId);
+                        out.push([route, i]);
+                    }
+                }
+            }
+        }
+
+        return out;
+    }
+
+    exports.getRoutesOfStop = function (stop) {
+        var result = exports.searchRoutesOfStop(stop);
+
+        return result.map(function (value, index) {
+            return value[0];
+        });;
+    }
+
+    exports.requestAllETA = function () {
+        for (var handler of handlers) {
+            if (handler) {
+                var _handler = handler;
+                RequestLimiter.queue(function () {
+                    _handler.fetchETA();
+                });
+            }
+        }
+    }
+
+    exports.requestAllDatabase = function (pc) {
+        var proms = [];
+        var pm;
+        for (var provider of exports.providers) {
+            if (provider) {
+                pm = provider.fetchDatabase();
+                if (pm) {
+                    proms.push(pm);
+                }
+            }
+        }
+        return Misc.allProgress(proms, pc);
+    }
+});
+
+/*
 class TransitObject {
 
 	constructor(data) {
@@ -475,3 +413,4 @@ class Stop extends TransitObject {
 	}
 
 }
+*/

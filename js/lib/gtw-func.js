@@ -1,25 +1,23 @@
-//OpenETA Request Limiter
+//GTW Request Limiter
 
-var Func = function () {
+define(function (require, exports, module) {
+    exports.functions = {};
 
-	this.functions = {};
+    exports.registerFunction = function (name, func) {
+        exports.functions[name] = func;
+    }
 
-	this.registerFunction = function (name, func) {
-		this.functions[name] = func;
-	}
+    exports.unregisterFunction = function (name) {
+        if (!exports.functions[name]) {
+            return;
+        }
+        delete exports.functions[name];
+    }
 
-	this.unregisterFunction = function (name) {
-		if (!this.functions[name]) {
-			return;
-		}
-		delete this.functions[name];
-	}
-
-	this.call = function (name, ...args) {
-		if (!this.functions[name]) {
-			return false;
-		}
-		return this.functions[name](args);
-	}
-
-}
+    exports.call = function (name, ...args) {
+        if (!exports.functions[name]) {
+            return false;
+        }
+        return exports.functions[name](args);
+    }
+});

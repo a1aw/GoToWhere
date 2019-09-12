@@ -1,9 +1,20 @@
-//OpenETA Configuration
+//GTW Platform Configuration
 
-//
-// Google Map API Key
-//
-// You have to create an API key from the Google Cloud Console to
-// use Google Map features. The default one only works on the
-// official server.
-const _googleMapApiKey = "";
+define({
+    //
+    // Default Map API
+    //
+    // The map to be used in the UI, you can use:
+    //   - auto (Experimental. Prefers Google Map, fallback to Open Street Map)
+    //   - googleMap (Recommended)
+    //   - openStreetMap
+    mapApi: "googleMap",
+
+    //
+    // Google Map API Key
+    //
+    // You have to create an API key from the Google Cloud Console to
+    // use Google Map features. The default one only works on the
+    // official server.
+    googleMapApiKey: ""
+});

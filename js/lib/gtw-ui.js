@@ -1,103 +1,100 @@
-//OpenETA Event Manager
+//GTW UI
 
-const UIMANAGER_FUNC_NEARBY_ROUTE_SELECT = "UIMANAGER_FUNC_NEARBY_ROUTE_SELECT";
-const UIMANAGER_FUNC_SAVE_SETTINGS = "UIMANAGER_FUNC_SAVE_SETTINGS";
-const UIMANAGER_FUNC_SORT_COMPANY = "UIMANAGER_FUNC_SORT_COMPANY";
-const UIMANAGER_FUNC_UNSORT_COMPANY = "UIMANAGER_FUNC_UNSORT_COMPANY";
-const UIMANAGER_FUNC_SEARCH = "UIMANAGER_FUNC_ONLINE_PLUGIN";
-const UIMANAGER_VAR_ALL_NEARBY_ROUTES = "UIMANAGER_VAR_ALL_NEARBY_ROUTES";
+define(function (require, exports, module) {
+    const UIMANAGER_FUNC_NEARBY_ROUTE_SELECT = "UIMANAGER_FUNC_NEARBY_ROUTE_SELECT";
+    const UIMANAGER_FUNC_SAVE_SETTINGS = "UIMANAGER_FUNC_SAVE_SETTINGS";
+    const UIMANAGER_FUNC_SORT_COMPANY = "UIMANAGER_FUNC_SORT_COMPANY";
+    const UIMANAGER_FUNC_UNSORT_COMPANY = "UIMANAGER_FUNC_UNSORT_COMPANY";
+    const UIMANAGER_FUNC_SEARCH = "UIMANAGER_FUNC_ONLINE_PLUGIN";
+    const UIMANAGER_VAR_ALL_NEARBY_ROUTES = "UIMANAGER_VAR_ALL_NEARBY_ROUTES";
 
-var UIManager = function () {
+    Func.registerFunction(UIMANAGER_FUNC_NEARBY_ROUTE_SELECT, function (index) {
+        exports.clearUp();
+        //exports.hide();
+        var data = exports.variables[UIMANAGER_VAR_ALL_NEARBY_ROUTES][index];
+        var route = data[0];
+        var pathIndex = data[1];
+        var selectedStop = data[2];
+        OpenETAMap.showRoute(route, pathIndex, selectedStop);
+    });
 
-	var global = this;
+    Func.registerFunction(UIMANAGER_FUNC_SORT_COMPANY, function (company) {
+        company = company.toString();
+        $(".openeta-company").css("display", "none");
+        $(".openeta-company-" + company.trim()).css("display", "");
+        $(".openeta-sortcompany").removeClass("btn-primary");
+        $(".openeta-sortcompany").addClass("btn-default");
+        $(".openeta-sortcompany-" + company.trim()).addClass("btn-primary");
+        $(".openeta-sortcompany-" + company.trim()).removeClass("btn-default");
+    });
 
-	Func.registerFunction(UIMANAGER_FUNC_NEARBY_ROUTE_SELECT, function (index) {
-		global.clearUp();
-		//global.hide();
-		var data = global.variables[UIMANAGER_VAR_ALL_NEARBY_ROUTES][index];
-		var route = data[0];
-		var pathIndex = data[1];
-		var selectedStop = data[2];
-		OpenETAMap.showRoute(route, pathIndex, selectedStop);
-	});
+    Func.registerFunction(UIMANAGER_FUNC_UNSORT_COMPANY, function () {
+        $(".openeta-company").css("display", "");
+        $(".openeta-sortcompany").removeClass("btn-primary");
+        $(".openeta-sortcompany").addClass("btn-default");
+        $(".openeta-unsortcompany").addClass("btn-primary");
+        $(".openeta-unsortcompany").removeClass("btn-default");
+    });
 
-	Func.registerFunction(UIMANAGER_FUNC_SORT_COMPANY, function (company) {
-		company = company.toString();
-		$(".openeta-company").css("display", "none");
-		$(".openeta-company-" + company.trim()).css("display", "");
-		$(".openeta-sortcompany").removeClass("btn-primary");
-		$(".openeta-sortcompany").addClass("btn-default");
-		$(".openeta-sortcompany-" + company.trim()).addClass("btn-primary");
-		$(".openeta-sortcompany-" + company.trim()).removeClass("btn-default");
-	});
+    Func.registerFunction(UIMANAGER_FUNC_SAVE_SETTINGS, function (args) {
+        var val;
+        var out;
+        for (var setting of DEFAULT_SETTINGS) {
+            val = $("#openeta-settings-" + setting.key).val();
+            if (setting.type == "boolean") {
+                out = val == "Yes";
+            } else if (setting.type == "number") {
+                out = parseInt(val);
+            } else {
+                out = val;
+            }
+            if (setting.checkfunc && !setting.checkfunc(out)) {
+                alert("The value for \"" + setting.name + "\" is invalid.");
+                return;
+            }
+            Settings.set(setting.key, out);
+        }
+        Settings.save();
+        if (args.length > 0 && args[0]) {
+            UIManager.show("home");
+        }
+    });
 
-	Func.registerFunction(UIMANAGER_FUNC_UNSORT_COMPANY, function () {
-		$(".openeta-company").css("display", "");
-		$(".openeta-sortcompany").removeClass("btn-primary");
-		$(".openeta-sortcompany").addClass("btn-default");
-		$(".openeta-unsortcompany").addClass("btn-primary");
-		$(".openeta-unsortcompany").removeClass("btn-default");
-	});
+    exports.timers = [];
 
-	Func.registerFunction(UIMANAGER_FUNC_SAVE_SETTINGS, function (args) {
-		var val;
-		var out;
-		for (var setting of DEFAULT_SETTINGS) {
-			val = $("#openeta-settings-" + setting.key).val();
-			if (setting.type == "boolean") {
-				out = val == "Yes";
-			} else if (setting.type == "number") {
-				out = parseInt(val);
-			} else {
-				out = val;
-			}
-			if (setting.checkfunc && !setting.checkfunc(out)) {
-				alert("The value for \"" + setting.name + "\" is invalid.");
-				return;
-			}
-			Settings.set(setting.key, out);
-		}
-		Settings.save();
-		if (args.length > 0 && args[0]) {
-			UIManager.show("home");
-		}
-	});
+    exports.variables = {};
 
-	this.timers = [];
+    exports.nowUi = 0;
 
-    this.variables = {};
+    exports.previousUi = 0;
 
-    this.nowUi = 0;
-
-    this.previousUi = 0;
-
-    this.uiLayouts = [
+    exports.uiLayouts = [
         "modal-home",
         "modal-pluginmanager",
         "modal-settings",
         "modal-viewplugin"
     ];
 
-    this.loadedUiLayouts = {};
+    exports.loadedUiLayouts = {};
 
-    this.__loadUiLayoutTask = 0;
+    exports.__loadUiLayoutTask = 0;
 
-    this.__loadUiLayoutsDoneFunc = 0;
+    exports.__loadUiLayoutsDoneFunc = 0;
 
-    this.loadUiLayouts = function (doneFunc) {
-        this.__loadUiLayoutsDoneFunc = doneFunc;
-        this.__loadUiLayoutTask = 0;
-        this.__postLoadUiLayouts();
+    exports.loadUiLayouts = function (doneFunc) {
+        exports.__loadUiLayoutsDoneFunc = doneFunc;
+        exports.__loadUiLayoutTask = 0;
+        exports.__postLoadUiLayouts();
     };
 
-    this.__postLoadUiLayouts = function () {
-        if (this.__loadUiLayoutTask >= this.uiLayouts.length) {
-            if (this.__loadUiLayoutsDoneFunc && typeof this.__loadUiLayoutsDoneFunc === "function") {
-                this.__loadUiLayoutsDoneFunc();
-                this.__loadUiLayoutsDoneFunc = 0;
+    exports.__postLoadUiLayouts = function () {
+        if (exports.__loadUiLayoutTask >= exports.uiLayouts.length) {
+            if (exports.__loadUiLayoutsDoneFunc && typeof exports.__loadUiLayoutsDoneFunc === "function") {
+                exports.__loadUiLayoutsDoneFunc();
+                exports.__loadUiLayoutsDoneFunc = 0;
             }
         } else {
-            var key = this.uiLayouts[this.__loadUiLayoutTask];
+            var key = exports.uiLayouts[exports.__loadUiLayoutTask];
             $.ajax({
                 url: "ui/" + key + ".html",
                 success: function (data) {
@@ -112,7 +109,7 @@ var UIManager = function () {
         }
     }
 
-    this.showLayoutModal = function (layout, options = {}) {
+    exports.showLayoutModal = function (layout, options = {}) {
         var key = "modal-" + layout;
         var mKey = ".ui-" + key;
 
@@ -138,14 +135,14 @@ var UIManager = function () {
         }
     }
 
-    this.hideModal = function () {
+    exports.hideModal = function () {
         $(".modal").modal("hide");
         setTimeout(function () {
             $(".modal").remove();
         }, 500);
     }
 
-    this.hideLayoutModal = function (layout) {
+    exports.hideLayoutModal = function (layout) {
         var key = "modal-" + layout;
         var mKey = ".ui-" + key;
 
@@ -155,19 +152,19 @@ var UIManager = function () {
         }, 500);
     }
 
-    this.clearUp = function () {
-        for (var timer of this.timers) {
+    exports.clearUp = function () {
+        for (var timer of exports.timers) {
             clearInterval(timer);
         }
     };
 
-    this.previous = function () {
-        if (typeof this.previousUi === "function") {
-            this.previousUi();
+    exports.previous = function () {
+        if (typeof exports.previousUi === "function") {
+            exports.previousUi();
         }
     };
 
-    this.scripts = {
+    exports.scripts = {
         "viewplugin": function (args) {
             $(".ui-modal-viewplugin .close").on("click", function () {
                 UIManager.show("pluginmanager");
@@ -504,7 +501,7 @@ var UIManager = function () {
                     });
                 });
                 */
-                
+
                 UIManager.timers.push(setInterval(function () {
                     console.log("Update UI!");
                     UIManager.updateEtaUi();
@@ -517,11 +514,11 @@ var UIManager = function () {
         }
     };
 
-    this.show = function (layout, ...args) {
-        this.nowUi = layout;
-        this.previousUi = 0;
-        this.clearUp();
-        this.variables = {};
+    exports.show = function (layout, ...args) {
+        exports.nowUi = layout;
+        exports.previousUi = 0;
+        exports.clearUp();
+        exports.variables = {};
 
         UIManager.showLayoutModal(layout, true);
         if (typeof UIManager.scripts[layout] === "function") {
@@ -531,8 +528,8 @@ var UIManager = function () {
         }
     };
 
-    this.updateEtaUi = function () {
-        var routes = this.variables[UIMANAGER_VAR_ALL_NEARBY_ROUTES];
+    exports.updateEtaUi = function () {
+        var routes = exports.variables[UIMANAGER_VAR_ALL_NEARBY_ROUTES];
 
         for (var route of routes) {
             var h = ETAManager.request({
@@ -612,7 +609,7 @@ var UIManager = function () {
 
     };
 
-    this.isShown = function(){
+    exports.isShown = function () {
         return ($(".modal").data('bs.modal') || {})._isShown;
     }
-}
+});

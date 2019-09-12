@@ -5,6 +5,7 @@ if (!window["_urlPrefix"]){
 }
 
 //const _googleMapScript = "https://maps.googleapis.com/maps/api/js?callback=initMap&key=";
+/*
 const _allModules = [
 	"gtw-app",
 	"gtw-settings",
@@ -20,6 +21,7 @@ const _allModules = [
 	"gtw-plugin",
 	"gtw-pluginloader"
 ];
+*/
 
 var headerTexts = ["GoToWhere<small>.ga</small>", "\u53bb\u908a\u35ce", "HeuiBin<small>.ga</small>"];
 
@@ -51,12 +53,12 @@ requirejs.config({
     }
 });
 
-requirejs(_allModules, function () {
+requirejs(["gtw-cors", "gtw-pluginloader", "gtw-eta"], function (Cors, PluginLoader, ETAManager) {
     console.log("Load success");
     console.log(arguments);
+    /*
     Settings = new Settings();
     Settings.load();
-    Cors = new Cors();
     Misc = new Misc();
     Func = new Func();
     OpenETAMap = new OpenETAMap();
@@ -67,16 +69,16 @@ requirejs(_allModules, function () {
     UIManager = new UIManager();
     RequestLimiter = new RequestLimiter();
     RequestLimiter.start();
+    */
 
     Cors.register("www.openeta.ml", true);
     Cors.register("plugins.openeta.ml", true);
 
     $("#startup-status").html("Downloading plugins...");
-    PluginLoader = new PluginLoader();
 
     var promise = PluginLoader.download(function(progress){
         console.log(progress);
-        $("#startup-progress").css("width", progress * 100 + "%");
+        $("#startup-progress").css("width", (progress / 8) + "%");
     });
 
 	if (!promise) {
@@ -84,22 +86,26 @@ requirejs(_allModules, function () {
 		$("#startup-status").html("Your browser does not support local storage.");
 		return;
     }
-    
+
     promise.then(function () {
-        $("#startup-progress").css("width", "100%");
-        $("#startup-status").html("Loading plugins...");
-        promise = PluginLoader.load();
-        promise.then(function () {
-            $("#startup-status").html("Initializing database...");
-            promise = ETAManager.requestAllDatabase(function (progress) {
-                console.log(progress);
-                $("#startup-progress").css("width", progress * 100 + "%");
-            });
+        $("#startup-progress").css("width", "12.5%");
+        $("#startup-status").html("Taking a rest!");
+        setTimeout(function () {
+            $("#startup-progress").css("width", "25%");
+            $("#startup-status").html("Loading plugins...");
+            promise = PluginLoader.load();
             promise.then(function () {
-                $("#startup-progress").css("width", "100%");
-                console.log("Done");
-                _initUi();
+                $("#startup-status").html("Initializing database...");
+                promise = ETAManager.requestAllDatabase(function (progress) {
+                    console.log(progress);
+                    $("#startup-progress").css("width", (25 + progress / 4 * 3) + "%");
+                });
+                promise.then(function () {
+                    $("#startup-progress").css("width", "100%");
+                    console.log("Done123");
+                    $(".startup").fadeOut(1000);
+                });
             });
-        });
+        }, 1000);
     });
 });

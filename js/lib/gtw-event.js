@@ -1,48 +1,46 @@
-//OpenETA Event Manager
+//GTW Event Manager
 
-const EVENTS = {
-	EVENT_UI_SHOW: "EVENT_UI_SHOW",
-	EVENT_UI_HIDE: "EVENT_UI_HIDE",
-	EVENT_UI_HOME: "EVENT_UI_HOME"
-};
+define(function (require, exports, module) {
+    exports.EVENTS = {
+        EVENT_UI_SHOW: "EVENT_UI_SHOW",
+        EVENT_UI_HIDE: "EVENT_UI_HIDE",
+        EVENT_UI_HOME: "EVENT_UI_HOME"
+    };
 
-var EventManager = function () {
+    exports.eventListeners = {};
 
-	this.eventListeners = {};
+    exports.dispatchEvent = function (event) {
+        if (!exports.eventListeners[event]) {
+            return;
+        }
+        for (var listener of exports.eventListeners[event]) {
+            if (listener) {
+                listener();
+            } else {
+                exports.removeListener(listener);
+            }
+        }
+    }
 
-	this.dispatchEvent = function (event) {
-		if (!this.eventListeners[event]) {
-			return;
-		}
-		for (var listener of this.eventListeners[event]) {
-			if (listener) {
-				listener();
-			} else {
-				this.removeListener(listener);
-			}
-		}
-	}
+    exports.addListener = function (event, listener) {
+        if (!exports.eventListeners[event]) {
+            exports.eventListeners[event] = [];
+        }
+        exports.eventListeners[event].push(listener);
+    }
 
-	this.addListener = function (event, listener) {
-		if (!this.eventListeners[event]) {
-			this.eventListeners[event] = [];
-		}
-		this.eventListeners[event].push(listener);
-	}
+    exports.removeListener = function (event, listener) {
+        if (!exports.eventListeners[event]) {
+            return;
+        }
+        var i = exports.eventListeners[event].indexOf(listener);
+        if (i == -1) {
+            return;
+        }
+        exports.eventListeners[event].splice(i, 1);
+    }
 
-	this.removeListener = function (event, listener) {
-		if (!this.eventListeners[event]) {
-			return;
-		}
-		var i = this.eventListeners[event].indexOf(listener);
-		if (i == -1) {
-			return;
-		}
-		this.eventListeners[event].splice(i, 1);
-	}
-
-	this.removeAllListeners = function () {
-		this.eventListeners = {};
-	}
-
-}
+    exports.removeAllListeners = function () {
+        exports.eventListeners = {};
+    }
+});
