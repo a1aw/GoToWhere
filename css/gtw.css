@@ -36,6 +36,12 @@
     display: none;
 }
 
+@media screen and (max-width: 470px) {
+    .startup h1 {
+        font-size: 10vw;
+    }
+}
+
 /* Map CSS */
 
 #gtw-map {
@@ -53,9 +59,26 @@
     margin-bottom: 0px;
 }
 
+.search-panel .nav {
+    overflow: auto;
+    white-space: nowrap;
+    display: block;
+}
+
+.search-panel .nav .nav-item {
+    display: inline-block;
+}
+
 .item-list .col-sm-2 {
     padding-left: 0px;
     padding-right: 0px;
+}
+
+#loc-status-btn {
+    position: absolute;
+    z-index: 2;
+    right: 4px;
+    bottom: 4px;
 }
 
 /* Header, footer CSS */

@@ -54,8 +54,8 @@ define(function (require, exports, module) {
                 icon: _urlPrefix + "img/human.png"
             });
 
-            //map.setCenter(global.currentPosition);
-            //map.setZoom(16);
+            map.setCenter(global.currentPosition);
+            map.setZoom(16);
 
             global.watchId = navigator.geolocation.watchPosition(
                 function (p) { global.onPositionChangeSuccess(p) },
@@ -70,7 +70,7 @@ define(function (require, exports, module) {
             successFunc(global.currentPosition);
         }, function () {
             errorFunc(ERROR_NO_ACCESS);
-        });
+        }, { timeout: 5000 });
     }
 
     exports.getCurrentPosition = function () {

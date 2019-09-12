@@ -129,9 +129,8 @@ requirejs(["gtw-cors", "gtw-pluginloader", "gtw-eta", "gtw-map", "gtw-location"]
                         $("#loc-status-btn").addClass("btn-success");
                         $("#loc-status-btn").removeClass("btn-warning");
                         setTimeout(function () {
-                            $("#loc-status-btn").addClass("btn-secondary");
-                            $("#loc-status-btn").removeClass("btn-success");
-                        }, 5000);
+                            $("#loc-status-btn").fadeOut(500);
+                        }, 2000);
                     }, function () {
                         $("#loc-status-btn").addClass("btn-danger");
                         $("#loc-status-btn").removeClass("btn-warning");

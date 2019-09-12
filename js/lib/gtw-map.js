@@ -13,4 +13,12 @@ define(function (require, exports, module) {
             });
         });
     };
+
+    exports.setCenter = function (coords) {
+        return exports.map.setCenter(coords);
+    };
+
+    exports.setZoom = function (zoom) {
+        return exports.map.setZoom(zoom);
+    };
 });
