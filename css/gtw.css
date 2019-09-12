@@ -25,7 +25,6 @@
 .startup .overlay {
     position: absolute;
     top: 0;
-    left: 0;
     height: 100%;
     width: 100%;
     background-color: white;
@@ -54,7 +53,7 @@
     margin-bottom: 0px;
 }
 
-.eta-list .col-sm-2 {
+.item-list .col-sm-2 {
     padding-left: 0px;
     padding-right: 0px;
 }
@@ -77,6 +76,22 @@
     width: 100%;
 }
 
+/* Map Overlay CSS */
+
+.map-overlay {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgb(255, 255, 255);
+    z-index: 1;
+    opacity: 0.8;
+    cursor: pointer;
+}
+
 /* Loading Overlay CSS */
 
 .loading-overlay {
@@ -89,7 +104,7 @@
     right: 0;
     bottom: 0;
     background-color: rgba(0,0,0,0.3);
-    z-index: 2;
+    z-index: 3;
     opacity: 100;
     cursor: pointer;
 }

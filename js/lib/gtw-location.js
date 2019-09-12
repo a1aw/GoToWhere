@@ -1,14 +1,16 @@
 //GTW Location Manager
 
 define(function (require, exports, module) {
+    var map = require("gtw-map");
+
     const LOCATION_MANAGER_CONVENTION_KEY = "openeta-location-convention";
 
     const CONVENTION_ASK_EVERYTIME = "CONVENTION_ASK_EVERYTIME";
     const CONVENTION_CUSTOM_LOCATION = "CONVENTION_CUSTOM_LOCATION";
     const CONVENTION_ASK_LOCATION_ACCESS = "CONVENTION_ASK_LOCATION_ACCESS";
     const CONVENTION_DIRECT_LOCATION_ACCESS = "CONVENTION_DIRECT_LOCATION_ACCESS";
-    exports.ERROR_NOT_SUPPORTED = 0;
-    exports.ERROR_NO_ACCESS = 1;
+    const ERROR_NOT_SUPPORTED = 0;
+    const ERROR_NO_ACCESS = 1;
 
     exports.watchId = 0;
 
@@ -52,8 +54,8 @@ define(function (require, exports, module) {
                 icon: _urlPrefix + "img/human.png"
             });
 
-            map.setCenter(global.currentPosition);
-            map.setZoom(16);
+            //map.setCenter(global.currentPosition);
+            //map.setZoom(16);
 
             global.watchId = navigator.geolocation.watchPosition(
                 function (p) { global.onPositionChangeSuccess(p) },

@@ -27,9 +27,29 @@
     <title>GoToWhere</title>
 </head>
 <body>
-    <div class="container-fluid">
-        <div class="row eta-list">
+    <div class="startup">
+        <div class="container h-100">
+            <div class="d-flex h-100 text-center align-items-center">
+                <div class="w-100 text-dark">
+                    <h1 class="display-3"><i class="fas fa-map-marked-alt"></i> GoToWhere<small>.ga</small></h1>
+                    <p class="lead mb-0">Open city data map</p>
+                </div>
+            </div>
         </div>
+        <div class="progress-panel">
+            <small id="startup-status">Initializing...</small>
+            <div class="progress">
+                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" id="startup-progress" style="width: 0%;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <div class="row item-list">
+        </div>
+    </div>
+
+    <div class="map-overlay">
     </div>
 
     <div class="loading-overlay">
@@ -42,7 +62,7 @@
 
     <div class="header">
         <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
-            <a class="navbar-brand" href="#">GoToWhere</a>
+            <a class="navbar-brand" href="#"><i class="fas fa-map-marked-alt"></i> GoToWhere</a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -66,19 +86,19 @@
 
         <div class="jumbotron jumbotron-fluid search-panel">
             <div class="container-fluid">
-                <div class="input-group mb-3">
-                    <input type="text" class="form-control" id="keywords" placeholder="Keywords" aria-label="Keywords" aria-describedby="button-addon1">
-                    <div class="input-group-append">
-                        <button class="btn btn-outline-success" type="button" id="search-btn">Search</button>
-                    </div>
-                </div>
-                <div class="filter-list">
-                    <button type="button" class="btn btn-success add-filter-btn"><i class="fas fa-plus"></i> <span>Add filter</span></button>
-                    <div class="btn-group" role="group" aria-label="Basic example">
-                        <button type="button" class="btn btn-outline-secondary"><i class="fas fa-times"></i></button>
-                        <button type="button" class="btn btn-secondary">Filter</button>
-                    </div>
-                </div>
+                <button class="btn btn-warning float-right" type="button" id="loc-status-btn"><i class="fas fa-location-arrow"></i></button>
+                <ul class="nav nav-pills">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#">Transit ETA</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Link</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Link</a>
+                    </li>
+                </ul>
+                <hr />
             </div>
         </div>
     </div>
@@ -89,23 +109,6 @@
 
     <div id="gtw-map">
 
-    </div>
-
-    <div class="startup">
-        <div class="container h-100">
-            <div class="d-flex h-100 text-center align-items-center">
-                <div class="w-100 text-dark">
-                    <h1 class="display-3">GoToWhere<small>.ga</small></h1>
-                    <p class="lead mb-0">Open city data map</p>
-                </div>
-            </div>
-        </div>
-        <div class="progress-panel">
-            <small id="startup-status">Initializing...</small>
-            <div class="progress">
-                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" id="startup-progress" style="width: 0%;"></div>
-            </div>
-        </div>
     </div>
 
     <div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">

@@ -4,7 +4,6 @@ if (!window["_urlPrefix"]){
     window._urlPrefix = "";
 }
 
-//const _googleMapScript = "https://maps.googleapis.com/maps/api/js?callback=initMap&key=";
 /*
 const _allModules = [
 	"gtw-app",
@@ -23,28 +22,47 @@ const _allModules = [
 ];
 */
 
-var headerTexts = ["GoToWhere<small>.ga</small>", "\u53bb\u908a\u35ce", "HeuiBin<small>.ga</small>"];
+var __headerTexts = ["<i class=\"fas fa-map-marked-alt\"></i> GoToWhere<small>.ga</small>", "<i class=\"fas fa-map-marked-alt\"></i> \u53bb\u908a\u35ce", "<i class=\"fas fa-map-marked-alt\"></i> HeuiBin<small>.ga</small>"];
+var __stopHeaderAnimation = false;
 
-function headerAnimation(i) {
+function __headerAnimation(i) {
+    if (__stopHeaderAnimation) {
+        return;
+    }
+
     if (i === undefined || i > 2) {
         i = 0;
     }
-    $(".startup h1").html(headerTexts[i]);
+    $(".startup h1").html(__headerTexts[i]);
     $(".startup h1").fadeIn(2000, function () {
         $(".startup h1").fadeOut(2000, function () {
-            headerAnimation(i + 1);
+            __headerAnimation(i + 1);
         });
     });
 }
 
 $(document).ready(function () {
+    adjustMargin();
     $(".startup .progress-panel").fadeIn(5000);
     $(".startup .container").fadeIn(2000, function () {
-        headerAnimation();
+        __headerAnimation();
     });
     console.log("GoToWhere (c) 2019. Licensed under the MIT License.");
     $("#startup-status").html("Loading OpenETA scripts...");
 });
+
+$(window).resize(function () {
+    adjustMargin();
+});
+
+function adjustMargin() {
+    var hh = $(".header").height();
+    var fh = $(".footer").height();
+    $(".item-list").css("margin-top", hh);
+    $(".item-list").css("margin-bottom", fh);
+    $(".loading-overlay").css("height", $(".item-list").height());
+    $(".loading-overlay").css("margin-top", hh);
+}
 
 requirejs.config({
     baseUrl: 'js/lib',
@@ -53,7 +71,7 @@ requirejs.config({
     }
 });
 
-requirejs(["gtw-cors", "gtw-pluginloader", "gtw-eta"], function (Cors, PluginLoader, ETAManager) {
+requirejs(["gtw-cors", "gtw-pluginloader", "gtw-eta", "gtw-map", "gtw-location"], function (Cors, PluginLoader, ETAManager, Map, loc) {
     console.log("Load success");
     console.log(arguments);
     /*
@@ -90,22 +108,44 @@ requirejs(["gtw-cors", "gtw-pluginloader", "gtw-eta"], function (Cors, PluginLoa
     promise.then(function () {
         $("#startup-progress").css("width", "12.5%");
         $("#startup-status").html("Taking a rest!");
-        setTimeout(function () {
-            $("#startup-progress").css("width", "25%");
-            $("#startup-status").html("Loading plugins...");
-            promise = PluginLoader.load();
+
+        $("#startup-progress").css("width", "25%");
+        $("#startup-status").html("Loading plugins...");
+        promise = PluginLoader.load();
+        promise.then(function () {
+            $("#startup-status").html("Initializing database...");
+            promise = ETAManager.requestAllDatabase(function (progress) {
+                console.log(progress);
+                $("#startup-progress").css("width", (25 + progress / 4 * 3) + "%");
+            });
             promise.then(function () {
-                $("#startup-status").html("Initializing database...");
-                promise = ETAManager.requestAllDatabase(function (progress) {
-                    console.log(progress);
-                    $("#startup-progress").css("width", (25 + progress / 4 * 3) + "%");
-                });
+                $("#startup-progress").css("width", "100%");
+                $("#startup-status").html("Initializing map...");
+                promise = Map.init();
                 promise.then(function () {
-                    $("#startup-progress").css("width", "100%");
-                    console.log("Done123");
-                    $(".startup").fadeOut(1000);
+                    $("#startup-status").html("Finish!");
+
+                    loc.requestLocationAccess(function () {
+                        $("#loc-status-btn").addClass("btn-success");
+                        $("#loc-status-btn").removeClass("btn-warning");
+                        setTimeout(function () {
+                            $("#loc-status-btn").addClass("btn-secondary");
+                            $("#loc-status-btn").removeClass("btn-success");
+                        }, 5000);
+                    }, function () {
+                        $("#loc-status-btn").addClass("btn-danger");
+                        $("#loc-status-btn").removeClass("btn-warning");
+                        $("#loc-status-btn").append(" <span>Failed!</span>");
+                        setTimeout(function () {
+                            $("#loc-status-btn span").fadeOut(500);
+                        }, 5000);
+                    });
+
+                    $(".startup").fadeOut(1000, function () {
+                        __stopHeaderAnimation = true;
+                    });
                 });
             });
-        }, 1000);
+        });
     });
 });
