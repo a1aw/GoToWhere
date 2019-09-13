@@ -171,7 +171,7 @@ define(function (require, exports, module) {
         return allStops;
     }
 
-    exports.getAllStopsNearbyCoord = function (lat, lng, range, sorted = true, withDistance = false) {
+    exports.getAllStopsNearbyCoord = function (lat, lng, range, sorted = true) {
         var allStops = exports.getAllStops();
         var stops = [];
         var stop;
@@ -180,15 +180,18 @@ define(function (require, exports, module) {
             stop = allStops[i];
             d = Misc.geoDistance(lat, lng, stop.lat, stop.lng);
             if (d <= range) {
-                stops.push([stop, d]);
+                stops.push({
+                    stop: stop,
+                    distance: d
+                });
             }
         }
 
         if (sorted) {
             stops.sort(function (a, b) {
-                if (a[1] < b[1]) {
+                if (a.distance < b.distance) {
                     return -1;
-                } else if (a[1] > b[1]) {
+                } else if (a.distance > b.distance) {
                     return 1;
                 } else {
                     return 0;
@@ -196,13 +199,7 @@ define(function (require, exports, module) {
             });
         }
 
-        if (!withDistance) {
-            return stops.map(function (value, index) {
-                return value[0];
-            });
-        } else {
-            return stops;
-        }
+        return stops;
     }
 
     exports.getStopById = function (stopId) {

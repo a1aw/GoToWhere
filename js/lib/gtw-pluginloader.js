@@ -21,7 +21,7 @@ define(function (require, exports, module) {
             do {
                 st = global.interpreter.step();
                 x++;
-            } while (x < 1000 && st);
+            } while (x < 2500 && st);
             if (st) {
                 window.setTimeout(global.nextStep, 0);
             } else {
@@ -239,10 +239,11 @@ define(function (require, exports, module) {
                 var stopsArray = interpreter.pseudoToNative(p_stopsArray);
                 var pathArray = interpreter.pseudoToNative(p_pathArray);
                 var map = interpreter.pseudoToNative(p_map);
+                var out = [];
                 for (i = 0; i < pathArray.length; i++) {
                     var stop = pathArray[i];
                     if (!Misc.isSamePropertyValueInArray(stopsArray, "stopId", stop[map["stopId"]])) {
-                        return interpreter.nativeToPseudo({
+                        out.push({
                             transit: TransitType.TRANSIT_BUS,
                             provider: map["provider"],
                             stopId: stop[map["stopId"]],
@@ -253,7 +254,7 @@ define(function (require, exports, module) {
                         });
                     }
                 }
-                return false;
+                return interpreter.nativeToPseudo(out);
             }));
             interpreter.setProperty(scope, "ajax", interpreter.createNativeFunction(function (settings) {
                 var data = interpreter.pseudoToNative(settings);

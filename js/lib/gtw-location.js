@@ -14,7 +14,7 @@ define(function (require, exports, module) {
 
     exports.watchId = 0;
 
-    exports.currentPosition = 0;
+    exports.currentPosition = { lat: 22.2952296, lng: 114.1766577 };
 
     exports.currentLocationMarker = 0;
 

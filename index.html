@@ -46,11 +46,6 @@
         </div>
     </div>
 
-    <div class="container-fluid">
-        <div class="row item-list">
-        </div>
-    </div>
-
     <div class="map-overlay">
     </div>
 
@@ -88,17 +83,9 @@
 
         <div class="jumbotron jumbotron-fluid search-panel">
             <div class="container-fluid">
-                <ul class="nav nav-pills">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="#">Transit ETA</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Transit Navigation</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Link</a>
-                    </li>
-                </ul>
+                <div class="tabs">
+                    <button type="button" class="btn btn-primary ui-tab" gtw-tab="transitEta"><i class="far fa-clock"></i> Transit ETA</button>
+                </div>
                 <hr />
                 <div class="tab-panel">
                 </div>
@@ -110,8 +97,11 @@
         <p class="text-center">Licensed under MIT License. This application is intented for educational researches, but NOT for commericial uses.</p>
     </div>
 
-    <div id="gtw-map">
+    <div id="gtw-map"></div>
 
+    <div class="container-fluid">
+        <div class="row item-list">
+        </div>
     </div>
 
     <div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">

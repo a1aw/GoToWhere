@@ -2,13 +2,14 @@
 
 define(function (require, exports, module) {
     var config = require("gtw-config");
+    var loc = require("gtw-location");
 
     exports.init = function () {
         return new Promise((resolve, reject) => {
             //Required callback function from the API
             window.initMap = function () {
                 exports.map = new google.maps.Map(document.getElementById("gtw-map"), {
-                    center: { lat: 22.25, lng: 114.1667 },
+                    center: loc.getCurrentPosition(),
                     zoom: 12
                 });
                 resolve();

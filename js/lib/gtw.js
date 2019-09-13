@@ -71,7 +71,7 @@ requirejs.config({
     }
 });
 
-requirejs(["gtw-cors", "gtw-pluginloader", "gtw-eta", "gtw-map", "gtw-location"], function (Cors, PluginLoader, ETAManager, Map, loc) {
+requirejs(["gtw-cors", "gtw-pluginloader", "gtw-eta", "gtw-map", "gtw-location", "gtw-ui"], function (Cors, PluginLoader, ETAManager, Map, loc, ui) {
     console.log("Load success");
     console.log(arguments);
     /*
@@ -125,7 +125,10 @@ requirejs(["gtw-cors", "gtw-pluginloader", "gtw-eta", "gtw-map", "gtw-location"]
                 promise.then(function () {
                     $("#startup-status").html("Finish!");
 
+                    ui.init();
+
                     loc.requestLocationAccess(function () {
+                        ui.init();
                         $("#loc-status-btn").addClass("btn-success");
                         $("#loc-status-btn").removeClass("btn-warning");
                         setTimeout(function () {
@@ -140,6 +143,11 @@ requirejs(["gtw-cors", "gtw-pluginloader", "gtw-eta", "gtw-map", "gtw-location"]
                         }, 5000);
                     });
 
+                    setTimeout(function () {
+                        $(".footer").animate({ height: 0, opacity: 0 }, 1000, function () {
+                            $(".footer").css("display", "none");
+                        });
+                    }, 5000);
                     $(".startup").fadeOut(1000, function () {
                         __stopHeaderAnimation = true;
                     });
