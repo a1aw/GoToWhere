@@ -144,3 +144,32 @@
     width: 3rem;
     height: 3rem;
 }
+
+/* Nearby route */
+
+.nearby-route {
+}
+
+.nearby-route .route-id {
+    padding-left: 2px;
+    padding-left: 2px;
+    font-weight: bold;
+    width: 10vw;
+}
+
+.nearby-route .stop-info {
+    margin-left: 2px;
+    margin-right: 2px;
+    width: 60vw;
+}
+
+.nearby-route .stop-info .badge {
+    width: 10vw;
+}
+
+.nearby-route .stop-info .col-sm-12{
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; 
+    width: inherit;
+}

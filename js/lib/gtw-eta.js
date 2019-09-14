@@ -23,13 +23,13 @@ define(function (require, exports, module) {
         this.interpreter = plugin.interpreter;
 
         this.makeHandler = function(options) {
-            return new ETAHandler({
+            return {
                 transit: this.transit,
-                provider: this,
+                provider: this.name,
                 route: options.route,
                 stop: options.stop,
                 selectedPath: options.selectedPath
-            });
+            };
         }
 
         this.getRoutes = function () {
@@ -52,6 +52,7 @@ define(function (require, exports, module) {
         }
 
         this.fetchEta = function (etaHandler) {
+            var global = this;
             return new Promise(function (resolve, reject) {
                 global.runCode("fetchEta", resolve, reject, etaHandler);
             });
@@ -64,7 +65,12 @@ define(function (require, exports, module) {
             } else {
                 this.interpreter.appendCode(this.providerObjName + "." + codeName + "();");
             }
-            this.interpreter.run();
+            try {
+                this.interpreter.run();
+            } catch (err) {
+                console.error("Error: Error occurred in \"" + this.packageName + "\" when running code \"" + codeName + "\"");
+                throw err;
+            }
             return this.interpreter.pseudoToNative(this.interpreter.value);
         }
     }
@@ -85,7 +91,7 @@ define(function (require, exports, module) {
                 console.log("Invalidate inuse ETA cache: " + key)
                 delete exports.handlers[key];
             } else {
-                cache.handler.fetchETA();
+                exports.fetchEta(cache.handler);
             }
         }
     }
@@ -119,8 +125,23 @@ define(function (require, exports, module) {
         return exports.providers;
     }
 
+    exports.getProvider = function (providerName) {
+        for (var provider of exports.providers) {
+            if (provider.name === providerName) {
+                return provider;
+            }
+        }
+        return false;
+    };
+
     exports.request = function (options) {
-        var key = options.provider.name + "-" + options.route.routeId + "-" + options.selectedPath + "-" + options.stop.stopId;
+        var provider = exports.getProvider(options.provider);
+
+        if (!provider) {
+            throw new Error("Could not find registered ETA provider with name \"" + options.provider + "\"");
+        }
+
+        var key = options.provider + "-" + options.route.routeId + "-" + options.selectedPath + "-" + options.stop.stopId;
 
         var d = new Date();
         var cache = exports.handlers[key];
@@ -128,10 +149,10 @@ define(function (require, exports, module) {
             exports.handlers[key].lastAccess = d.getTime();
             return cache.handler;
         } else {
-            var h = options.provider.makeHandler({
-                route: options.route,
+            var h = provider.makeHandler({
+                route: options.route.routeId,
                 selectedPath: options.selectedPath,
-                stop: options.stop
+                stop: options.stop.stopId
             });
             exports.handlers[key] = {
                 lastAccess: d.getTime(),
@@ -139,6 +160,26 @@ define(function (require, exports, module) {
             };
             return h;
         }
+    }
+
+    exports.getEta = function (handler) {
+        var provider = exports.getProvider(handler.provider);
+
+        if (!provider) {
+            throw new Error("Could not find registered ETA provider with name \"" + handler.provider + "\"");
+        }
+
+        return provider.getEta(handler);
+    }
+
+    exports.fetchEta = function (handler) {
+        var provider = exports.getProvider(handler.provider);
+
+        if (!provider) {
+            throw new Error("Could not find registered ETA provider with name \"" + handler.provider + "\"");
+        }
+
+        return provider.fetchEta(handler);
     }
 
     exports.getHandlers = function () {
@@ -204,9 +245,10 @@ define(function (require, exports, module) {
 
     exports.getStopById = function (stopId) {
         var allStops = exports.getAllStops();
-        for (var stop of allStops) {
-            if (stopId === stop.stopId) {
-                return stop;
+        var i;
+        for (i = 0; i < allStops.length; i++) {
+            if (stopId === allStops[i].stopId) {
+                return allStops[i];
             }
         }
         return false;
@@ -226,14 +268,9 @@ define(function (require, exports, module) {
         return -1;
     }
 
-    exports.legacy = 0;
-
     exports.searchRoutesOfStop = function (stop) {
         var out = [];
 
-        console.log("Para: " + stop.stopId);
-        console.log(exports.legacy);
-        exports.legacy += 1;
         var allRoutes = exports.getAllRoutes();
         for (var route of allRoutes) {
             var paths = route.paths;
@@ -242,7 +279,10 @@ define(function (require, exports, module) {
                 for (var stopId of path) {
                     if (stop.stopId === stopId) {
                         console.log("Found: " + route.routeId);
-                        out.push([route, i]);
+                        out.push({
+                            route: route,
+                            bound: i
+                        });
                     }
                 }
             }

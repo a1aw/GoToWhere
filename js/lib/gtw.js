@@ -71,7 +71,7 @@ requirejs.config({
     }
 });
 
-requirejs(["gtw-cors", "gtw-pluginloader", "gtw-eta", "gtw-map", "gtw-location", "gtw-ui"], function (Cors, PluginLoader, ETAManager, Map, loc, ui) {
+requirejs(["gtw-cors", "gtw-pluginloader", "gtw-eta", "gtw-map", "gtw-location", "gtw-ui", "gtw-settings"], function (Cors, PluginLoader, ETAManager, Map, loc, ui, settings) {
     console.log("Load success");
     console.log(arguments);
     /*
@@ -88,6 +88,8 @@ requirejs(["gtw-cors", "gtw-pluginloader", "gtw-eta", "gtw-map", "gtw-location",
     RequestLimiter = new RequestLimiter();
     RequestLimiter.start();
     */
+
+    settings.load();
 
     Cors.register("www.openeta.ml", true);
     Cors.register("plugins.openeta.ml", true);
@@ -126,6 +128,8 @@ requirejs(["gtw-cors", "gtw-pluginloader", "gtw-eta", "gtw-map", "gtw-location",
                     $("#startup-status").html("Finish!");
 
                     ui.init();
+                    ETAManager.forceUpdate();
+                    ETAManager.start();
 
                     loc.requestLocationAccess(function () {
                         ui.init();

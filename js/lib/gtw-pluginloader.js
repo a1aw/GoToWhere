@@ -18,18 +18,25 @@ define(function (require, exports, module) {
         this.nextStep = function () {
             var x = 0;
             var st = false;
-            do {
-                st = global.interpreter.step();
-                x++;
-            } while (x < 2500 && st);
-            if (st) {
-                window.setTimeout(global.nextStep, 0);
-            } else {
-                console.log("ExecDone");
-                if (typeof global.doneFunc === "function") {
-                    global.doneFunc();
+
+            try {
+                do {
+                    st = global.interpreter.step();
+                    x++;
+                } while (x < 2500 && st);
+                if (st) {
+                    window.setTimeout(global.nextStep, 0);
+                } else {
+                    console.log("ExecDone");
+                    if (typeof global.doneFunc === "function") {
+                        global.doneFunc();
+                    }
                 }
+            } catch (err) {
+                console.error("Error: Error occurred in \"" + this.packageName + "\" when using InterpreterRunner.");
+                throw err;
             }
+            
         }
     };
 

@@ -49,6 +49,95 @@ define(function (require, exports, module) {
     };
 
     exports.scripts = {
+        "transitEtaUpdateUi": function () {
+            var allNearbyRoutes = exports.vars["allNearbyRoutes"];
+            var h;
+            for (var result of allNearbyRoutes) {
+                h = ETAManager.request({
+                    provider: result.route.provider,
+                    route: result.route,
+                    selectedPath: result.bound,
+                    stop: result.stop
+                });
+
+                var text = "";
+                var eta = ETAManager.getEta(h);
+                
+                var node = $(".nearby-route[gtw-provider=\"" + h.provider + "\"][gtw-route-id=\"" + h.route + "\"][gtw-bound=\"" + h.selectedPath + "\"][gtw-stop-id=\"" + h.stop + "\"]");
+                
+                node.removeClass("list-group-item-secondary");
+                node.removeClass("list-group-item-info");
+                node.removeClass("list-group-item-success");
+                node.removeClass("list-group-item-warning");
+                node.removeClass("list-group-item-danger");
+                node.removeClass("list-group-item-light");
+                node.removeClass("list-group-item-dark");
+
+                if (!eta || !eta.schedules || !eta.serverTime) {
+                    text = "N/A";
+                    node.addClass("list-group-item-light");
+                } else if (eta.schedules.length == 0) {
+                    text = "No Schedules";
+                    node.addClass("list-group-item-light");
+                } else {
+                    var schedule = eta.schedules[0];
+
+                    var eta = schedule.getRemainingMinutes(eta.serverTime);
+                    var css = "";
+
+                    if (eta >= 20) {
+                        css = "secondary";
+                    } else if (eta >= 15) {
+                        css = "info";
+                    } else if (eta >= 10) {
+                        css = "success";
+                    } else if (eta >= 5) {
+                        css = "warning";
+                    } else if (eta >= 1) {
+                        css = "danger"
+                    } else {
+                        css = "dark";
+                    }
+                    node.addClass("list-group-item-" + css);
+
+                    //TODO: isOutdated
+
+                    if (schedule.hasMsg) {
+                        text = schedule.msg;
+                    }
+                    if (schedule.hasTime) {
+                        if (schedule.hasMsg) {
+                            text += "<br />";
+                        }
+                        if (eta > 1) {
+                            text += eta + " mins";
+                        } else if (eta == 1) {
+                            text += eta + " min";
+                        } else {
+                            text += "Arrived/Left";
+                        }
+                    }
+
+                    if (schedule.isLive) {
+                        text += " <span style=\"color: red; float: right; font-size: 10px;\"><i class=\"fa fa-circle\"></i> Live</span>";
+                    } else {
+                        text += " <span style=\"font-size: 10px; float: right; font-style: italic;\">Scheduled</span>";
+                    }
+
+                    /*
+                    if (schedule.hasTime) {
+                        text += Misc.fillZero(schedule.time.hr) + ":" + Misc.fillZero(schedule.time.min);
+                    } else {
+                        text += "---";
+                    }
+                    */
+
+                    //TODO: Features
+                }
+                var badge = node.children(".transit-eta")
+                badge.html(text);
+            }
+        },
         "transitEta": function () {
             var pos = Loc.getCurrentPosition();
             var providers = ETAManager.getProviders();
@@ -124,16 +213,71 @@ define(function (require, exports, module) {
                     }
                 }
 
+                var maxNearbyBusDisplay = Settings.get("max_nearby_transit_to_display", 20);
+                console.log(allNearbyStops);
+                var allNearbyRoutes = [];
+                for (var stopResult of allNearbyStops) {
+                    if (allNearbyRoutes.length >= maxNearbyBusDisplay) {
+                        break;
+                    }
+
+                    var routeResults = ETAManager.searchRoutesOfStop(stopResult.stop);
+                    console.log(stopResult.stop);
+
+                    for (var routeResult of routeResults) {
+                        console.log(routeResult);
+                        allNearbyRoutes.push({
+                            route: routeResult.route,
+                            bound: routeResult.bound,
+                            stop: stopResult.stop,
+                            distance: stopResult.distance,
+                        });
+                    }
+                }
+                console.log(allNearbyRoutes);
+
                 var html;
                 var distance;
+                var paths;
+                var stopId;
                 html = "<ul class=\"list-group\">"
-                for (var stop of allNearbyStops) {
-                    distance = Math.round(stop.distance * 1000);
+                for (var result of allNearbyRoutes) {
+                    console.log(result);
+                    paths = result.route.paths[result.bound];
+                    stopId = paths[paths.length - 1];
+                    distance = Math.round(result.distance * 1000);
                     html +=
-                        "   <li class=\"list-group-item list-group-item-action\">Cras justo odio</li>";
+                        "    <li class=\"list-group-item list-group-item-action d-flex justify-content-between align-items-center nearby-route\" gtw-provider=\"" + result.route.provider + "\" gtw-route-id=\"" + result.route.routeId + "\" gtw-stop-id=\"" + result.stop.stopId + "\" gtw-bound=\"" + result.bound + "\">" +
+                        "        <div class=\"d-flex flex-column route-id\">" +
+                        "            <div>" + result.route.provider + "</div>" +
+                        "            <div>" + result.route.routeId + "</div>" +
+                        "        </div>" +
+                        "        <div class=\"d-flex flex-column stop-info\">" +
+                        "            <div>" +
+                        "                <b>To:</b> <small>" + ETAManager.getStopById(stopId).stopName +
+                        "</small></div>" +
+                        "            <div>" +
+                        "                " + result.stop.stopName + " (" + distance + "m)" +
+                        "            </div>" +
+                        "        </div>" +
+                        "        <span class=\"badge badge-secondary badge-pill transit-eta\">Retrieving...</span>" +
+                        "    </li>";
+
+                    ETAManager.request({
+                        provider: result.route.provider,
+                        route: result.route,
+                        selectedPath: result.bound,
+                        stop: result.stop
+                    });
                 }
                 html += "</ul>";
                 $(".item-list").html(html);
+
+                exports.timers.push(setInterval(function () {
+                    console.log("Update UI!");
+                    exports.scripts["transitEtaUpdateUi"]();
+                }, 1000));
+                exports.vars["allNearbyRoutes"] = allNearbyRoutes;
             } else {
                 //TODO: better message or auto add plugins according to region
                 $(".tab-panel").html("You do not have any plugins providing ETA data. Install one from the plugins manager.")
