@@ -44,6 +44,10 @@
 
 /* ETA CSS */
 
+.bg-trans {
+    background-color: unset;
+}
+
 .item-list .list-group {
     width: 100%;
     z-index: 1;
@@ -151,19 +155,17 @@
 }
 
 .nearby-route .route-id {
-    padding-right: 2px;
+    padding-right: 16px;
     font-weight: bold;
-    width: 10vw;
 }
 
 .nearby-route .stop-info {
-    margin-left: 2px;
-    margin-right: 2px;
-    width: 60vw;
+    margin-left: 8px;
+    margin-right: 8px;
 }
 
 .nearby-route .stop-info .badge {
-    width: 10vw;
+
 }
 
 .nearby-route .stop-info .col-sm-12{

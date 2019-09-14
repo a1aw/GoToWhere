@@ -32,8 +32,28 @@ define(function (require, exports, module) {
             };
         }
 
+        this.getRouteById = function (routeId) {
+            var routes = this.getRoutes();
+            for (var route of routes) {
+                if (route.routeId === routeId) {
+                    return route;
+                }
+            }
+            return false;
+        }
+
         this.getRoutes = function () {
             return this.runCode("getRoutes");
+        }
+
+        this.getStopById = function (stopId) {
+            var stops = this.getStops();
+            for (var stop of stops) {
+                if (stop.stopId === stopId) {
+                    return stop;
+                }
+            }
+            return false;
         }
 
         this.getStops = function () {

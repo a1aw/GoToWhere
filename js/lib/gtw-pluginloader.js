@@ -9,7 +9,9 @@ define(function (require, exports, module) {
         "var __gtwFunctions = {};" +
         "var __gtwFunctionsInc = 0;" +
         "var createFunction = function(func) {" +
+        "    console.log('origin ' + __gtwFunctionsInc);" +
         "    var num = ++__gtwFunctionsInc;" +
+        "    console.log('create ' + num);" +
         "    __gtwFunctions[num] = func;" +
         "    return num;" +
         "};" +
@@ -17,6 +19,7 @@ define(function (require, exports, module) {
         "    var func = __gtwFunctions[num];" +
         "    if (typeof func === \"function\") {" +
         "        var val = func(args);" +
+        "        console.log('delete ' + num);" +
         "        delete __gtwFunctions[num];" +
         "        return val;" +
         "    }" +

@@ -30,6 +30,7 @@ define(function (require, exports, module) {
     exports.init = function () {
         exports.showTab("transitEta");
         adjustMargin();
+        exports.showPanel();
     };
 
     exports.clearUp = function () {
@@ -47,6 +48,47 @@ define(function (require, exports, module) {
         exports.currentTab = tab;
         exports.scripts[tab]();
     };
+
+    exports.showPanel = function () {
+        $(".item-list").fadeIn(500);
+        $(".search-panel").fadeIn(500);
+        $(".header nav").addClass("bg-dark");
+        $(".map-overlay").fadeIn(500);
+    }
+
+    exports.hidePanel = function () {
+        $(".item-list").fadeOut(500);
+        $(".search-panel").fadeOut(500);
+        $(".header nav").removeClass("bg-dark");
+        $(".map-overlay").fadeOut(500);
+    }
+
+    exports.drawRouteOnMap = function (route, bound, stop = false) {
+        var path = route.paths[bound];
+
+        var coords = [];
+        var pos;
+        var targetPos = false;
+        var dbStop;
+        var i;
+        for (i = 0; i < path.length; i++) {
+            dbStop = ETAManager.getStopById(path[i]);
+            pos = { lat: dbStop.lat, lng: dbStop.lng };
+            coords.push(pos);
+            Map.addMarker(pos, dbStop.stopName, "" + (i + 1));
+
+            if (stop && dbStop.stopId === stop.stopId) {
+                targetPos = pos;
+            }
+        }
+
+        Map.addPolyline(coords, "#FF0000", 2);
+
+        if (targetPos) {
+            Map.setCenter(targetPos);
+            Map.setZoom(18);
+        }
+    }
 
     exports.scripts = {
         "transitEtaUpdateUi": function () {
@@ -252,7 +294,7 @@ define(function (require, exports, module) {
                         "            <div>" + result.route.provider + "</div>" +
                         "            <div>" + result.route.routeId + "</div>" +
                         "        </div>" +
-                        "        <div class=\"d-flex flex-column stop-info\">" +
+                        "        <div class=\"d-flex flex-column stop-info mr-auto\">" +
                         "            <div>" +
                         "                <b>To:</b> <small>" + ETAManager.getStopById(stopId).stopName +
                         "</small></div>" +
@@ -272,6 +314,17 @@ define(function (require, exports, module) {
                 }
                 html += "</ul>";
                 $(".item-list").html(html);
+
+                $(".nearby-route").on("click", function () {
+                    exports.hidePanel();
+
+                    var provider = ETAManager.getProvider($(this).attr("gtw-provider"));
+                    var route = provider.getRouteById($(this).attr("gtw-route-id"));
+                    var stop = provider.getStopById($(this).attr("gtw-stop-id"));
+                    var bound = $(this).attr("gtw-bound");
+
+                    exports.drawRouteOnMap(route, bound, stop);
+                });
 
                 exports.timers.push(setInterval(function () {
                     console.log("Update UI!");
