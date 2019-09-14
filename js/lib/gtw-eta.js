@@ -107,6 +107,12 @@ define(function (require, exports, module) {
         clearInterval(exports.timer);
     }
 
+    exports.timeDifference = function (a, b) {
+        var x = a.hr * 60 + a.min;
+        var y = b.hr * 60 + b.min;
+        return x - y;
+    }
+
     exports.registerProvider = function (package, providerObjName, transit, name) {
         exports.providers.push(new ETAProvider(package, providerObjName, transit, name));
     }

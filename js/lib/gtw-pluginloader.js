@@ -5,6 +5,24 @@ define(function (require, exports, module) {
     var Cors = require("gtw-cors");
     var ETAManager = require("gtw-eta");
 
+    const PRE_CODE =
+        "var __gtwFunctions = {};" +
+        "var __gtwFunctionsInc = 0;" +
+        "var createFunction = function(func) {" +
+        "    var num = ++__gtwFunctionsInc;" +
+        "    __gtwFunctions[num] = func;" +
+        "    return num;" +
+        "};" +
+        "var executeFunction = function(num, args) {" +
+        "    var func = __gtwFunctions[num];" +
+        "    if (typeof func === \"function\") {" +
+        "        var val = func(args);" +
+        "        delete __gtwFunctions[num];" +
+        "        return val;" +
+        "    }" +
+        "};"
+        ;
+
     var InterpreterRunner = function (interpreter, doneFunc) {
         this.interpreter = interpreter;
         this.doneFunc = doneFunc;
@@ -227,6 +245,7 @@ define(function (require, exports, module) {
             interpreter.setProperty(scope, "btoa", interpreter.createNativeFunction(function (x) {
                 return btoa(x);
             }));
+            interpreter.setProperty(scope, "Number", interpreter.nativeToPseudo(Number));
             interpreter.setProperty(scope, "console", interpreter.nativeToPseudo(console));
             interpreter.setProperty(scope, "TransitType", interpreter.nativeToPseudo(TransitType));
             interpreter.setProperty(scope, "registerEtaProvider", interpreter.createNativeFunction(function (package, providerObjName, transit, name) {
@@ -273,8 +292,9 @@ define(function (require, exports, module) {
                         out[funcKey] = function (...args) {
                             console.log("Doing " + val);
                             console.log(args);
+                            interpreter.setProperty(interpreter.getScope(), "_val", interpreter.nativeToPseudo(val));
                             interpreter.setProperty(interpreter.getScope(), "_args", interpreter.nativeToPseudo(args));
-                            interpreter.appendCode(val + ".apply(this, _args);");
+                            interpreter.appendCode("executeFunction(_val, _args);");
                             new InterpreterRunner(interpreter).run();
                             console.log("NSDone");
                             return interpreter.value;
@@ -321,6 +341,8 @@ define(function (require, exports, module) {
                         var node = document.createElement("script");
                         node.innerHTML = pluginJs;
                         document.head.appendChild(node);
+
+                        pluginJs = PRE_CODE + pluginJs;
 
                         console.log(pluginJs);
                         var interpreter = new Interpreter(pluginJs, initFunc);
@@ -384,7 +406,7 @@ define(function (require, exports, module) {
                     continue;
                 }
 
-                var interpreter = new Interpreter(json.script, initFunc);
+                var interpreter = new Interpreter(PRE_CODE + json.script, initFunc);
                 exports.plugins[json.package] = {
                     package: json.package,
                     local: json,

@@ -128,11 +128,12 @@ requirejs(["gtw-cors", "gtw-pluginloader", "gtw-eta", "gtw-map", "gtw-location",
                     $("#startup-status").html("Finish!");
 
                     ui.init();
-                    ETAManager.forceUpdate();
                     ETAManager.start();
+                    ETAManager.forceUpdate();
 
                     loc.requestLocationAccess(function () {
                         ui.init();
+                        ETAManager.forceUpdate();
                         $("#loc-status-btn").addClass("btn-success");
                         $("#loc-status-btn").removeClass("btn-warning");
                         setTimeout(function () {

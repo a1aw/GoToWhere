@@ -82,7 +82,7 @@ define(function (require, exports, module) {
                 } else {
                     var schedule = eta.schedules[0];
 
-                    var eta = schedule.getRemainingMinutes(eta.serverTime);
+                    var eta = ETAManager.timeDifference(schedule.time, eta.serverTime);
                     var css = "";
 
                     if (eta >= 20) {
@@ -119,9 +119,9 @@ define(function (require, exports, module) {
                     }
 
                     if (schedule.isLive) {
-                        text += " <span style=\"color: red; float: right; font-size: 10px;\"><i class=\"fa fa-circle\"></i> Live</span>";
+                        text += "<br /><span style=\"color: red; float: right; font-size: 10px;\"><i class=\"fa fa-circle\"></i> Live</span>";
                     } else {
-                        text += " <span style=\"font-size: 10px; float: right; font-style: italic;\">Scheduled</span>";
+                        text += "<br /><span style=\"font-size: 10px; float: right; font-style: italic;\">Scheduled</span>";
                     }
 
                     /*

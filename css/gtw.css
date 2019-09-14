@@ -151,8 +151,7 @@
 }
 
 .nearby-route .route-id {
-    padding-left: 2px;
-    padding-left: 2px;
+    padding-right: 2px;
     font-weight: bold;
     width: 10vw;
 }
