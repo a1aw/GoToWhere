@@ -293,7 +293,6 @@ define(function (require, exports, module) {
                         };
                     }
                 }
-                out.headers = $.extend({"X-Requested-With": "gtwp.ajax"}, out.headers);
 
                 RequestLimiter.queue(function () {
                     $.ajax(out);
