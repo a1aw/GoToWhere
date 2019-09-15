@@ -37,14 +37,14 @@ define(function (require, exports, module) {
             type: "boolean",
             name: "Use CORS Proxy",
             desc: "For security reasons, browsers are not allowed to perform cross domain requests, aka CORS Policy. This will disallow plugins to fetch data from servers without required headers. This proxy is for adding Access-Control-Allow-Origin headers to server responses.",
-            def: false
+            def: true
         },
         {
             key: "cors_proxy_server",
             type: "string",
             name: "CORS Proxy Server URL",
             desc: "It must be a secure URL starting with \"https://\" and ending with a slash \"/\".",
-            def: "",
+            def: "https://cp1.gotowhere.ga/",
             checkfunc: function (val) {
                 return val.startsWith("https://") && val.endsWith("/")
             }

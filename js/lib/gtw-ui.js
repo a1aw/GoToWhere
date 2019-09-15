@@ -357,7 +357,7 @@ define(function (require, exports, module) {
                     "<div class=\"form-group\">" +
                     "    <label><b>" + setting.name + ":</b><p>" + setting.desc + "</p></label>";
                 if (setting.type == "boolean") {
-                    html += "    <select class=\"form-control\" id=\"openeta-settings-" + setting.key + "\">";
+                    html += "    <select class=\"form-control\" id=\"gtw-settings-" + setting.key + "\">";
                     if (val) {
                         html +=
                             "        <option selected>Yes</option>" +
@@ -369,7 +369,7 @@ define(function (require, exports, module) {
                     }
                     html += "    </select>";
                 } else {
-                    html += "    <input class=\"form-control\" id=\"openeta-settings-" + setting.key + "\" type=\"";
+                    html += "    <input class=\"form-control\" id=\"gtw-settings-" + setting.key + "\" type=\"";
                     if (setting.type == "number") {
                         html += "number";
                     } else {
@@ -382,10 +382,35 @@ define(function (require, exports, module) {
             }
 
             html +=
-                "<input type=\"button\" class=\"btn btn-success ui-btn-settings-save-close\" value=\"Save & Close\"/> " +
+                "<input type=\"button\" class=\"btn btn-success ui-btn-settings-save ui-btn-settings-save-close\" value=\"Save & Close\"/> " +
                 "<input type=\"button\" class=\"btn btn-default ui-btn-settings-save\" value=\"Apply\"/>";
 
             $(".modal-body").html(html);
+
+            $(".ui-btn-settings-save").on("click", function () {
+                var val;
+                var out;
+                for (var setting of DEFAULT_SETTINGS) {
+                    val = $("#gtw-settings-" + setting.key).val();
+                    if (setting.type == "boolean") {
+                        out = val == "Yes";
+                    } else if (setting.type == "number") {
+                        out = parseInt(val);
+                    } else {
+                        out = val;
+                    }
+                    if (setting.checkfunc && !setting.checkfunc(out)) {
+                        alert("The value for \"" + setting.name + "\" is invalid.");
+                        return;
+                    }
+                    Settings.set(setting.key, out);
+                }
+                Settings.save();
+
+                if ($(this).hasClass("ui-btn-settings-save-close")) {
+                    exports.hideModal();
+                }
+            });
         },
 
         "transitEtaUpdateUi": function () {
