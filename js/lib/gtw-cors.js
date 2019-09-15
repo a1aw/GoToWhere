@@ -43,8 +43,16 @@ define(function (require, exports, module) {
 
             if (Settings.get("use_cors_proxy", false)) {
                 var proxy = Settings.get("cors_proxy_server", "https://cp1.gotowhere.ga/");
-                if (proxy.startsWith("https://") && proxy.endsWith("/")) {
-                    request.url = proxy + request.url;
+                if (proxy.startsWith("https://") && proxy.endsWith("/")) { 
+                    var index = request.url.indexof("http://");
+                    var sindex = request.url.indexof("https://");
+                    if (index != -1 && sindex == -1) {
+                        request.url = proxy + request.url.substring(index + 1);
+                    } else if (index == -1 && sindex != -1) {
+                        request.url = proxy + request.url.substring(sindex + 1);
+                    } else {
+                        console.error("openeta-cors: Invalid URL: " + request.url);
+                    }
                 } else {
                     console.error("openeta-cors: The provided CORS Proxy server is invalid! Please check if the server URL in the settings is correct!");
                     callback({
