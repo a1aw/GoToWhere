@@ -71,9 +71,7 @@ requirejs.config({
     }
 });
 
-requirejs(["gtw-cors", "gtw-pluginloader", "gtw-eta", "gtw-map", "gtw-location", "gtw-ui", "gtw-settings"], function (Cors, PluginLoader, ETAManager, Map, loc, ui, settings) {
-    console.log("Load success");
-    console.log(arguments);
+requirejs(["gtw-cors", "gtw-pluginloader", "gtw-eta", "gtw-map", "gtw-location", "gtw-ui", "gtw-settings", "gtw-requestlimiter", "gtw-log"], function (Cors, PluginLoader, ETAManager, Map, loc, ui, settings, RequestLimiter, log) {
     /*
     Settings = new Settings();
     Settings.load();
@@ -91,13 +89,14 @@ requirejs(["gtw-cors", "gtw-pluginloader", "gtw-eta", "gtw-map", "gtw-location",
 
     settings.load();
 
+    RequestLimiter.start();
+
     Cors.register("www.openeta.ml", true);
     Cors.register("plugins.openeta.ml", true);
 
     $("#startup-status").html("Downloading plugins...");
 
     var promise = PluginLoader.download(function(progress){
-        console.log(progress);
         $("#startup-progress").css("width", (progress / 8) + "%");
     });
 
@@ -117,7 +116,6 @@ requirejs(["gtw-cors", "gtw-pluginloader", "gtw-eta", "gtw-map", "gtw-location",
         promise.then(function () {
             $("#startup-status").html("Initializing database...");
             promise = ETAManager.requestAllDatabase(function (progress) {
-                console.log(progress);
                 $("#startup-progress").css("width", (25 + progress / 4 * 3) + "%");
             });
             promise.then(function () {

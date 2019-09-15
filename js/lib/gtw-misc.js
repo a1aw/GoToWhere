@@ -14,11 +14,8 @@ define(function (require, exports, module) {
     exports.allProgress = function (proms, progress_cb) {
         let d = 0;
         progress_cb(0);
-        console.log("PROMS: " + proms.length);
         for (const p of proms) {
-            console.log(p)
             p.then(() => {
-                console.log("Completed one");
                 d++;
                 progress_cb((d * 100) / proms.length);
             });

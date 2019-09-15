@@ -3,23 +3,22 @@
 define(function (require, exports, module) {
     var Misc = require("gtw-misc");
     var Cors = require("gtw-cors");
+    var RequestLimiter = require("gtw-requestlimiter");
     var ETAManager = require("gtw-eta");
 
+    //Code to create callback functions
     const PRE_CODE =
         "var __gtwFunctions = {};" +
         "var __gtwFunctionsInc = 0;" +
         "var createFunction = function(func) {" +
-        "    console.log('origin ' + __gtwFunctionsInc);" +
         "    var num = ++__gtwFunctionsInc;" +
-        "    console.log('create ' + num);" +
         "    __gtwFunctions[num] = func;" +
         "    return num;" +
         "};" +
         "var executeFunction = function(num, args) {" +
         "    var func = __gtwFunctions[num];" +
         "    if (typeof func === \"function\") {" +
-        "        var val = func(args);" +
-        "        console.log('delete ' + num);" +
+        "        var val = func.apply(this, args);" +
         "        delete __gtwFunctions[num];" +
         "        return val;" +
         "    }" +
@@ -48,7 +47,6 @@ define(function (require, exports, module) {
                 if (st) {
                     window.setTimeout(global.nextStep, 0);
                 } else {
-                    console.log("ExecDone");
                     if (typeof global.doneFunc === "function") {
                         global.doneFunc();
                     }
@@ -149,8 +147,6 @@ define(function (require, exports, module) {
             }
         }
 
-        console.log(exports.plugins);
-
         var loadSeq = [];
         for (var package in exports.plugins) {
             loadSeq.push({
@@ -182,13 +178,10 @@ define(function (require, exports, module) {
         window["t"] = interpreter;
         interpreter.run();
 
-        console.log(interpreter);
-
         var scope = interpreter.getScope();
 
         if (!interpreter.hasProperty(scope, "onload")) {
             var t = "Error: Main class of \"" + pluginJson.package + "\" does not contain onload function";
-            console.log(t);
             cmt = document.createComment(t);
             document.head.appendChild(cmt);
             resolve();
@@ -204,8 +197,7 @@ define(function (require, exports, module) {
             var t = "Error: \"" + pluginJson.package + "\" reported error " + result + " for onload() function.";
             pluginJson.status = -1;
             pluginJson.msg = t;
-
-            console.log(t);
+            
             cmt = document.createComment(t);
             alert(t);
             document.head.appendChild(cmt);
@@ -293,20 +285,18 @@ define(function (require, exports, module) {
                     if (data[funcKey]) {
                         const val = data[funcKey];
                         out[funcKey] = function (...args) {
-                            console.log("Doing " + val);
-                            console.log(args);
                             interpreter.setProperty(interpreter.getScope(), "_val", interpreter.nativeToPseudo(val));
                             interpreter.setProperty(interpreter.getScope(), "_args", interpreter.nativeToPseudo(args));
                             interpreter.appendCode("executeFunction(_val, _args);");
                             new InterpreterRunner(interpreter).run();
-                            console.log("NSDone");
                             return interpreter.value;
                         };
                     }
                 }
-                console.log(data);
-                console.log(out);
-                $.ajax(out);
+
+                RequestLimiter.queue(function () {
+                    $.ajax(out);
+                });
             }));
         };
 
@@ -317,7 +307,6 @@ define(function (require, exports, module) {
                     url: url,
                     dataType: "json",
                     success: function (infoJson) {
-                        console.log(infoJson);
                         getPluginFunc(resolve, reject, json, infoJson);
                     },
                     error: function () {
@@ -346,8 +335,7 @@ define(function (require, exports, module) {
                         document.head.appendChild(node);
 
                         pluginJs = PRE_CODE + pluginJs;
-
-                        console.log(pluginJs);
+                        
                         var interpreter = new Interpreter(pluginJs, initFunc);
 
                         exports.plugins[json.package] = {
@@ -362,7 +350,7 @@ define(function (require, exports, module) {
                         };
                         resolve();
                     } catch (err) {
-                        console.log("Error loading " + key + ": " + err);
+                        console.error("Error loading " + key + ": " + err);
                         reject(err);
                     }
                 },
@@ -421,7 +409,7 @@ define(function (require, exports, module) {
                     msg: "Not enabled"
                 };
             } else {
-                console.log("Error: Unknown plugin method");
+                console.error("Error: Unknown plugin method");
             }
         }
         return Misc.allProgress(proms, pc);

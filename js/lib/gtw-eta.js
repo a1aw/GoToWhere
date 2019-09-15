@@ -21,6 +21,16 @@ define(function (require, exports, module) {
             throw new Error("No such plugin \"" + packageName + "\" installed! Cannot initialize ETA provider.");
         }
         this.interpreter = plugin.interpreter;
+        this.dbKey = "transit-db-" + packageName + "-" + name;
+        this.db = false;
+
+        if (localStorage) {
+            var dbJson = localStorage.getItem(this.dbKey);
+            if (dbJson) {
+                this.db = JSON.parse(dbJson);
+            }
+            delete dbJson;
+        }
 
         this.makeHandler = function(options) {
             return {
@@ -43,7 +53,7 @@ define(function (require, exports, module) {
         }
 
         this.getRoutes = function () {
-            return this.runCode("getRoutes");
+            return this.routes;
         }
 
         this.getStopById = function (stopId) {
@@ -57,14 +67,50 @@ define(function (require, exports, module) {
         }
 
         this.getStops = function () {
-            return this.runCode("getStops");
+            return this.stops;
         }
 
+        this.isDatabaseUpdateNeeded = function () {
+            if (this.db) {
+                var needed = this.runCode("isDatabaseUpdateNeeded", this.db.version);
+                if (!needed) {
+                    this.routes = this.db.routes;
+                    this.stops = this.db.stops;
+                    this.interpreter.setProperty(this.interpreter.getScope(), "routes", this.interpreter.nativeToPseudo(this.routes));
+                    this.interpreter.setProperty(this.interpreter.getScope(), "stops", this.interpreter.nativeToPseudo(this.stops));
+                    delete this.db;
+                }
+                return needed;
+            } else {
+                return true;
+            }
+        }
+        
         this.fetchDatabase = function () {
             var global = this;
-            return new Promise(function (resolve, reject) {
+            var p = new Promise(function (resolve, reject) {
                 global.runCode("fetchDatabase", resolve, reject);
             });
+            p.then(function (data) {
+                const { routes, stops, version } = data;
+
+                if (!routes || !stops || !version) {
+                    console.error("Error: Returned database is in wrong structure.");
+                    return;
+                }
+
+                localStorage.setItem(global.dbKey, JSON.stringify({
+                    routes: routes,
+                    stops: stops,
+                    version: version
+                }));
+
+                global.routes = routes;
+                global.stops = stops;
+                this.interpreter.setProperty(this.interpreter.getScope(), "routes", this.interpreter.nativeToPseudo(this.routes));
+                this.interpreter.setProperty(this.interpreter.getScope(), "stops", this.interpreter.nativeToPseudo(this.stops));
+            });
+            return p;
         }
 
         this.getEta = function (etaHandler) {
@@ -102,18 +148,21 @@ define(function (require, exports, module) {
     exports.handlers = {};
 
     exports.forceUpdate = function () {
-        console.log("Updating!")
         var d = new Date();
         var cache;
         for (var key in exports.handlers) {
             cache = exports.handlers[key];
-            if (cache.lastAccess && d.getTime() - cache.lastAccess > 60000) {
+            if (cache.lastAccess && d.getTime() - cache.lastAccess > 30000) {
                 console.log("Invalidate inuse ETA cache: " + key)
                 delete exports.handlers[key];
             } else {
                 exports.fetchEta(cache.handler);
             }
         }
+    }
+
+    exports.clearCache = function () {
+        exports.handlers = {};
     }
 
     exports.start = function () {
@@ -340,7 +389,7 @@ define(function (require, exports, module) {
         var proms = [];
         var pm;
         for (var provider of exports.providers) {
-            if (provider) {
+            if (provider && provider.isDatabaseUpdateNeeded()) {
                 pm = provider.fetchDatabase();
                 if (pm) {
                     proms.push(pm);

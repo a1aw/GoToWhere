@@ -42,4 +42,8 @@ define(function (require, exports, module) {
     exports.stop = function () {
         exports.running = false;
     }
+
+    exports.clear = function () {
+        exports.requests = [];
+    }
 });

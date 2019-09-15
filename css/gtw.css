@@ -22,6 +22,15 @@
     bottom: 0px;
 }
 
+.request-progress-panel {
+    position: absolute;
+    text-align: center;
+    width: 100%;
+    left: 0px;
+    bottom: 0px;
+    display: none;
+}
+
 .startup .overlay {
     position: absolute;
     top: 0;

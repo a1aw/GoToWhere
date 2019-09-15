@@ -4,7 +4,21 @@ define(function (require, exports, module) {
     var ETAManager = require("gtw-eta");
     var Map = require("gtw-map");
     var Settings = require("gtw-settings");
+    var RequestLimiter = require("gtw-requestlimiter");
+    var PluginLoader = require("gtw-pluginloader");
     var Loc = require("gtw-location");
+
+    $(document).ready(function () {
+        $(".header-links-plugins").on("click", function () {
+            exports.showModal("pluginmanager");
+        });
+        $(".header-links-settings").on("click", function () {
+            exports.showModal("settings");
+        });
+        $(".header-links-about").on("click", function () {
+            exports.showModal("about");
+        });
+    });
 
     $(".ui-tab").on("click", function () {
         if ($(this).hasClass("btn-primary")) {
@@ -25,7 +39,11 @@ define(function (require, exports, module) {
 
     exports.vars = {};
 
+    exports.modalVars = {};
+
     exports.timers = [];
+
+    exports.modalTimers = [];
 
     exports.init = function () {
         exports.showTab("transitEta");
@@ -43,6 +61,62 @@ define(function (require, exports, module) {
         $(".item-list").html("");
     };
 
+    exports.modalClearUp = function () {
+        exports.modalVars = {};
+        for (var timer of exports.modalTimers) {
+            clearInterval(timer);
+        }
+    };
+
+    exports.showModal = function (layout, ...args) {
+        //exports.nowUi = layout;
+        //exports.previousUi = 0;
+        exports.modalClearUp();
+        exports.modalVars = {};
+
+        exports.loadModalLayout(layout, true).then(function () {
+            if (typeof exports.scripts[layout] === "function") {
+                (exports.scripts[layout]).apply(this, args);
+            }
+        });
+    };
+
+    exports.loadModalLayout = function (layout, options = {}) {
+        var key = "modal-" + layout;
+
+        if (options === true) {
+            options = {};
+            options.backdrop = "static";
+            options.keyboard = false;
+        }
+        console.log(options);
+
+        var proms = [];
+        proms.push(new Promise((resolve, reject) => {
+            $(".modal-header").load("ui/" + key + "-header.html", resolve);
+        }));
+        proms.push(new Promise((resolve, reject) => {
+            $(".modal-body").load("ui/" + key + "-body.html", resolve);
+        }));
+        proms.push(new Promise((resolve, reject) => {
+            $(".modal-footer").load("ui/" + key + "-footer.html", resolve);
+        }));
+
+        var p = Promise.all(proms);
+        p.then(function () {
+            $(".modal").modal();
+        });
+        return p;
+    };
+
+    exports.hideModal = function () {
+        $(".modal").modal("hide");
+    };
+
+    exports.isModalShown = function () {
+        return ($(".modal").data('bs.modal') || {})._isShown;
+    }
+
     exports.showTab = function (tab) {
         exports.clearUp();
         exports.currentTab = tab;
@@ -54,14 +128,14 @@ define(function (require, exports, module) {
         $(".search-panel").fadeIn(500);
         $(".header nav").addClass("bg-dark");
         $(".map-overlay").fadeIn(500);
-    }
+    };
 
     exports.hidePanel = function () {
         $(".item-list").fadeOut(500);
         $(".search-panel").fadeOut(500);
         $(".header nav").removeClass("bg-dark");
         $(".map-overlay").fadeOut(500);
-    }
+    };
 
     exports.drawRouteOnMap = function (route, bound, stop = false) {
         var path = route.paths[bound];
@@ -88,10 +162,252 @@ define(function (require, exports, module) {
             Map.setCenter(targetPos);
             Map.setZoom(18);
         }
-    }
+    };
 
     exports.scripts = {
+        "viewplugin": function (reposJson, package) {
+            console.log(reposJson);
+            console.log(package);
+            $(".modal .close").on("click", function () {
+                exports.showModal("pluginmanager");
+            });
+
+            var packageJson = 0;
+            for (var key in reposJson) {
+                var i;
+                for (var json of reposJson[key]) {
+                    if (json.package === package) {
+                        packageJson = json;
+                        break;
+                    }
+                }
+
+                if (packageJson) {
+                    break;
+                }
+            }
+
+            exports.modalVars["reposJson"] = reposJson;
+            exports.modalVars["packageJson"] = packageJson;
+
+            if (!packageJson) {
+                $(".modal-body").html("Could not find required package in repository.");
+                return;
+            }
+
+            var html = "";
+            html += "<h3>Details</h3>";
+            html += "<hr />";
+            html += "<p>Name: " + json.name + "<br />";
+            html += "Full Name: " + json.fullName + "<br />";
+            html += "Author: " + json.author + "<br />";
+            html += "Version: " + json.version + "<br />";
+            html += "GitHub: <a href=\"" + json.github + "\" target=\"_blank\">" + json.github + "</a><br />";
+            html += "Package: " + json.package + "<br />";
+            html += "Description: " + json.desc + "</p>";
+
+            var localChecksum = 0;
+
+            html += "<h3>Installation</h3>";
+            html += "<hr />";
+
+            var json = PluginLoader.getPlugin(json.package);
+
+            var statusMsg = "<span class=\"font-weight-bold ";
+            if (!json) {
+                statusMsg += "text-info\">Not installed";
+            } else if (json.status == -1) {
+                statusMsg += "text-danger\">Installed but could not start up correctly.";
+            } else if (json.status == 0) {
+                statusMsg += "text-success\">Installed and running";
+            } else if (json.status == 1) {
+                statusMsg += "text-secondary\">Not enabled";
+            }
+            statusMsg += "</span>";
+
+            html += "<p>Status: " + statusMsg + "<br />";
+
+            if (json && json.msg) {
+                html += "Message: " + json.msg + "</p>";
+            }
+
+            if (json) {
+                html += "Local version: " + json.local.version + "<br />";
+                html += "Local Checksum: " + json.local.checksum + "<br />";
+                html += "Online Checksum: " + json.checksum + "<br />";
+                html += "Checksum validity: <span class=\"font-weight-bold " +
+                    (json.checksum === localChecksum ? "text-success\">Valid" : "text-danger\">Invalid") + "</span></p>";
+            }
+
+            html += "<hr />";
+
+            if (json) {
+                html += "<button type=\"button\" class=\"btn btn-danger ui-btn-viewplugin-uninstall\">Uninstall and restart</button>";
+            } else {
+                html += "<button type=\"button\" class=\"btn btn-success ui-btn-viewplugin-install\">Install and restart</button>";
+            }
+
+            $(".modal-body").html(html);
+
+            $(".ui-btn-viewplugin-install").on("click", function () {
+                PluginLoader.install(packageJson.package, "dummychecksum");
+                window.location.reload();
+            });
+
+            $(".ui-btn-viewplugin-uninstall").on("click", function () {
+                PluginLoader.uninstall(packageJson.package);
+                window.location.reload();
+            });
+        },
+
+        "pluginmanager": function () {
+            var html = "<p>Loading...</p>";
+
+            $("#nav-all").html(html);
+            $("#nav-installed").html(html);
+            $("#nav-transit").html(html);
+            $("#nav-libraries").html(html);
+            $("#nav-others").html(html);
+
+            $(".ui-btn-thirdparty").on("click", function () {
+                var jsonStr = prompt("JSON code:");
+                var json;
+                try {
+                    json = JSON.parse(jsonStr);
+                } catch (err) {
+                    alert("Parsing JSON failed!");
+                }
+
+                if (json && json.package) {
+                    localStorage.setItem(json.package, JSON.stringify(json));
+                    alert("Installed " + json.package + ". Restart the application to take effect.");
+                }
+            });
+
+            $.ajax({
+                url: "https://plugins.gotowhere.ga/repository.json",
+                dataType: "json",
+                success: function (reposJson) {
+                    exports.modalVars["reposJson"] = reposJson;
+
+                    var cats = [
+                        "transit",
+                        "lib"
+                    ];
+
+                    var html = "<div class=\"list-group\"></div>";
+
+                    $("#nav-all").html(html);
+                    $("#nav-installed").html(html);
+                    $("#nav-transit").html(html);
+                    $("#nav-lib").html(html);
+                    $("#nav-others").html(html);
+
+                    var total = 0;
+                    var others = 0;
+                    for (var key in reposJson) {
+                        var json;
+                        var i;
+                        for (i = 0; i < reposJson[key].length; i++) {
+                            json = reposJson[key][i];
+
+                            html = "<a href=\"#\" class=\"list-group-item list-group-item-action ui-pluginmanager-view-plugin\" package=\"" + json.package + "\">";
+                            html += "    <div class=\"d-flex w-100 justify-content-between\">";
+                            html += "        <h5 class=\"mb-1\">" + json.fullName + "</h5>";
+                            html += "        <small>" + json.version + "</small>";
+                            html += "    </div>";
+                            html += "    <p class=\"mb-1\">" + json.desc + "</p>";
+                            html += "    <small>By " + json.author + "</small>";
+                            html += "</a>";
+
+                            $("#nav-all div.list-group").append(html);
+                            if (cats.includes(key)) {
+                                $("#nav-" + key + " div.list-group").append(html);
+                            } else {
+                                $("#nav-others div.list-group").append(html);
+                                others++;
+                            }
+
+                            total++;
+                        }
+                    }
+
+                    $("#nav-all-tab").html("All (" + total + ")");
+                    $("#nav-transit-tab").html("Transit (" + reposJson["transit"].length + ")");
+                    $("#nav-lib-tab").html("Libraries (" + reposJson["lib"].length + ")");
+                    $("#nav-others-tab").html("Others (" + others + ")");
+
+                    $(".ui-pluginmanager-view-plugin").on("click", function () {
+                        exports.showModal("viewplugin", exports.modalVars["reposJson"], $(this).attr("package"));
+                    });
+                },
+                error: function () {
+
+                }
+            });
+        },
+
+        "settings": function () {
+            var html = "";
+
+            var val;
+            for (var setting of Settings.DEFAULT_SETTINGS) {
+                val = Settings.get(setting.key, setting.def);
+                html +=
+                    "<div class=\"form-group\">" +
+                    "    <label><b>" + setting.name + ":</b><p>" + setting.desc + "</p></label>";
+                if (setting.type == "boolean") {
+                    html += "    <select class=\"form-control\" id=\"openeta-settings-" + setting.key + "\">";
+                    if (val) {
+                        html +=
+                            "        <option selected>Yes</option>" +
+                            "        <option>No</option>";
+                    } else {
+                        html +=
+                            "        <option>Yes</option>" +
+                            "        <option selected>No</option>";
+                    }
+                    html += "    </select>";
+                } else {
+                    html += "    <input class=\"form-control\" id=\"openeta-settings-" + setting.key + "\" type=\"";
+                    if (setting.type == "number") {
+                        html += "number";
+                    } else {
+                        html += "text";
+                    }
+                    html += "\" value=\"" + val + "\"/>";
+                }
+                html += "</div>";
+
+            }
+
+            html +=
+                "<input type=\"button\" class=\"btn btn-success ui-btn-settings-save-close\" value=\"Save & Close\"/> " +
+                "<input type=\"button\" class=\"btn btn-default ui-btn-settings-save\" value=\"Apply\"/>";
+
+            $(".modal-body").html(html);
+        },
+
         "transitEtaUpdateUi": function () {
+            var requestLen = RequestLimiter.requests.length;
+            if (requestLen > 0) {
+                $(".request-progress-panel").fadeIn(500);
+
+                var max = exports.vars["maxRequest"];
+                if (!max || requestLen > max) {
+                    max = exports.vars["maxRequest"] = requestLen;
+                }
+
+                $(".request-progress-panel small").html("Requesting " + (max - requestLen) + "/" + max + " ETA data... (" + requestLen + " left)");
+                $(".request-progress-panel .progress-bar").html(Math.floor((max - requestLen) / max * 100) + "%");
+                $(".request-progress-panel .progress-bar").css("width", Math.floor((max - requestLen) / max * 100)+ "%");
+            } else {
+                exports.vars["maxRequest"] = 0;
+                $(".request-progress-panel .progress-bar").css("width", "100%");
+                $(".request-progress-panel").fadeOut(500, function () {
+                    $(".request-progress-panel .progress-bar").css("width", "0%");
+                });
+            }
             var allNearbyRoutes = exports.vars["allNearbyRoutes"];
             var h;
             for (var result of allNearbyRoutes) {
@@ -181,6 +497,9 @@ define(function (require, exports, module) {
             }
         },
         "transitEta": function () {
+            RequestLimiter.clear();
+            ETAManager.clearCache();
+
             var pos = Loc.getCurrentPosition();
             var providers = ETAManager.getProviders();
 
@@ -204,6 +523,17 @@ define(function (require, exports, module) {
                 buttonScroll += "</div><br />";
 
                 $(".tab-panel").append(buttonScroll);
+
+                var requestProgressBar =
+                    "<div class=\"request-progress-panel\">" +
+                    "    <small id=\"startup-status\">Requesting...</small>" +
+                    "    <div class=\"progress bg-white\">" +
+                    "        <div class=\"progress-bar progress-bar-striped progress-bar-animated\" role=\"progressbar\" style=\"width: 0%;\"></div>" +
+                    "    </div>" +
+                    "</div>"
+                    ;
+
+                $(".tab-panel").append(requestProgressBar);
 
                 $(".gtw-providersort").on("click", function () {
                     if ($(this).hasClass("btn-primary")) {
@@ -327,7 +657,6 @@ define(function (require, exports, module) {
                 });
 
                 exports.timers.push(setInterval(function () {
-                    console.log("Update UI!");
                     exports.scripts["transitEtaUpdateUi"]();
                 }, 1000));
                 exports.vars["allNearbyRoutes"] = allNearbyRoutes;

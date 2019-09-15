@@ -9,7 +9,7 @@ define(function (require, exports, module) {
         boolean: "boolean"
     };
 
-    var DEFAULT_SETTINGS = [
+    exports.DEFAULT_SETTINGS = [
         {
             key: "min_nearby_transit_range",
             type: "number",
