@@ -42,7 +42,7 @@ define(function (require, exports, module) {
             }
 
             if (Settings.get("use_cors_proxy", false)) {
-                var proxy = Settings.get("cors_proxy_server", "");
+                var proxy = Settings.get("cors_proxy_server", "https://cp1.gotowhere.ga/");
                 if (proxy.startsWith("https://") && proxy.endsWith("/")) {
                     request.url = proxy + request.url;
                 } else {

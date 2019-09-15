@@ -91,8 +91,8 @@ requirejs(["gtw-cors", "gtw-pluginloader", "gtw-eta", "gtw-map", "gtw-location",
 
     RequestLimiter.start();
 
-    Cors.register("www.openeta.ml", true);
-    Cors.register("plugins.openeta.ml", true);
+    Cors.register("www.gotowhere.ga", true);
+    Cors.register("plugins.gotowhere.ga", true);
 
     $("#startup-status").html("Downloading plugins...");
 

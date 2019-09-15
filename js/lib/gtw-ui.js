@@ -390,7 +390,7 @@ define(function (require, exports, module) {
             $(".ui-btn-settings-save").on("click", function () {
                 var val;
                 var out;
-                for (var setting of DEFAULT_SETTINGS) {
+                for (var setting of Settings.DEFAULT_SETTINGS) {
                     val = $("#gtw-settings-" + setting.key).val();
                     if (setting.type == "boolean") {
                         out = val == "Yes";
