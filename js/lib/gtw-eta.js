@@ -107,8 +107,8 @@ define(function (require, exports, module) {
 
                 global.routes = routes;
                 global.stops = stops;
-                this.interpreter.setProperty(this.interpreter.getScope(), "routes", this.interpreter.nativeToPseudo(this.routes));
-                this.interpreter.setProperty(this.interpreter.getScope(), "stops", this.interpreter.nativeToPseudo(this.stops));
+                global.interpreter.setProperty(global.interpreter.getScope(), "routes", global.interpreter.nativeToPseudo(global.routes));
+                global.interpreter.setProperty(global.interpreter.getScope(), "stops", global.interpreter.nativeToPseudo(global.stops));
             });
             return p;
         }

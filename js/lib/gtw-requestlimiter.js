@@ -3,7 +3,7 @@
 define(function (require, exports, module) {
     exports.requests = [];
 
-    exports.duration = 1000;
+    exports.duration = 500;
 
     exports.running = false;
 
