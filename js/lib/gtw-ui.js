@@ -521,6 +521,98 @@ define(function (require, exports, module) {
                 badge.html(text);
             }
         },
+        "searchTransit": function () {
+            RequestLimiter.clear();
+            ETAManager.clearCache();
+            var providers = ETAManager.getProviders();
+
+            if (providers.length > 0) {
+                var buttonScroll =
+                    "<div class=\"hori-scroll\">" +
+                    "    <button type=\"button\" class=\"btn btn-primary gtw-providersort gtw-providersort-all\"><i class=\"fa fa-reply-all\"></i><br />All</button>";
+
+                for (var provider of providers) {
+                    var image = "";
+                    if (provider.transit == TransitType.TRANSIT_BUS) {
+                        image = "fa-bus";
+                    } else if (provider.transit == TransitType.TRANSIT_METRO || provider.transit == TransitType.TRANSIT_TRAIN) {
+                        image = "fa-train";
+                    } else {
+                        image = "fa-question";
+                    }
+                    buttonScroll += " <button type=\"button\" class=\"btn btn-default gtw-providersort gtw-providersort-provider\" gtw-provider=\"" + provider.name + "\"><i class=\"fa " + image + "\"></i><br />" + provider.name + "</button>";
+                }
+
+                buttonScroll += "</div><br />";
+
+                $(".tab-panel").append(buttonScroll);
+
+                $(".gtw-providersort").on("click", function () {
+                    if ($(this).hasClass("btn-primary")) {
+                        return;
+                    }
+                    $(".gtw-providersort").removeClass("btn-primary");
+                    $(".gtw-providersort").removeClass("btn-default");
+
+                    if ($(this).hasClass("gtw-providersort-all")) {
+                        $(this).addClass("btn-primary");
+
+                        $(".gtw-providersort-provider").addClass("btn-default");
+                    } else {
+                        var provider = $(this).attr("gtw-provider");
+                        console.log('Provider' + provider)
+                        $(this).addClass("btn-primary");
+
+                        $(".gtw-providersort-provider:not([gtw-provider='" + provider + "'])").addClass("btn-link");
+                    }
+                });
+
+                var routes = ETAManager.getAllRoutes();
+
+                var html;
+                var stopId;
+                var path;
+                var i;
+
+                html = "<ul class=\"list-group\">";
+
+                for (var route of routes) {
+                    for (i = 0; i < route.paths.length; i++) {
+                        path = route.paths[i];
+                        stopId = path[path.length - 1];
+                        html +=
+                            "<li class=\"list-group-item list-group-item-action d-flex align-items-center nearby-route\" gtw-provider=\"" + route.provider + "\" gtw-route-id=\"" + route.routeId + "\" gtw-bound=\"" + i + "\">" +
+                            "    <div class=\"d-flex flex-column route-id\">" +
+                            "        <div>" + route.provider + "</div>" +
+                            "        <div>" + route.routeId + "</div>" +
+                            "    </div>" +
+                            "    <div><b>To:</b> " + ETAManager.getStopById(stopId).stopName + "</div>"
+                            "</li>";
+                    }
+                }
+                html += "</ul>";
+                $(".item-list").html(html);
+
+                $(".nearby-route").on("click", function () {
+                    exports.hidePanel();
+
+                    var provider = ETAManager.getProvider($(this).attr("gtw-provider"));
+                    var route = provider.getRouteById($(this).attr("gtw-route-id"));
+                    var stop = provider.getStopById($(this).attr("gtw-stop-id"));
+                    var bound = $(this).attr("gtw-bound");
+
+                    exports.drawRouteOnMap(route, bound, stop);
+                });
+
+                exports.timers.push(setInterval(function () {
+                    exports.scripts["transitEtaUpdateUi"]();
+                }, 1000));
+                exports.vars["allNearbyRoutes"] = allNearbyRoutes;
+            } else {
+                //TODO: better message or auto add plugins according to region
+                $(".tab-panel").html("You do not have any plugins providing ETA data. Install one from the plugins manager.")
+            }
+        },
         "transitEta": function () {
             RequestLimiter.clear();
             ETAManager.clearCache();
