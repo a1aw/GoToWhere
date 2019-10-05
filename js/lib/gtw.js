@@ -57,9 +57,15 @@ $(window).resize(function () {
 
 function adjustMargin() {
     var hh = $(".header").height();
-    var fh = $(".footer").height();
+    //var fh = $(".footer").height();
+    var dh = $(window).height();
+    $(".half-map-container").css("margin-top", hh);
+    //$(".half-map-container").css("margin-bottom", fh);
+    $(".half-map-container").css("height", dh - hh);
+
     $(".item-list").css("margin-top", hh);
-    $(".item-list").css("margin-bottom", fh);
+    //$(".item-list").css("margin-bottom", fh);
+    $(".item-list .list-group").css("height", dh - hh);
     $(".loading-overlay").css("height", $(".item-list").height());
     $(".loading-overlay").css("margin-top", hh);
 }

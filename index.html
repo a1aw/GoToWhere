@@ -41,7 +41,13 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="vendor/fontawesome-free-5.10.1-web/css/all.css">
     <link rel="stylesheet" href="vendor/bootstrap-4.3.1-dist/css/bootstrap.min.css">
+
+    <!-- Material Design Bootstrap -->
+    <!--<link href="vendor/MDB-Free_4.8.10/css/mdb.min.css" rel="stylesheet">-->
+
+    <!-- Application CSS -->
     <link rel="stylesheet" href="css/gtw.css">
+    <link rel="stylesheet" href="css/timeline.css">
 
     <title>GoToWhere</title>
 </head>
@@ -65,8 +71,8 @@
         </div>
     </div>
 
-    <div class="map-overlay">
-    </div>
+    <!--<div class="map-overlay">
+    </div>-->
 
     <div class="loading-overlay">
         <div class="loading-spinner d-flex justify-content-center">
@@ -77,7 +83,7 @@
     </div>
 
     <div class="header">
-        <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
+        <nav class="navbar navbar-expand-sm navbar-dark">
             <a class="navbar-brand" href="#"><i class="fas fa-map-marked-alt"></i> GoToWhere</a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
                 <span class="navbar-toggler-icon"></span>
@@ -90,9 +96,10 @@
                     <li class="nav-item">
                         <button class="btn btn-link nav-link header-links-settings"><i class="fas fa-cog"></i> Settings</button>
                     </li>
+                    <!--
                     <li class="nav-item">
                         <button class="btn btn-link nav-link" href="https://github.com/mob41/GoToWhere" target="_blank"><i class="fab fa-github"></i> GitHub</button>
-                    </li>
+                    </li>-->
                     <li class="nav-item">
                         <button class="btn btn-link nav-link header-links-about"><i class="fas fa-info-circle"></i> About</button>
                     </li>
@@ -102,12 +109,19 @@
 
         <div class="jumbotron jumbotron-fluid search-panel">
             <div class="container-fluid">
-                <div class="tabs">
+                <div class="tabs btn-group">
                     <button type="button" class="btn btn-primary ui-tab" gtw-tab="transitEta"><i class="far fa-clock"></i> Transit ETA</button>
                     <button type="button" class="btn btn-link ui-tab" gtw-tab="searchTransit"><i class="far fa-clock"></i> Search Transit</button>
                 </div>
-                <hr />
                 <div class="tab-panel">
+                </div>
+            </div>
+        </div>
+
+        <div class="jumbotron jumbotron-fluid half-map-panel">
+            <div class="container-fluid">
+                <button type="button" class="btn btn-link ui-half-map-back-btn"><i class="fas fa-arrow-left"></i> Back</button>
+                <div class="half-map-tab-panel">
                 </div>
             </div>
         </div>
@@ -119,9 +133,12 @@
 
     <div id="gtw-map"></div>
 
-    <div class="container-fluid">
+    <div class="container-fluid item-list-container">
         <div class="row item-list">
         </div>
+    </div>
+
+    <div class="container-fluid half-map-container">
     </div>
 
     <div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
@@ -142,6 +159,9 @@
     <script src="js/popper.min.js"></script>
     <script src="vendor/bootstrap-4.3.1-dist/js/bootstrap.min.js"></script>
     <script src="vendor/FitText.js-1.2.0/jquery.fittext.js"></script>
+
+    <!-- MDB core JavaScript -->
+    <!--<script type="text/javascript" src="vendor/MDB-Free_4.8.10/js/mdb.min.js"></script>-->
 
     <!-- Dependencies -->
     <script src="js/xhook.min.js"></script>

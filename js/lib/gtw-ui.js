@@ -7,6 +7,7 @@ define(function (require, exports, module) {
     var RequestLimiter = require("gtw-requestlimiter");
     var PluginLoader = require("gtw-pluginloader");
     var Loc = require("gtw-location");
+    var Misc = require("gtw-misc");
 
     $(document).ready(function () {
         $(".header-links-plugins").on("click", function () {
@@ -33,6 +34,14 @@ define(function (require, exports, module) {
         $(".ui-tab:not([gtw-tab='" + tab + "'])").addClass("btn-link");
 
         exports.showTab(tab);
+    });
+
+    $(".ui-half-map-back-btn").on("click", function () {
+        Map.setCenter(Loc.getCurrentPosition());
+        Map.setZoom(16);
+        Map.removeAllMarkers();
+        Map.removeAllPolylines();
+        exports.showPanel();
     });
 
     exports.currentTab = "transitEta";
@@ -124,25 +133,32 @@ define(function (require, exports, module) {
     };
 
     exports.showPanel = function () {
-        $(".item-list").fadeIn(500);
-        $(".search-panel").fadeIn(500);
-        $(".header nav").addClass("bg-dark");
-        $(".map-overlay").fadeIn(500);
+        $(".half-map-panel").css("display", "none");
+        $(".item-list").css("display", "block");
+        $(".header nav").removeClass("gtw-half-map");
+        //$(".header nav").addClass("bg-dark");
+        $(".search-panel").css("display", "block");
+        $(".half-map-container").css("display", "none");
+        //$(".map-overlay").fadeIn(500);
+        adjustMargin();
     };
 
     exports.hidePanel = function () {
-        $(".item-list").fadeOut(500);
-        $(".search-panel").fadeOut(500);
-        $(".header nav").removeClass("bg-dark");
-        $(".map-overlay").fadeOut(500);
+        $(".search-panel").css("display", "none");
+        $(".item-list").css("display", "none");
+        $(".header nav").addClass("gtw-half-map");
+        $(".half-map-panel").css("display", "block");
+        $(".half-map-container").css("display", "block");
+        //$(".header nav").removeClass("bg-dark");
+        //$(".map-overlay").fadeOut(500);
+        adjustMargin();
     };
 
-    exports.drawRouteOnMap = function (route, bound, stop = false) {
+    exports.drawRouteOnMap = function (route, bound) {
         var path = route.paths[bound];
 
         var coords = [];
         var pos;
-        var targetPos = false;
         var dbStop;
         var i;
         for (i = 0; i < path.length; i++) {
@@ -150,18 +166,185 @@ define(function (require, exports, module) {
             pos = { lat: dbStop.lat, lng: dbStop.lng };
             coords.push(pos);
             Map.addMarker(pos, dbStop.stopName, "" + (i + 1));
-
-            if (stop && dbStop.stopId === stop.stopId) {
-                targetPos = pos;
-            }
         }
 
         Map.addPolyline(coords, "#FF0000", 2);
+    };
 
-        if (targetPos) {
+    exports.showRouteList = function (route, bound, stop = false) {
+        var html = "<div class=\"row\" style=\"padding: 10%;\"><div class=\"timeline-centered\">";
+        var path = route.paths[bound];
+        var dbStop;
+        var i;
+        for (i = 0; i < path.length; i++) {
+            dbStop = ETAManager.getStopById(path[i]);
+            html +=
+                "<article class=\"timeline-entry\" stop-id=\"" + dbStop.stopId + "\" stop-index=\"" + i + "\">" +
+                "    <div class=\"timeline-entry-inner\">" +
+                "        <div class=\"timeline-icon bg-light\">" +
+                "            " + (i + 1) +
+                "        </div>" +
+                "        <div class=\"timeline-label\">" +
+            "            <h2><button style=\"padding: 0px;\" class=\"btn btn-link\" stop-id=\"" + dbStop.stopId + "\">" + dbStop.stopName + "</button></h2>" +
+                "            <p></p>" +
+                "        </div>" +
+                "    </div>" +
+                "</article>"
+                ;
+        }
+        html += "</div></div>";
+        $(".half-map-container").html(html);
+
+        $(".half-map-container button").on("click", function () {
+            var x = ETAManager.getStopById($(this).attr("stop-id"));
+            if (x) {
+                exports.showRouteList(route, bound, x);
+            }
+        });
+
+        var lastStopId = path[path.length - 1];
+        html =
+            "<ul class=\"list-group\"><li class=\"list-group-item d-flex align-items-center nearby-route\">" +
+            "    <div class=\"d-flex flex-column route-id\">" +
+            "        <div>" + route.provider + "</div>" +
+            "        <div>" + route.routeId + "</div>" +
+            "    </div>" +
+            "    <div><b>To:</b> " + ETAManager.getStopById(lastStopId).stopName + "</div>" +
+            "</li></ul>"
+            ;
+        $(".half-map-tab-panel").html(html);
+
+        adjustMargin();
+
+        if (stop) {
+            var node = $(".timeline-entry[stop-id='" + stop.stopId + "']");
+
+            var icon = node.children().children(".timeline-icon")
+            icon.removeClass("bg-light");
+            icon.addClass("bg-primary");
+
+            node[0].scrollIntoView();
+
+            var targetPos = { lat: stop.lat, lng: stop.lng };
+
             Map.setCenter(targetPos);
             Map.setZoom(18);
+
+            exports.showStopEta(route, bound, stop);
         }
+    };
+
+    exports.showStopEta = function (route, bound, stop) {
+        var node = $(".timeline-entry[stop-id='" + stop.stopId + "'] p");
+
+        var content =
+            "<p><u>Estimated Time Arrival</u></p>" +
+            "<table class=\"table\">"
+            ;
+
+        var h = ETAManager.request({
+            provider: route.provider,
+            route: route,
+            selectedPath: bound,
+            stop: stop
+        });
+
+        if (!h) {
+            content +=
+                "<tr class=\"table-dark\">" +
+                "    <td>Not available to this route</td>" +
+                "    <td>---</td>" +
+                "</tr>"
+                ;
+        } else {
+            var data = ETAManager.getEta(h);
+            console.log(data);
+            if (!data || !data.schedules || !data.serverTime) {
+                content +=
+                    "<tr class=\"table-dark\">" +
+                    "    <td>Not available to this route</td>" +
+                    "    <td>---</td>" +
+                    "</tr>"
+                    ;
+            } else if (data.schedules.length == 0) {
+                content +=
+                    "<tr class=\"table-dark\">" +
+                    "    <td>No schedules pending</td>" +
+                    "    <td>---</td>" +
+                    "</tr>"
+                    ;
+            } else {
+                var active = false;
+                for (var schedule of data.schedules) {
+                    var eta = ETAManager.timeDifference(schedule.time, data.serverTime);
+                    var html = "<tr class=\"table-";
+
+                    if (eta >= 20) {
+                        html += "secondary";
+                    } else if (eta >= 15) {
+                        html += "info";
+                    } else if (eta >= 10) {
+                        html += "success";
+                    } else if (eta >= 5) {
+                        html += "warning";
+                    } else if (eta >= 1) {
+                        html += "danger"
+                    } else {
+                        html += "dark";
+                    }
+
+                    if (!active && schedule.isLive && eta > 0) {
+                        active = true;
+                        html += " active";
+                    }
+
+                    html += "\"><td>";
+
+                    //TODO: isOutdated
+
+                    if (schedule.hasMsg) {
+                        html += schedule.msg;
+                    }
+                    if (schedule.hasTime) {
+                        if (schedule.hasMsg) {
+                            html += "<br />";
+                        }
+                        if (eta > 1) {
+                            html += eta + " mins";
+                        } else if (eta == 1) {
+                            html += eta + " min";
+                        } else {
+                            html += "Arrived/Left";
+                        }
+                    }
+
+                    if (schedule.isLive) {
+                        html += " <span style=\"color: red; float: right; font-size: 10px;\"><i class=\"fa fa-circle\"></i> Live</span>";
+                    } else {
+                        html += " <span style=\"font-size: 10px; float: right; font-style: italic;\">Scheduled</span>";
+                    }
+
+                    html += "</td><td>";
+
+                    if (schedule.hasTime) {
+                        html += Misc.fillZero(schedule.time.hr) + ":" + Misc.fillZero(schedule.time.min);
+                    } else {
+                        html += "---";
+                    }
+
+                    html += "</td>";
+
+                    //TODO: Features
+
+                    html += "</tr>"
+                    content += html;
+                }
+            }
+        }
+
+        content += "</table>";
+
+        node.html(content);
     };
 
     exports.scripts = {
@@ -528,7 +711,7 @@ define(function (require, exports, module) {
 
             if (providers.length > 0) {
                 var buttonScroll =
-                    "<div class=\"hori-scroll\">" +
+                    "<div class=\"hori-scroll btn-group\">" +
                     "    <button type=\"button\" class=\"btn btn-primary gtw-providersort gtw-providersort-all\"><i class=\"fa fa-reply-all\"></i><br />All</button>";
 
                 for (var provider of providers) {
@@ -540,7 +723,7 @@ define(function (require, exports, module) {
                     } else {
                         image = "fa-question";
                     }
-                    buttonScroll += " <button type=\"button\" class=\"btn btn-default gtw-providersort gtw-providersort-provider\" gtw-provider=\"" + provider.name + "\"><i class=\"fa " + image + "\"></i><br />" + provider.name + "</button>";
+                    buttonScroll += " <button type=\"button\" class=\"btn gtw-providersort gtw-providersort-provider\" gtw-provider=\"" + provider.name + "\"><i class=\"fa " + image + "\"></i><br />" + provider.name + "</button>";
                 }
 
                 buttonScroll += "</div><br />";
@@ -552,12 +735,12 @@ define(function (require, exports, module) {
                         return;
                     }
                     $(".gtw-providersort").removeClass("btn-primary");
-                    $(".gtw-providersort").removeClass("btn-default");
+                    //$(".gtw-providersort").removeClass("btn-default");
 
                     if ($(this).hasClass("gtw-providersort-all")) {
                         $(this).addClass("btn-primary");
 
-                        $(".gtw-providersort-provider").addClass("btn-default");
+                        //$(".gtw-providersort-provider").addClass("btn-default");
                     } else {
                         var provider = $(this).attr("gtw-provider");
                         console.log('Provider' + provider)
@@ -586,7 +769,7 @@ define(function (require, exports, module) {
                             "        <div>" + route.provider + "</div>" +
                             "        <div>" + route.routeId + "</div>" +
                             "    </div>" +
-                            "    <div><b>To:</b> " + ETAManager.getStopById(stopId).stopName + "</div>"
+                            "    <div><b>To:</b> " + ETAManager.getStopById(stopId).stopName + "</div>" +
                             "</li>";
                     }
                 }
@@ -601,7 +784,8 @@ define(function (require, exports, module) {
                     var stop = provider.getStopById($(this).attr("gtw-stop-id"));
                     var bound = $(this).attr("gtw-bound");
 
-                    exports.drawRouteOnMap(route, bound, stop);
+                    exports.showRouteList(route, bound, stop);
+                    exports.drawRouteOnMap(route, bound);
                 });
 
                 exports.timers.push(setInterval(function () {
@@ -622,7 +806,7 @@ define(function (require, exports, module) {
 
             if (providers.length > 0) {
                 var buttonScroll =
-                    "<div class=\"hori-scroll\">" +
+                    "<div class=\"hori-scroll btn-group\">" +
                     "    <button type=\"button\" class=\"btn btn-primary gtw-providersort gtw-providersort-all\"><i class=\"fa fa-reply-all\"></i><br />All</button>";
 
                 for (var provider of providers) {
@@ -634,7 +818,7 @@ define(function (require, exports, module) {
                     } else {
                         image = "fa-question";
                     }
-                    buttonScroll += " <button type=\"button\" class=\"btn btn-default gtw-providersort gtw-providersort-provider\" gtw-provider=\"" + provider.name + "\"><i class=\"fa " + image + "\"></i><br />" + provider.name + "</button>";
+                    buttonScroll += " <button type=\"button\" class=\"btn gtw-providersort gtw-providersort-provider\" gtw-provider=\"" + provider.name + "\"><i class=\"fa " + image + "\"></i><br />" + provider.name + "</button>";
                 }
 
                 buttonScroll += "</div><br />";
@@ -657,12 +841,12 @@ define(function (require, exports, module) {
                         return;
                     }
                     $(".gtw-providersort").removeClass("btn-primary");
-                    $(".gtw-providersort").removeClass("btn-default");
+                    //$(".gtw-providersort").removeClass("btn-default");
 
                     if ($(this).hasClass("gtw-providersort-all")) {
                         $(this).addClass("btn-primary");
 
-                        $(".gtw-providersort-provider").addClass("btn-default");
+                        //$(".gtw-providersort-provider").addClass("btn-default");
                     } else {
                         var provider = $(this).attr("gtw-provider");
                         console.log('Provider' + provider)
@@ -749,7 +933,7 @@ define(function (require, exports, module) {
                         "                " + result.stop.stopName + " (" + distance + "m)" +
                         "            </div>" +
                         "        </div>" +
-                        "        <span class=\"badge badge-secondary badge-pill transit-eta\">Retrieving...</span>" +
+                        "        <span class=\"badge badge-primary badge-pill transit-eta\">Retrieving...</span>" +
                         "    </li>";
 
                     ETAManager.request({
@@ -770,7 +954,8 @@ define(function (require, exports, module) {
                     var stop = provider.getStopById($(this).attr("gtw-stop-id"));
                     var bound = $(this).attr("gtw-bound");
 
-                    exports.drawRouteOnMap(route, bound, stop);
+                    exports.showRouteList(route, bound, stop);
+                    exports.drawRouteOnMap(route, bound);
                 });
 
                 exports.timers.push(setInterval(function () {
