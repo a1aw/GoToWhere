@@ -16,5 +16,5 @@ define({
     // You have to create an API key from the Google Cloud Console to
     // use Google Map features. The default one only works on the
     // official server.
-    googleMapApiKey: ""
+    googleMapApiKey: "AIzaSyAhU7FqH46IdF4RaHrBlABfkoFlHZeudFg"
 });
