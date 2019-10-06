@@ -155,7 +155,7 @@ define(function (require, exports, module) {
         $(".content-panel-container").css("display", "none");
         $(".header nav").addClass("gtw-half-map");
 
-        $("body").addClass("gtw-half-map");
+        //$("body").addClass("gtw-half-map");
         $("#gtw-map").addClass("gtw-half-map");
         $(".half-map-panel").addClass("gtw-half-map");
         $(".half-map-container").addClass("gtw-half-map");

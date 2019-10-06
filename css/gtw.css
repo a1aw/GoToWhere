@@ -97,6 +97,7 @@ body {
     top: 0px;
     left: 0px;
     position: absolute;
+    overflow: hidden;
 }
 
 /* Search panel CSS */
@@ -274,13 +275,19 @@ body {
         margin-top: 60vh;
         padding: 0px;
     }
-
+    /*
     body.gtw-half-map {
         overflow-y: scroll;
+    }
+    */
+
+    #gtw-map {
+        display: none;
     }
 
     #gtw-map.gtw-half-map {
         height: 60vh;
+        display: block;
     }
 
     .desktop.half-map-panel.gtw-half-map {
@@ -293,10 +300,12 @@ body {
 
     .mobile.half-map-panel.gtw-half-map {
         display: block;
+        height: 20vh;
     }
 
     .mobile.half-map-container.gtw-half-map {
         display: block;
+        height: 20vh;
     }
 }
 

@@ -156,7 +156,7 @@ requirejs(["gtw-cors", "gtw-pluginloader", "gtw-eta", "gtw-map", "gtw-location",
                         $(".footer").animate({ height: 0, opacity: 0 }, 1000, function () {
                             $(".footer").css("display", "none");
                         });
-                    }, 5000);
+                    }, 2000);
                     $(".startup").fadeOut(1000, function () {
                         __stopHeaderAnimation = true;
                     });
