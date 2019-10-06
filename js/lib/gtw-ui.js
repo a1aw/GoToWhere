@@ -67,7 +67,7 @@ define(function (require, exports, module) {
         }
         exports.timers = [];
         $(".tab-panel").html("");
-        $(".item-list").html("");
+        $(".content-panel-container").html("");
     };
 
     exports.modalClearUp = function () {
@@ -133,22 +133,35 @@ define(function (require, exports, module) {
     };
 
     exports.showPanel = function () {
-        $(".half-map-panel").css("display", "none");
-        $(".item-list").css("display", "block");
+        $(".content-panel-container").css("display", "block");
+        $(".top-panel").css("display", "block");
         $(".header nav").removeClass("gtw-half-map");
+
+        $("body").removeClass("gtw-half-map");
+        $("#gtw-map").removeClass("gtw-half-map");
+        $(".half-map-panel").removeClass("gtw-half-map");
+        $(".half-map-container").removeClass("gtw-half-map");
+
         //$(".header nav").addClass("bg-dark");
-        $(".search-panel").css("display", "block");
-        $(".half-map-container").css("display", "none");
+        //$(".half-map-panel").css("display", "none");
+        //$(".top-panel").css("display", "block");
+        //$(".half-map-container").css("display", "none");
         //$(".map-overlay").fadeIn(500);
         adjustMargin();
     };
 
     exports.hidePanel = function () {
-        $(".search-panel").css("display", "none");
-        $(".item-list").css("display", "none");
+        $(".top-panel").css("display", "none");
+        $(".content-panel-container").css("display", "none");
         $(".header nav").addClass("gtw-half-map");
-        $(".half-map-panel").css("display", "block");
-        $(".half-map-container").css("display", "block");
+
+        $("body").addClass("gtw-half-map");
+        $("#gtw-map").addClass("gtw-half-map");
+        $(".half-map-panel").addClass("gtw-half-map");
+        $(".half-map-container").addClass("gtw-half-map");
+        
+        //$(".half-map-panel").css("display", "block");
+        //$(".half-map-container").css("display", "block");
         //$(".header nav").removeClass("bg-dark");
         //$(".map-overlay").fadeOut(500);
         adjustMargin();
@@ -204,7 +217,7 @@ define(function (require, exports, module) {
 
         var lastStopId = path[path.length - 1];
         html =
-            "<ul class=\"list-group\"><li class=\"list-group-item d-flex align-items-center nearby-route\">" +
+            "<ul class=\"list-group\"><li class=\"list-group-item d-flex align-items-center route-selection\">" +
             "    <div class=\"d-flex flex-column route-id\">" +
             "        <div>" + route.provider + "</div>" +
             "        <div>" + route.routeId + "</div>" +
@@ -217,7 +230,9 @@ define(function (require, exports, module) {
         adjustMargin();
 
         if (stop) {
-            var node = $(".timeline-entry[stop-id='" + stop.stopId + "']");
+            var parent = screen.width >= 768 ? ".desktop" : ".mobile";
+            //parent = ".desktop";
+            var node = $(parent + " .timeline-entry[stop-id='" + stop.stopId + "']");
 
             var icon = node.children().children(".timeline-icon")
             icon.removeClass("bg-light");
@@ -606,8 +621,8 @@ define(function (require, exports, module) {
                     max = exports.vars["maxRequest"] = requestLen;
                 }
 
-                $(".request-progress-panel small").html("Requesting " + (max - requestLen) + "/" + max + " ETA data... (" + requestLen + " left)");
-                $(".request-progress-panel .progress-bar").html(Math.floor((max - requestLen) / max * 100) + "%");
+                $(".request-progress-panel .progress-bar").html("Getting " + (max - requestLen) + "/" + max + " data...");
+                //$(".request-progress-panel .progress-bar").html(Math.floor((max - requestLen) / max * 100) + "%");
                 $(".request-progress-panel .progress-bar").css("width", Math.floor((max - requestLen) / max * 100)+ "%");
             } else {
                 exports.vars["maxRequest"] = 0;
@@ -629,7 +644,7 @@ define(function (require, exports, module) {
                 var text = "";
                 var eta = ETAManager.getEta(h);
                 
-                var node = $(".nearby-route[gtw-provider=\"" + h.provider + "\"][gtw-route-id=\"" + h.route + "\"][gtw-bound=\"" + h.selectedPath + "\"][gtw-stop-id=\"" + h.stop + "\"]");
+                var node = $(".nearby-route-list .route-selection[gtw-provider=\"" + h.provider + "\"][gtw-route-id=\"" + h.route + "\"][gtw-bound=\"" + h.selectedPath + "\"][gtw-stop-id=\"" + h.stop + "\"]");
                 
                 node.removeClass("list-group-item-secondary");
                 node.removeClass("list-group-item-info");
@@ -704,99 +719,6 @@ define(function (require, exports, module) {
                 badge.html(text);
             }
         },
-        "searchTransit": function () {
-            RequestLimiter.clear();
-            ETAManager.clearCache();
-            var providers = ETAManager.getProviders();
-
-            if (providers.length > 0) {
-                var buttonScroll =
-                    "<div class=\"hori-scroll btn-group\">" +
-                    "    <button type=\"button\" class=\"btn btn-primary gtw-providersort gtw-providersort-all\"><i class=\"fa fa-reply-all\"></i><br />All</button>";
-
-                for (var provider of providers) {
-                    var image = "";
-                    if (provider.transit == TransitType.TRANSIT_BUS) {
-                        image = "fa-bus";
-                    } else if (provider.transit == TransitType.TRANSIT_METRO || provider.transit == TransitType.TRANSIT_TRAIN) {
-                        image = "fa-train";
-                    } else {
-                        image = "fa-question";
-                    }
-                    buttonScroll += " <button type=\"button\" class=\"btn gtw-providersort gtw-providersort-provider\" gtw-provider=\"" + provider.name + "\"><i class=\"fa " + image + "\"></i><br />" + provider.name + "</button>";
-                }
-
-                buttonScroll += "</div><br />";
-
-                $(".tab-panel").append(buttonScroll);
-
-                $(".gtw-providersort").on("click", function () {
-                    if ($(this).hasClass("btn-primary")) {
-                        return;
-                    }
-                    $(".gtw-providersort").removeClass("btn-primary");
-                    //$(".gtw-providersort").removeClass("btn-default");
-
-                    if ($(this).hasClass("gtw-providersort-all")) {
-                        $(this).addClass("btn-primary");
-
-                        //$(".gtw-providersort-provider").addClass("btn-default");
-                    } else {
-                        var provider = $(this).attr("gtw-provider");
-                        console.log('Provider' + provider)
-                        $(this).addClass("btn-primary");
-
-                        $(".gtw-providersort-provider:not([gtw-provider='" + provider + "'])").addClass("btn-link");
-                    }
-                });
-
-                var routes = ETAManager.getAllRoutes();
-
-                var html;
-                var stopId;
-                var path;
-                var i;
-
-                html = "<ul class=\"list-group\">";
-
-                for (var route of routes) {
-                    for (i = 0; i < route.paths.length; i++) {
-                        path = route.paths[i];
-                        stopId = path[path.length - 1];
-                        html +=
-                            "<li class=\"list-group-item list-group-item-action d-flex align-items-center nearby-route\" gtw-provider=\"" + route.provider + "\" gtw-route-id=\"" + route.routeId + "\" gtw-bound=\"" + i + "\">" +
-                            "    <div class=\"d-flex flex-column route-id\">" +
-                            "        <div>" + route.provider + "</div>" +
-                            "        <div>" + route.routeId + "</div>" +
-                            "    </div>" +
-                            "    <div><b>To:</b> " + ETAManager.getStopById(stopId).stopName + "</div>" +
-                            "</li>";
-                    }
-                }
-                html += "</ul>";
-                $(".item-list").html(html);
-
-                $(".nearby-route").on("click", function () {
-                    exports.hidePanel();
-
-                    var provider = ETAManager.getProvider($(this).attr("gtw-provider"));
-                    var route = provider.getRouteById($(this).attr("gtw-route-id"));
-                    var stop = provider.getStopById($(this).attr("gtw-stop-id"));
-                    var bound = $(this).attr("gtw-bound");
-
-                    exports.showRouteList(route, bound, stop);
-                    exports.drawRouteOnMap(route, bound);
-                });
-
-                exports.timers.push(setInterval(function () {
-                    exports.scripts["transitEtaUpdateUi"]();
-                }, 1000));
-                exports.vars["allNearbyRoutes"] = allNearbyRoutes;
-            } else {
-                //TODO: better message or auto add plugins according to region
-                $(".tab-panel").html("You do not have any plugins providing ETA data. Install one from the plugins manager.")
-            }
-        },
         "transitEta": function () {
             RequestLimiter.clear();
             ETAManager.clearCache();
@@ -821,13 +743,23 @@ define(function (require, exports, module) {
                     buttonScroll += " <button type=\"button\" class=\"btn gtw-providersort gtw-providersort-provider\" gtw-provider=\"" + provider.name + "\"><i class=\"fa " + image + "\"></i><br />" + provider.name + "</button>";
                 }
 
-                buttonScroll += "</div><br />";
+                buttonScroll += "</div>";
 
                 $(".tab-panel").append(buttonScroll);
 
+                var searchField =
+                    "<div class=\"input-group mb-3\" style=\"margin-top: 16px;\">" +
+                    "    <input type=\"text\" class=\"form-control\" placeholder=\"Search for transit...\" aria-label=\"Search for transit...\" aria-describedby=\"search-transit-icon\" id=\"search-transit-text\"/>" +
+                    "    <div class=\"input-group-append\">" +
+                    "        <span class=\"input-group-text\" id=\"search-transit-icon\"><i class=\"fas fa-search\"></i></span>" +
+                    "    </div>" +
+                    "</div>"
+                    ;
+
+                $(".tab-panel").append(searchField);
+
                 var requestProgressBar =
                     "<div class=\"request-progress-panel\">" +
-                    "    <small id=\"startup-status\">Requesting...</small>" +
                     "    <div class=\"progress bg-white\">" +
                     "        <div class=\"progress-bar progress-bar-striped progress-bar-animated\" role=\"progressbar\" style=\"width: 0%;\"></div>" +
                     "    </div>" +
@@ -887,7 +819,6 @@ define(function (require, exports, module) {
                 }
 
                 var maxNearbyBusDisplay = Settings.get("max_nearby_transit_to_display", 20);
-                console.log(allNearbyStops);
                 var allNearbyRoutes = [];
                 for (var stopResult of allNearbyStops) {
                     if (allNearbyRoutes.length >= maxNearbyBusDisplay) {
@@ -907,20 +838,19 @@ define(function (require, exports, module) {
                         });
                     }
                 }
-                console.log(allNearbyRoutes);
 
                 var html;
                 var distance;
                 var paths;
                 var stopId;
-                html = "<ul class=\"list-group\">"
+                html = "<div class=\"row item-list nearby-route-list\"><ul class=\"list-group\">"
                 for (var result of allNearbyRoutes) {
                     console.log(result);
                     paths = result.route.paths[result.bound];
                     stopId = paths[paths.length - 1];
                     distance = Math.round(result.distance * 1000);
                     html +=
-                        "    <li class=\"list-group-item list-group-item-action d-flex justify-content-between align-items-center nearby-route\" gtw-provider=\"" + result.route.provider + "\" gtw-route-id=\"" + result.route.routeId + "\" gtw-stop-id=\"" + result.stop.stopId + "\" gtw-bound=\"" + result.bound + "\">" +
+                        "    <li class=\"list-group-item list-group-item-action d-flex justify-content-between align-items-center route-selection\" gtw-provider=\"" + result.route.provider + "\" gtw-route-id=\"" + result.route.routeId + "\" gtw-stop-id=\"" + result.stop.stopId + "\" gtw-bound=\"" + result.bound + "\">" +
                         "        <div class=\"d-flex flex-column route-id\">" +
                         "            <div>" + result.route.provider + "</div>" +
                         "            <div>" + result.route.routeId + "</div>" +
@@ -943,11 +873,70 @@ define(function (require, exports, module) {
                         stop: result.stop
                     });
                 }
-                html += "</ul>";
-                $(".item-list").html(html);
+                html += "</ul></div>";
 
-                $(".nearby-route").on("click", function () {
+                var routes = ETAManager.getAllRoutes();
+                var path;
+                var i;
+
+                html += "<div class=\"row item-list all-route-list\"><ul class=\"list-group\">";
+
+                for (var route of routes) {
+                    for (i = 0; i < route.paths.length; i++) {
+                        path = route.paths[i];
+                        stopId = path[path.length - 1];
+                        html +=
+                            "<li class=\"list-group-item list-group-item-action d-flex align-items-center route-selection\" gtw-provider=\"" + route.provider + "\" gtw-route-id=\"" + route.routeId + "\" gtw-bound=\"" + i + "\">" +
+                            "    <div class=\"d-flex flex-column route-id\">" +
+                            "        <div>" + route.provider + "</div>" +
+                            "        <div>" + route.routeId + "</div>" +
+                            "    </div>" +
+                            "    <div><b>To:</b> " + ETAManager.getStopById(stopId).stopName + "</div>" +
+                            "</li>";
+                    }
+                }
+                html += "</ul></div>";
+
+                $(".content-panel-container").html(html);
+
+                $(".route-selection").on("mouseenter", function () {
+                    Map.removeAllMarkers();
+                    Map.removeAllPolylines();
+                    var provider = ETAManager.getProvider($(this).attr("gtw-provider"));
+                    var route = provider.getRouteById($(this).attr("gtw-route-id"));
+                    var stop = provider.getStopById($(this).attr("gtw-stop-id"));
+                    var bound = $(this).attr("gtw-bound");
+                    exports.drawRouteOnMap(route, bound);
+
+                    if (stop) {
+                        var targetPos = { lat: stop.lat, lng: stop.lng };
+                        Map.setCenter(targetPos);
+                        Map.setZoom(18);
+                    } else {
+                        var path = route.paths[bound];
+
+                        var latlngs = [];
+                        var stop;
+                        for (var stopId of path) {
+                            stop = provider.getStopById(stopId);
+                            latlngs.push({lat: stop.lat, lng: stop.lng});
+                        }
+                        Map.fitBounds(latlngs);
+                    }
+                });
+
+                $(".route-selection").on("mouseleave", function () {
+                    //Map.setCenter(Loc.getCurrentPosition());
+                    //Map.setZoom(16);
+                    //Map.removeAllMarkers();
+                    //Map.removeAllPolylines();
+                });
+
+                $(".route-selection").on("click", function () {
                     exports.hidePanel();
+
+                    Map.removeAllMarkers();
+                    Map.removeAllPolylines();
 
                     var provider = ETAManager.getProvider($(this).attr("gtw-provider"));
                     var route = provider.getRouteById($(this).attr("gtw-route-id"));
@@ -956,6 +945,48 @@ define(function (require, exports, module) {
 
                     exports.showRouteList(route, bound, stop);
                     exports.drawRouteOnMap(route, bound);
+                });
+
+                $("#search-transit-text").on("input", function () {
+                    var val = $(this).val();
+                    if (val && val != "") {
+                        $(".nearby-route-list").css("display", "none")
+                        $(".all-route-list").css("display", "block");
+                    } else {
+                        $(".nearby-route-list").css("display", "block")
+                        $(".all-route-list").css("display", "none");
+                    }
+
+                    $(".all-route-list .route-selection").each(function () {
+                        var routeId = $(this).attr("gtw-route-id");
+                        var providerName = $(this).attr("gtw-provider");
+                        var bound = $(this).attr("gtw-bound");
+
+                        var provider = ETAManager.getProvider(providerName);
+                        var route = provider.getRouteById(routeId);
+                        var paths = route.paths[bound];
+                        var lastStop = provider.getStopById(paths[paths.length - 1]);
+
+                        var rp = Misc.similarity(routeId, val);
+                        var pp = Misc.similarity(providerName, val);
+                        var sp = Misc.similarity(lastStop.stopName, val);
+
+                        if (rp < 0.3 && pp < 0.3 && sp < 0.3) {
+                            $(this).attr("style", "display: none!important");
+                            $(this).attr("sim", "0.0");
+                        } else {
+                            $(this).attr("style", "display: block");
+                            $(this).attr("sim", Math.round(Math.max(rp, pp, sp) * 1000) / 1000);
+                        }
+                    });
+
+                    var list = $(".all-route-list .route-selection").get();
+                    list.sort(function (a, b) {
+                        return $(b).attr("sim") - $(a).attr("sim");
+                    });
+                    for (var i = 0; i < list.length; i++) {
+                        list[i].parentNode.appendChild(list[i]);
+                    }
                 });
 
                 exports.timers.push(setInterval(function () {

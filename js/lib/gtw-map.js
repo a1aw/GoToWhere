@@ -50,4 +50,8 @@ define(function (require, exports, module) {
         return exports.map.removeAllPolylines();
     }
 
+    exports.fitBounds = function (bounds) {
+        return exports.map.fitBounds(bounds);
+    }
+
 });

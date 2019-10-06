@@ -132,4 +132,12 @@ define(function (require, exports, module) {
         return true;
     }
 
+    exports.fitBounds = function (bounds) {
+        var out = new google.maps.LatLngBounds();
+        for (var bound of bounds) {
+            out.extend(bound);
+        }
+        exports.map.fitBounds(out);
+    }
+
 });

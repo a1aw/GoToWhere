@@ -107,18 +107,18 @@
             </div>
         </nav>
 
-        <div class="jumbotron jumbotron-fluid search-panel">
+        <div class="jumbotron jumbotron-fluid top-panel">
             <div class="container-fluid">
                 <div class="tabs btn-group">
                     <button type="button" class="btn btn-primary ui-tab" gtw-tab="transitEta"><i class="far fa-clock"></i> Transit ETA</button>
-                    <button type="button" class="btn btn-link ui-tab" gtw-tab="searchTransit"><i class="far fa-clock"></i> Search Transit</button>
+                    <button type="button" class="btn btn-link ui-tab" gtw-tab="searchTransit"><i class="fas fa-exclamation-triangle"></i> Alerts</button>
                 </div>
                 <div class="tab-panel">
                 </div>
             </div>
         </div>
 
-        <div class="jumbotron jumbotron-fluid half-map-panel">
+        <div class="jumbotron jumbotron-fluid half-map-panel desktop">
             <div class="container-fluid">
                 <button type="button" class="btn btn-link ui-half-map-back-btn"><i class="fas fa-arrow-left"></i> Back</button>
                 <div class="half-map-tab-panel">
@@ -133,12 +133,22 @@
 
     <div id="gtw-map"></div>
 
-    <div class="container-fluid item-list-container">
-        <div class="row item-list">
-        </div>
+    <div class="container-fluid content-panel-container">
     </div>
 
-    <div class="container-fluid half-map-container">
+    <div class="container-fluid half-map-container desktop">
+    </div>
+
+    <div class="container-fluid mobile-split-container">
+        <div class="jumbotron jumbotron-fluid half-map-panel mobile">
+            <div class="container-fluid">
+                <button type="button" class="btn btn-link ui-half-map-back-btn"><i class="fas fa-arrow-left"></i> Back</button>
+                <div class="half-map-tab-panel">
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid half-map-container mobile">
+        </div>
     </div>
 
     <div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">

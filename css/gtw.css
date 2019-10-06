@@ -65,15 +65,24 @@ body {
     z-index: 1;
 }
 
-.item-list-container {
+.content-panel-container {
     display: inline-block;
+}
+
+.item-list {
+    height: inherit;
 }
 
 .item-list .list-group {
     width: 100%;
+    height: inherit;
     overflow-x: hidden;
     overflow-y: scroll;
     z-index: 1;
+}
+
+.all-route-list {
+    display: none;
 }
 
 /* Map CSS */
@@ -88,25 +97,20 @@ body {
 
 /* Search panel CSS */
 
-.search-panel {
+.top-panel {
     padding: 8px;
     margin-bottom: 0px;
 }
 
-.search-panel .tabs, .hori-scroll {
+.top-panel .tabs, .hori-scroll {
     overflow: auto;
     white-space: nowrap;
     display: block;
     padding: 4px;
 }
 
-.search-panel .tabs .ui-tab, .hori-scroll button {
+.top-panel .tabs .ui-tab, .hori-scroll button {
     display: inline-block;
-}
-
-.item-list .col-sm-2 {
-    padding-left: 0px;
-    padding-right: 0px;
 }
 
 #loc-status-btn {
@@ -177,26 +181,23 @@ body {
     height: 3rem;
 }
 
-/* Nearby route */
+/* Route selection */
 
-.nearby-route {
-}
-
-.nearby-route .route-id {
+.route-selection .route-id {
     padding-right: 16px;
     font-weight: bold;
 }
 
-.nearby-route .stop-info {
+.route-selection .stop-info {
     margin-left: 8px;
     margin-right: 8px;
 }
 
-.nearby-route .stop-info .badge {
+.route-selection .stop-info .badge {
 
 }
 
-.nearby-route .stop-info .col-sm-12{
+.route-selection .stop-info .col-sm-12{
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis; 
@@ -212,7 +213,7 @@ body {
 
 /* Media Query */
 @media only screen and (min-width: 768px) {
-    .search-panel {
+    .top-panel {
         width: 25%;
     }
 
@@ -225,7 +226,7 @@ body {
         margin-left: 0;
     }
 
-    .item-list-container {
+    .content-panel-container {
         width: 25%;
         margin-left: 0;
     }
@@ -242,11 +243,56 @@ body {
     .header nav {
         width: 25%;
     }
+
+    .desktop.half-map-panel.gtw-half-map {
+        display: block;
+    }
+
+    .desktop.half-map-container.gtw-half-map {
+        display: block;
+    }
+
+    .mobile.half-map-panel.gtw-half-map {
+        display: none;
+    }
+
+    .mobile.half-map-container.gtw-half-map {
+        display: none;
+    }
 }
 
 @media only screen and (max-width: 768px) {
     .header nav.gtw-half-map {
         background-color: unset;
+    }
+
+    .mobile-split-container {
+        margin-top: 60vh;
+        padding: 0px;
+    }
+
+    body.gtw-half-map {
+        overflow-y: scroll;
+    }
+
+    #gtw-map.gtw-half-map {
+        height: 60vh;
+    }
+
+    .desktop.half-map-panel.gtw-half-map {
+        display: none;
+    }
+
+    .desktop.half-map-container.gtw-half-map {
+        display: none;
+    }
+
+    .mobile.half-map-panel.gtw-half-map {
+        display: block;
+    }
+
+    .mobile.half-map-container.gtw-half-map {
+        display: block;
     }
 }
 
