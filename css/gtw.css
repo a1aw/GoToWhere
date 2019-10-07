@@ -89,6 +89,11 @@ body {
     display: none;
 }
 
+.stop-eta tr.active {
+    font-size: 24px;
+    font-weight: bold;
+}
+
 /* Map CSS */
 
 #gtw-map {

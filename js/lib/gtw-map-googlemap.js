@@ -50,7 +50,7 @@ define(function (require, exports, module) {
         return exports.map.setZoom(zoom);
     };
 
-    exports.addMarker = function (position, title, label) {
+    exports.addMarker = function (position, title, label, onClickFunc) {
         var marker = new google.maps.Marker({
             position: position,
             label: label,
@@ -58,6 +58,13 @@ define(function (require, exports, module) {
             map: exports.map
         });
         markers[markerInc] = marker;
+
+        if (onClickFunc) {
+            marker.addListener("click", function () {
+                onClickFunc();
+            });
+        }
+
         return markerInc++;
     };
 

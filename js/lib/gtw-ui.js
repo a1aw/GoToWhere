@@ -229,15 +229,15 @@ define(function (require, exports, module) {
 
         adjustMargin();
         if (stop) {
+            var parent = screen.width >= 768 ? ".desktop" : ".mobile";
+
+            var node = $(parent + " .timeline-entry[stop-id='" + stop.stopId + "']");
+
+            var icon = node.children().children(".timeline-icon")
+            icon.removeClass("bg-light");
+            icon.addClass("bg-primary");
+
             if (scroll) {
-                var parent = screen.width >= 768 ? ".desktop" : ".mobile";
-                //parent = ".desktop";
-                var node = $(parent + " .timeline-entry[stop-id='" + stop.stopId + "']");
-
-                var icon = node.children().children(".timeline-icon")
-                icon.removeClass("bg-light");
-                icon.addClass("bg-primary");
-
                 node[0].scrollIntoView();
             }
 
@@ -260,7 +260,7 @@ define(function (require, exports, module) {
 
         var content =
             "<p><u>Estimated Time Arrival</u></p>" +
-            "<table class=\"table\">"
+            "<table class=\"table stop-eta\">"
             ;
 
         var h = ETAManager.request({
