@@ -25,9 +25,16 @@ define(function (require, exports, module) {
                 delete window.initMap;
             };
 
+            var apiKey = config.googleMapApiKey;
+
+            if (!window.location.origin || window.location.origin == "" || window.location.origin == "file://") {
+                apiKey = "";
+                console.warn("gtw-map-googlemap: You are running the application in local/no-origin mode. The API key has been removed now.");
+            }
+
             requirejs.config({
                 paths: {
-                    "google-map": "https://maps.googleapis.com/maps/api/js?callback=initMap&key=" + config.googleMapApiKey
+                    "google-map": "https://maps.googleapis.com/maps/api/js?callback=initMap&key=" + apiKey
                 }
             });
 

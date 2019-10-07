@@ -10,6 +10,7 @@ const TransitType = {
 define(function (require, exports, module) {
     var Misc = require("gtw-misc");
     var PluginLoader = require("gtw-pluginloader");
+    var RequestLimiter = require("gtw-requestlimiter");
 
     var ETAProvider = function (packageName, providerObjName, transit, name) {
         this.packageName = packageName;
@@ -209,7 +210,7 @@ define(function (require, exports, module) {
         return false;
     };
 
-    exports.request = function (options) {
+    exports.request = function (options, fetchNow) {
         var provider = exports.getProvider(options.provider);
 
         if (!provider) {
@@ -233,6 +234,11 @@ define(function (require, exports, module) {
                 lastAccess: d.getTime(),
                 handler: h
             };
+            if (fetchNow) {
+                RequestLimiter.stack(function () {
+                    exports.fetchEta(h);
+                });
+            }
             return h;
         }
     }
@@ -372,17 +378,6 @@ define(function (require, exports, module) {
         return result.map(function (value, index) {
             return value[0];
         });;
-    }
-
-    exports.requestAllETA = function () {
-        for (var handler of handlers) {
-            if (handler) {
-                var _handler = handler;
-                RequestLimiter.queue(function () {
-                    _handler.fetchETA();
-                });
-            }
-        }
     }
 
     exports.requestAllDatabase = function (pc) {

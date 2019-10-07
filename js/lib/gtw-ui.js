@@ -37,6 +37,7 @@ define(function (require, exports, module) {
     });
 
     $(".ui-half-map-back-btn").on("click", function () {
+        clearInterval(exports.timers["stopEtaUpdate"]);
         Map.setCenter(Loc.getCurrentPosition());
         Map.setZoom(16);
         Map.removeAllMarkers();
@@ -50,7 +51,7 @@ define(function (require, exports, module) {
 
     exports.modalVars = {};
 
-    exports.timers = [];
+    exports.timers = {};
 
     exports.modalTimers = [];
 
@@ -62,8 +63,8 @@ define(function (require, exports, module) {
 
     exports.clearUp = function () {
         exports.vars = {};
-        for (var id of exports.timers) {
-            clearTimeout(id);
+        for (var key in exports.timers) {
+            clearInterval(exports.timers[key]);
         }
         exports.timers = [];
         $(".tab-panel").html("");
@@ -98,7 +99,6 @@ define(function (require, exports, module) {
             options.backdrop = "static";
             options.keyboard = false;
         }
-        console.log(options);
 
         var proms = [];
         proms.push(new Promise((resolve, reject) => {
@@ -184,7 +184,7 @@ define(function (require, exports, module) {
         Map.addPolyline(coords, "#FF0000", 2);
     };
 
-    exports.showRouteList = function (route, bound, stop = false) {
+    exports.showRouteList = function (route, bound, stop = false, scroll = false) {
         var html = "<div class=\"row\" style=\"padding: 10%;\"><div class=\"timeline-centered\">";
         var path = route.paths[bound];
         var dbStop;
@@ -228,24 +228,30 @@ define(function (require, exports, module) {
         $(".half-map-tab-panel").html(html);
 
         adjustMargin();
-
         if (stop) {
-            var parent = screen.width >= 768 ? ".desktop" : ".mobile";
-            //parent = ".desktop";
-            var node = $(parent + " .timeline-entry[stop-id='" + stop.stopId + "']");
+            if (scroll) {
+                var parent = screen.width >= 768 ? ".desktop" : ".mobile";
+                //parent = ".desktop";
+                var node = $(parent + " .timeline-entry[stop-id='" + stop.stopId + "']");
 
-            var icon = node.children().children(".timeline-icon")
-            icon.removeClass("bg-light");
-            icon.addClass("bg-primary");
+                var icon = node.children().children(".timeline-icon")
+                icon.removeClass("bg-light");
+                icon.addClass("bg-primary");
 
-            node[0].scrollIntoView();
+                node[0].scrollIntoView();
+            }
 
             var targetPos = { lat: stop.lat, lng: stop.lng };
 
             Map.setCenter(targetPos);
             Map.setZoom(18);
 
-            exports.showStopEta(route, bound, stop);
+            clearInterval(exports.timers["stopEtaUpdate"]);
+            var func = function () {
+                exports.showStopEta(route, bound, stop);
+            };
+            func();
+            exports.timers["stopEtaUpdate"] = setInterval(func, 1000);
         }
     };
 
@@ -260,10 +266,9 @@ define(function (require, exports, module) {
         var h = ETAManager.request({
             provider: route.provider,
             route: route,
-            selectedPath: bound,
+            selectedPath: parseInt(bound),
             stop: stop
-        });
-
+        }, true);
         if (!h) {
             content +=
                 "<tr class=\"table-dark\">" +
@@ -273,7 +278,6 @@ define(function (require, exports, module) {
                 ;
         } else {
             var data = ETAManager.getEta(h);
-            console.log(data);
             if (!data || !data.schedules || !data.serverTime) {
                 content +=
                     "<tr class=\"table-dark\">" +
@@ -826,10 +830,8 @@ define(function (require, exports, module) {
                     }
 
                     var routeResults = ETAManager.searchRoutesOfStop(stopResult.stop);
-                    console.log(stopResult.stop);
 
                     for (var routeResult of routeResults) {
-                        console.log(routeResult);
                         allNearbyRoutes.push({
                             route: routeResult.route,
                             bound: routeResult.bound,
@@ -845,7 +847,6 @@ define(function (require, exports, module) {
                 var stopId;
                 html = "<div class=\"row item-list nearby-route-list\"><ul class=\"list-group\">"
                 for (var result of allNearbyRoutes) {
-                    console.log(result);
                     paths = result.route.paths[result.bound];
                     stopId = paths[paths.length - 1];
                     distance = Math.round(result.distance * 1000);
@@ -943,7 +944,7 @@ define(function (require, exports, module) {
                     var stop = provider.getStopById($(this).attr("gtw-stop-id"));
                     var bound = $(this).attr("gtw-bound");
 
-                    exports.showRouteList(route, bound, stop);
+                    exports.showRouteList(route, bound, stop, true);
                     exports.drawRouteOnMap(route, bound);
                 });
 
@@ -989,7 +990,7 @@ define(function (require, exports, module) {
                     }
                 });
 
-                exports.timers.push(setInterval(function () {
+                exports.timers["nearbyRoutesUpdate"] = (setInterval(function () {
                     exports.scripts["transitEtaUpdateUi"]();
                 }, 1000));
                 exports.vars["allNearbyRoutes"] = allNearbyRoutes;

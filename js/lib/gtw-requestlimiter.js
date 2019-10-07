@@ -15,6 +15,14 @@ define(function (require, exports, module) {
         return func;
     }
 
+    exports.stack = function (func, args) {
+        if (typeof func !== "function") {
+            throw new TypeError("The variable must be a 'function'.");
+        }
+        exports.requests.unshift([func, args]);
+        return func;
+    }
+
     exports.start = function () {
         if (exports.running) {
             return;

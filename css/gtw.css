@@ -268,7 +268,7 @@ body {
 
 @media only screen and (max-width: 768px) {
     .header nav.gtw-half-map {
-        background-color: unset;
+        background-color: rgba(0,0,0,0.3);
     }
 
     .mobile-split-container {
@@ -286,7 +286,7 @@ body {
     }
 
     #gtw-map.gtw-half-map {
-        height: 60vh;
+        height: 50vh;
         display: block;
     }
 
@@ -305,7 +305,7 @@ body {
 
     .mobile.half-map-container.gtw-half-map {
         display: block;
-        height: 20vh;
+        height: 30vh;
     }
 }
 
