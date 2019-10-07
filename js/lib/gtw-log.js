@@ -6,7 +6,7 @@ define(function (require, exports, module) {
     var global = this;
 
     var logEntries = [];
-    
+    /*
     var jsTrace = console.trace;
     console.trace = function (msg) {
         global.log("console", msg, -1);
@@ -31,7 +31,7 @@ define(function (require, exports, module) {
     console.error = function (msg) {
         global.log("console", msg, 2);
     };
-
+    */
     exports.printObject = true;
 
     exports.toConsole = function (msg, level) {

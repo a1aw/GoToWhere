@@ -24,6 +24,7 @@ define(function (require, exports, module) {
         this.interpreter = plugin.interpreter;
         this.dbKey = "transit-db-" + packageName + "-" + name;
         this.db = false;
+        this.inc = 0;
 
         if (localStorage) {
             var dbJson = localStorage.getItem(this.dbKey);
@@ -72,19 +73,25 @@ define(function (require, exports, module) {
         }
 
         this.isDatabaseUpdateNeeded = function () {
-            if (this.db) {
-                var needed = this.runCode("isDatabaseUpdateNeeded", this.db.version);
-                if (!needed) {
-                    this.routes = this.db.routes;
-                    this.stops = this.db.stops;
-                    this.interpreter.setProperty(this.interpreter.getScope(), "routes", this.interpreter.nativeToPseudo(this.routes));
-                    this.interpreter.setProperty(this.interpreter.getScope(), "stops", this.interpreter.nativeToPseudo(this.stops));
-                    delete this.db;
+            return new Promise((resolve, reject) => {
+                if (this.db) {
+                    var p = this.runCode("isDatabaseUpdateNeeded", this.db.version);
+                    p.then(function (needed) {
+                        if (!needed) {
+                            global.routes = global.db.routes;
+                            global.stops = global.db.stops;
+                            global.interpreter.setProperty(global.interpreter.getScope(), "routes", global.interpreter.nativeToPseudo(global.routes));
+                            global.interpreter.setProperty(global.interpreter.getScope(), "stops", global.interpreter.nativeToPseudo(global.stops));
+                            delete global.db;
+                        }
+                        resolve(needed);
+                    }).catch(function (err) {
+                        reject(err);
+                    });
+                } else {
+                    resolve(true);
                 }
-                return needed;
-            } else {
-                return true;
-            }
+            });
         }
         
         this.fetchDatabase = function () {
@@ -93,6 +100,7 @@ define(function (require, exports, module) {
                 global.runCode("fetchDatabase", resolve, reject);
             });
             p.then(function (data) {
+                console.log(data);
                 const { routes, stops, version } = data;
 
                 if (!routes || !stops || !version) {
@@ -125,21 +133,38 @@ define(function (require, exports, module) {
             });
         }
 
+        this.executions = [];
+
         this.runCode = function (codeName, ...args) {
-            if (args) {
-                this.interpreter.setProperty(this.interpreter.getScope(), "_args", this.interpreter.nativeToPseudo(args));
-                this.interpreter.appendCode(this.providerObjName + "." + codeName + ".apply(this, _args);");
-            } else {
-                this.interpreter.appendCode(this.providerObjName + "." + codeName + "();");
-            }
-            try {
-                this.interpreter.run();
-            } catch (err) {
-                console.error("Error: Error occurred in \"" + this.packageName + "\" when running code \"" + codeName + "\"");
-                throw err;
-            }
-            return this.interpreter.pseudoToNative(this.interpreter.value);
+            return new Promise((resolve, reject) => {
+                this.executions.push([codeName, args, resolve, reject]);
+            });
         }
+
+        var global = this;
+        this.timer = setInterval(function () {
+            var exec = global.executions.shift();
+            if (exec) {
+                var codeName = exec[0];
+                var args = exec[1];
+                if (args) {
+                    global.interpreter.setProperty(global.interpreter.getScope(), "_args", global.interpreter.nativeToPseudo(args));
+                    //global.interpreter.appendCode("var _args = " + JSON.stringify(args) + ";");
+                    global.interpreter.appendCode(global.providerObjName + "." + codeName + ".apply(this, _args);");
+                } else {
+                    global.interpreter.appendCode(global.providerObjName + "." + codeName + "();");
+                }
+                try {
+                    global.interpreter.run();
+                } catch (err) {
+                    console.error("Error: Error occurred in \"" + global.packageName + "\" when running code \"" + codeName + "\"");
+                    exec[3](err);
+                    throw err;
+                }
+                console.log("exec resolve!");
+                exec[2](global.interpreter.pseudoToNative(global.interpreter.value));
+            }
+        }, 100);
     }
 
     exports.timer = 0;
@@ -381,17 +406,46 @@ define(function (require, exports, module) {
     }
 
     exports.requestAllDatabase = function (pc) {
-        var proms = [];
-        var pm;
-        for (var provider of exports.providers) {
-            if (provider && provider.isDatabaseUpdateNeeded()) {
-                pm = provider.fetchDatabase();
-                if (pm) {
-                    proms.push(pm);
+        return new Promise((resolve, reject) => {
+            console.log("is update needed");
+            var updateNeeded = {};
+            var proms = [];
+            for (const provider of exports.providers) {
+                console.log(provider);
+                if (provider) {
+                    var p = provider.isDatabaseUpdateNeeded();
+                    p.then(function (needed) {
+                        console.log(provider.name + ":" + needed);
+                        updateNeeded[provider.name] = needed;
+                    }).catch(function (err) {
+                        console.error("Error occurred in plugin while checking is DB update needed, forcing to update: " + err);
+                        updateNeeded[provider.name] = true;
+                    });
+                    proms.push(p);
                 }
             }
-        }
-        return Misc.allProgress(proms, pc);
+            Promise.all(proms).then(function () {
+                console.log(updateNeeded);
+                var proms = [];
+                var pm;
+                for (var provider of exports.providers) {
+                    console.log(provider);
+                    if (provider && updateNeeded[provider.name]) {
+                        console.log("Update is needed for " + provider.name);
+                        pm = provider.fetchDatabase();
+                        console.log("Fetch");
+                        if (pm) {
+                            proms.push(pm);
+                        }
+                    }
+                }
+                Misc.allProgress(proms, pc).then(function () {
+                    resolve();
+                }).catch(function () {
+                    reject();
+                });
+            });
+        });
     }
 });
 

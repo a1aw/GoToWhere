@@ -282,92 +282,94 @@ define(function (require, exports, module) {
                 "</tr>"
                 ;
         } else {
-            var data = ETAManager.getEta(h);
-            if (!data || !data.schedules || !data.serverTime) {
-                content +=
-                    "<tr class=\"table-dark\">" +
-                    "    <td>No data received currently. Please wait a moment.</td>" +
-                    //"    <td>---</td>" +
-                    "</tr>"
-                    ;
-            } else if (data.schedules.length == 0) {
-                content +=
-                    "<tr class=\"table-dark\">" +
-                    "    <td>No schedules pending</td>" +
-                    //"    <td>---</td>" +
-                    "</tr>"
-                    ;
-            } else {
-                var active = false;
-                for (var schedule of data.schedules) {
-                    var eta = ETAManager.timeDifference(schedule.time, data.serverTime);
-                    var html = "<tr class=\"table-";
+            var p = ETAManager.getEta(h);
+            p.then(function (data) {
+                if (!data || !data.schedules || !data.serverTime) {
+                    content +=
+                        "<tr class=\"table-dark\">" +
+                        "    <td>No data received currently. Please wait a moment.</td>" +
+                        //"    <td>---</td>" +
+                        "</tr>"
+                        ;
+                } else if (data.schedules.length == 0) {
+                    content +=
+                        "<tr class=\"table-dark\">" +
+                        "    <td>No schedules pending</td>" +
+                        //"    <td>---</td>" +
+                        "</tr>"
+                        ;
+                } else {
+                    var active = false;
+                    for (var schedule of data.schedules) {
+                        var eta = ETAManager.timeDifference(schedule.time, data.serverTime);
+                        var html = "<tr class=\"table-";
 
-                    if (eta >= 20) {
-                        html += "secondary";
-                    } else if (eta >= 15) {
-                        html += "info";
-                    } else if (eta >= 10) {
-                        html += "success";
-                    } else if (eta >= 5) {
-                        html += "warning";
-                    } else if (eta >= 1) {
-                        html += "danger"
-                    } else {
-                        html += "dark";
-                    }
-
-                    if (!active && eta > 0) {
-                        active = true;
-                        html += " active";
-                    }
-
-                    html += "\"><td>";
-
-                    //TODO: isOutdated
-
-                    if (schedule.hasMsg && !schedule.hasTime) {
-                        html += schedule.msg + "</td>";
-                    } else {
-                        if (schedule.hasMsg) {
-                            html += schedule.msg;
-                        }
-                        if (schedule.hasTime) {
-                            if (schedule.hasMsg) {
-                                html += "<br />";
-                            }
-                            if (eta > 1) {
-                                html += eta + " mins";
-                            } else if (eta == 1) {
-                                html += eta + " min";
-                            } else {
-                                html += "Arrived/Left";
-                            }
-
-                            if (schedule.isLive) {
-                                html += " <span style=\"color: red; float: right; font-size: 10px;\"><i class=\"fa fa-circle\"></i> Live</span>";
-                            } else {
-                                html += " <span style=\"font-size: 10px; float: right; font-style: italic;\">Scheduled</span>";
-                            }
-                        }
-
-                        html += "</td><td>";
-
-                        if (schedule.hasTime) {
-                            html += Misc.fillZero(schedule.time.hr) + ":" + Misc.fillZero(schedule.time.min);
+                        if (eta >= 20) {
+                            html += "secondary";
+                        } else if (eta >= 15) {
+                            html += "info";
+                        } else if (eta >= 10) {
+                            html += "success";
+                        } else if (eta >= 5) {
+                            html += "warning";
+                        } else if (eta >= 1) {
+                            html += "danger"
                         } else {
-                            html += "---";
+                            html += "dark";
                         }
 
-                        html += "</td>";
+                        if (!active && eta > 0) {
+                            active = true;
+                            html += " active";
+                        }
+
+                        html += "\"><td>";
+
+                        //TODO: isOutdated
+
+                        if (schedule.hasMsg && !schedule.hasTime) {
+                            html += schedule.msg + "</td>";
+                        } else {
+                            if (schedule.hasMsg) {
+                                html += schedule.msg;
+                            }
+                            if (schedule.hasTime) {
+                                if (schedule.hasMsg) {
+                                    html += "<br />";
+                                }
+                                if (eta > 1) {
+                                    html += eta + " mins";
+                                } else if (eta == 1) {
+                                    html += eta + " min";
+                                } else {
+                                    html += "Arrived/Left";
+                                }
+
+                                if (schedule.isLive) {
+                                    html += " <span style=\"color: red; float: right; font-size: 10px;\"><i class=\"fa fa-circle\"></i> Live</span>";
+                                } else {
+                                    html += " <span style=\"font-size: 10px; float: right; font-style: italic;\">Scheduled</span>";
+                                }
+                            }
+
+                            html += "</td><td>";
+
+                            if (schedule.hasTime) {
+                                html += Misc.fillZero(schedule.time.hr) + ":" + Misc.fillZero(schedule.time.min);
+                            } else {
+                                html += "---";
+                            }
+
+                            html += "</td>";
+                        }
+
+                        //TODO: Features
+
+                        html += "</tr>"
+                        content += html;
                     }
-
-                    //TODO: Features
-
-                    html += "</tr>"
-                    content += html;
                 }
-            }
+            });
         }
 
         content += "</table>";
@@ -645,9 +647,9 @@ define(function (require, exports, module) {
                 });
             }
             var allNearbyRoutes = exports.vars["allNearbyRoutes"];
-            var h;
+            //var h;
             for (var result of allNearbyRoutes) {
-                h = ETAManager.request({
+                const h = ETAManager.request({
                     provider: result.route.provider,
                     route: result.route,
                     selectedPath: result.bound,
@@ -655,98 +657,99 @@ define(function (require, exports, module) {
                 });
 
                 var text = "";
-                var eta = ETAManager.getEta(h);
-                
-                var node = $(".nearby-route-list .route-selection[gtw-provider=\"" + h.provider + "\"][gtw-route-id=\"" + h.route + "\"][gtw-bound=\"" + h.selectedPath + "\"][gtw-stop-id=\"" + h.stop + "\"]");
-                
-                node.removeClass("list-group-item-secondary");
-                node.removeClass("list-group-item-info");
-                node.removeClass("list-group-item-success");
-                node.removeClass("list-group-item-warning");
-                node.removeClass("list-group-item-danger");
-                node.removeClass("list-group-item-light");
-                node.removeClass("list-group-item-dark");
+                var p = ETAManager.getEta(h);
+                p.then(function (eta) {
+                    var node = $(".nearby-route-list .route-selection[gtw-provider=\"" + h.provider + "\"][gtw-route-id=\"" + h.route + "\"][gtw-bound=\"" + h.selectedPath + "\"][gtw-stop-id=\"" + h.stop + "\"]");
 
-                var badgeClass = "btn-secondary";
+                    node.removeClass("list-group-item-secondary");
+                    node.removeClass("list-group-item-info");
+                    node.removeClass("list-group-item-success");
+                    node.removeClass("list-group-item-warning");
+                    node.removeClass("list-group-item-danger");
+                    node.removeClass("list-group-item-light");
+                    node.removeClass("list-group-item-dark");
 
-                if (!eta || !eta.schedules || !eta.serverTime) {
-                    text = "N/A";
-                    node.addClass("list-group-item-light");
-                } else if (eta.schedules.length == 0) {
-                    text = "No Schedules";
-                    node.addClass("list-group-item-light");
-                } else {
-                    var schedule = eta.schedules[0];
+                    var badgeClass = "btn-secondary";
 
-                    var eta = ETAManager.timeDifference(schedule.time, eta.serverTime);
-                    var css = "";
-
-                    if (eta >= 20) {
-                        css = "secondary";
-                    } else if (eta >= 15) {
-                        css = "info";
-                    } else if (eta >= 10) {
-                        css = "success";
-                    } else if (eta >= 5) {
-                        css = "warning";
-                    } else if (eta >= 1) {
-                        css = "danger"
+                    if (!eta || !eta.schedules || !eta.serverTime) {
+                        text = "N/A";
+                        node.addClass("list-group-item-light");
+                    } else if (eta.schedules.length == 0) {
+                        text = "No Schedules";
+                        node.addClass("list-group-item-light");
                     } else {
-                        css = "dark";
-                    }
-                    node.addClass("list-group-item-" + css);
+                        var schedule = eta.schedules[0];
 
-                    //TODO: isOutdated
+                        var eta = ETAManager.timeDifference(schedule.time, eta.serverTime);
+                        var css = "";
 
-                    if (schedule.hasMsg) {
-                        var msg = schedule.msg;
-                        if (msg.length > 20) {
-                            text = "Transit Notice";
+                        if (eta >= 20) {
+                            css = "secondary";
+                        } else if (eta >= 15) {
+                            css = "info";
+                        } else if (eta >= 10) {
+                            css = "success";
+                        } else if (eta >= 5) {
+                            css = "warning";
+                        } else if (eta >= 1) {
+                            css = "danger"
                         } else {
-                            text = schedule.msg;
+                            css = "dark";
                         }
-                        badgeClass = "badge-warning";
-                    } else if (schedule.hasTime) {
+                        node.addClass("list-group-item-" + css);
+
+                        //TODO: isOutdated
+
                         if (schedule.hasMsg) {
-                            text += "<br />";
+                            var msg = schedule.msg;
+                            if (msg.length > 20) {
+                                text = "Transit Notice";
+                            } else {
+                                text = schedule.msg;
+                            }
+                            badgeClass = "badge-warning";
+                        } else if (schedule.hasTime) {
+                            if (schedule.hasMsg) {
+                                text += "<br />";
+                            }
+
+                            badgeClass = "badge-primary";
+                            if (eta > 1) {
+                                text += eta + " mins";
+                            } else if (eta == 1) {
+                                text += eta + " min";
+                            } else {
+                                text += "Arrived/Left";
+                                badgeClass = "badge-dark";
+                            }
+
+                            if (schedule.isLive) {
+                                text += "<br /><span style=\"color: red; position: absolute; top: 16px; right: 16px; font-size: 10px;\"><i class=\"fa fa-circle\"></i> Live</span>";
+                            } else {
+                                text += "<br /><span style=\"font-size: 10px; color: black; position: absolute; top: 16px; right: 16px; font-style: italic;\">Scheduled</span>";
+                            }
                         }
 
-                        badgeClass = "badge-primary";
-                        if (eta > 1) {
-                            text += eta + " mins";
-                        } else if (eta == 1) {
-                            text += eta + " min";
+                        /*
+                        if (schedule.hasTime) {
+                            text += Misc.fillZero(schedule.time.hr) + ":" + Misc.fillZero(schedule.time.min);
                         } else {
-                            text += "Arrived/Left";
-                            badgeClass = "badge-dark";
+                            text += "---";
                         }
+                        */
 
-                        if (schedule.isLive) {
-                            text += "<br /><span style=\"color: red; position: absolute; top: 16px; right: 16px; font-size: 10px;\"><i class=\"fa fa-circle\"></i> Live</span>";
-                        } else {
-                            text += "<br /><span style=\"font-size: 10px; color: black; position: absolute; top: 16px; right: 16px; font-style: italic;\">Scheduled</span>";
-                        }
+                        //TODO: Features
                     }
+                    var badge = node.children(".transit-eta");
 
-                    /*
-                    if (schedule.hasTime) {
-                        text += Misc.fillZero(schedule.time.hr) + ":" + Misc.fillZero(schedule.time.min);
-                    } else {
-                        text += "---";
-                    }
-                    */
+                    badge.removeClass("badge-primary");
+                    badge.removeClass("badge-secondary");
+                    badge.removeClass("badge-warning");
+                    badge.removeClass("badge-dark");
+                    badge.addClass(badgeClass);
 
-                    //TODO: Features
-                }
-                var badge = node.children(".transit-eta");
-
-                badge.removeClass("badge-primary");
-                badge.removeClass("badge-secondary");
-                badge.removeClass("badge-warning");
-                badge.removeClass("badge-dark");
-                badge.addClass(badgeClass);
-
-                badge.html(text);
+                    badge.html(text);
+                });
             }
         },
         "transitEta": function () {
@@ -770,7 +773,7 @@ define(function (require, exports, module) {
                     } else {
                         image = "fa-question";
                     }
-                    buttonScroll += " <button type=\"button\" class=\"btn gtw-providersort gtw-providersort-provider\" gtw-provider=\"" + provider.name + "\"><i class=\"fa " + image + "\"></i><br />" + provider.name + "</button>";
+                    buttonScroll += " <button type=\"button\" class=\"btn btn-default gtw-providersort gtw-providersort-provider\" gtw-provider=\"" + provider.name + "\"><i class=\"fa " + image + "\"></i><br />" + provider.name + "</button>";
                 }
 
                 buttonScroll += "</div>";
@@ -814,7 +817,7 @@ define(function (require, exports, module) {
                         console.log('Provider' + provider)
                         $(this).addClass("btn-primary");
 
-                        $(".gtw-providersort-provider:not([gtw-provider='" + provider + "'])").addClass("btn-link");
+                        $(".gtw-providersort-provider:not([gtw-provider='" + provider + "'])").addClass("btn-default");
                     }
                 });
                 
@@ -946,7 +949,7 @@ define(function (require, exports, module) {
                         var stop;
                         for (var stopId of path) {
                             stop = provider.getStopById(stopId);
-                            latlngs.push({lat: stop.lat, lng: stop.lng});
+                            latlngs.push({lat: parseFloat(stop.lat), lng: parseFloat(stop.lng)});
                         }
                         Map.fitBounds(latlngs);
                     }

@@ -241,6 +241,8 @@ define(function (require, exports, module) {
                 return btoa(x);
             }));
             interpreter.setProperty(scope, "Number", interpreter.nativeToPseudo(Number));
+            interpreter.setProperty(scope, "Uint8Array", interpreter.nativeToPseudo(Uint8Array));
+            interpreter.setProperty(scope, "TextEncoder", interpreter.nativeToPseudo(TextEncoder));
             interpreter.setProperty(scope, "console", interpreter.nativeToPseudo(console));
             interpreter.setProperty(scope, "TransitType", interpreter.nativeToPseudo(TransitType));
             interpreter.setProperty(scope, "registerEtaProvider", interpreter.createNativeFunction(function (package, providerObjName, transit, name) {
