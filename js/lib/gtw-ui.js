@@ -62,6 +62,11 @@ define(function (require, exports, module) {
     };
 
     exports.clearUp = function () {
+        Map.setCenter(Loc.getCurrentPosition());
+        Map.setZoom(16);
+        Map.removeAllMarkers();
+        Map.removeAllPolylines();
+
         exports.vars = {};
         for (var key in exports.timers) {
             clearInterval(exports.timers[key]);
@@ -185,7 +190,7 @@ define(function (require, exports, module) {
     };
 
     exports.showRouteList = function (route, bound, stop = false, scroll = false) {
-        var html = "<div class=\"row\" style=\"padding: 10%;\"><div class=\"timeline-centered\">";
+        var html = "<div class=\"row\" style=\"padding: 2%;\"><div class=\"timeline-centered\">";
         var path = route.paths[bound];
         var dbStop;
         var i;
@@ -953,6 +958,10 @@ define(function (require, exports, module) {
                     if (val && val != "") {
                         $(".nearby-route-list").css("display", "none")
                         $(".all-route-list").css("display", "block");
+                        Map.setCenter(Loc.getCurrentPosition());
+                        Map.setZoom(16);
+                        Map.removeAllMarkers();
+                        Map.removeAllPolylines();
                     } else {
                         $(".nearby-route-list").css("display", "block")
                         $(".all-route-list").css("display", "none");
@@ -988,6 +997,7 @@ define(function (require, exports, module) {
                     for (var i = 0; i < list.length; i++) {
                         list[i].parentNode.appendChild(list[i]);
                     }
+                    $(".all-route-list .route-selection:nth-child(1)").mouseenter();
                 });
 
                 exports.timers["nearbyRoutesUpdate"] = (setInterval(function () {
