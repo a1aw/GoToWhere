@@ -278,7 +278,7 @@ define(function (require, exports, module) {
             content +=
                 "<tr class=\"table-dark\">" +
                 "    <td>Not available to this route</td>" +
-                "    <td>---</td>" +
+                //"    <td>---</td>" +
                 "</tr>"
                 ;
         } else {
@@ -286,15 +286,15 @@ define(function (require, exports, module) {
             if (!data || !data.schedules || !data.serverTime) {
                 content +=
                     "<tr class=\"table-dark\">" +
-                    "    <td>Not available to this route</td>" +
-                    "    <td>---</td>" +
+                    "    <td>No data received currently. Please wait a moment.</td>" +
+                    //"    <td>---</td>" +
                     "</tr>"
                     ;
             } else if (data.schedules.length == 0) {
                 content +=
                     "<tr class=\"table-dark\">" +
                     "    <td>No schedules pending</td>" +
-                    "    <td>---</td>" +
+                    //"    <td>---</td>" +
                     "</tr>"
                     ;
             } else {
@@ -326,37 +326,41 @@ define(function (require, exports, module) {
 
                     //TODO: isOutdated
 
-                    if (schedule.hasMsg) {
-                        html += schedule.msg;
-                    }
-                    if (schedule.hasTime) {
+                    if (schedule.hasMsg && !schedule.hasTime) {
+                        html += schedule.msg + "</td>";
+                    } else {
                         if (schedule.hasMsg) {
-                            html += "<br />";
+                            html += schedule.msg;
                         }
-                        if (eta > 1) {
-                            html += eta + " mins";
-                        } else if (eta == 1) {
-                            html += eta + " min";
+                        if (schedule.hasTime) {
+                            if (schedule.hasMsg) {
+                                html += "<br />";
+                            }
+                            if (eta > 1) {
+                                html += eta + " mins";
+                            } else if (eta == 1) {
+                                html += eta + " min";
+                            } else {
+                                html += "Arrived/Left";
+                            }
+
+                            if (schedule.isLive) {
+                                html += " <span style=\"color: red; float: right; font-size: 10px;\"><i class=\"fa fa-circle\"></i> Live</span>";
+                            } else {
+                                html += " <span style=\"font-size: 10px; float: right; font-style: italic;\">Scheduled</span>";
+                            }
+                        }
+
+                        html += "</td><td>";
+
+                        if (schedule.hasTime) {
+                            html += Misc.fillZero(schedule.time.hr) + ":" + Misc.fillZero(schedule.time.min);
                         } else {
-                            html += "Arrived/Left";
+                            html += "---";
                         }
+
+                        html += "</td>";
                     }
-
-                    if (schedule.isLive) {
-                        html += " <span style=\"color: red; float: right; font-size: 10px;\"><i class=\"fa fa-circle\"></i> Live</span>";
-                    } else {
-                        html += " <span style=\"font-size: 10px; float: right; font-style: italic;\">Scheduled</span>";
-                    }
-
-                    html += "</td><td>";
-
-                    if (schedule.hasTime) {
-                        html += Misc.fillZero(schedule.time.hr) + ":" + Misc.fillZero(schedule.time.min);
-                    } else {
-                        html += "---";
-                    }
-
-                    html += "</td>";
 
                     //TODO: Features
 
@@ -663,6 +667,8 @@ define(function (require, exports, module) {
                 node.removeClass("list-group-item-light");
                 node.removeClass("list-group-item-dark");
 
+                var badgeClass = "btn-secondary";
+
                 if (!eta || !eta.schedules || !eta.serverTime) {
                     text = "N/A";
                     node.addClass("list-group-item-light");
@@ -693,25 +699,33 @@ define(function (require, exports, module) {
                     //TODO: isOutdated
 
                     if (schedule.hasMsg) {
-                        text = schedule.msg;
-                    }
-                    if (schedule.hasTime) {
+                        var msg = schedule.msg;
+                        if (msg.length > 20) {
+                            text = "Transit Notice";
+                        } else {
+                            text = schedule.msg;
+                        }
+                        badgeClass = "badge-warning";
+                    } else if (schedule.hasTime) {
                         if (schedule.hasMsg) {
                             text += "<br />";
                         }
+
+                        badgeClass = "badge-primary";
                         if (eta > 1) {
                             text += eta + " mins";
                         } else if (eta == 1) {
                             text += eta + " min";
                         } else {
                             text += "Arrived/Left";
+                            badgeClass = "badge-dark";
                         }
-                    }
 
-                    if (schedule.isLive) {
-                        text += "<br /><span style=\"color: red; float: right; font-size: 10px;\"><i class=\"fa fa-circle\"></i> Live</span>";
-                    } else {
-                        text += "<br /><span style=\"font-size: 10px; float: right; font-style: italic;\">Scheduled</span>";
+                        if (schedule.isLive) {
+                            text += "<br /><span style=\"color: red; position: absolute; top: 16px; right: 16px; font-size: 10px;\"><i class=\"fa fa-circle\"></i> Live</span>";
+                        } else {
+                            text += "<br /><span style=\"font-size: 10px; color: black; position: absolute; top: 16px; right: 16px; font-style: italic;\">Scheduled</span>";
+                        }
                     }
 
                     /*
@@ -724,7 +738,14 @@ define(function (require, exports, module) {
 
                     //TODO: Features
                 }
-                var badge = node.children(".transit-eta")
+                var badge = node.children(".transit-eta");
+
+                badge.removeClass("badge-primary");
+                badge.removeClass("badge-secondary");
+                badge.removeClass("badge-warning");
+                badge.removeClass("badge-dark");
+                badge.addClass(badgeClass);
+
                 badge.html(text);
             }
         },
