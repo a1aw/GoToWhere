@@ -317,7 +317,7 @@ define(function (require, exports, module) {
                         html += "dark";
                     }
 
-                    if (!active && schedule.isLive && eta > 0) {
+                    if (!active && eta > 0) {
                         active = true;
                         html += " active";
                     }
@@ -1027,7 +1027,7 @@ define(function (require, exports, module) {
                 exports.vars["allNearbyRoutes"] = allNearbyRoutes;
             } else {
                 //TODO: better message or auto add plugins according to region
-                $(".tab-panel").html("You do not have any plugins providing ETA data. Install one from the plugins manager.")
+                $(".tab-panel").html("<br /><div class=\"alert alert-danger\" role=\"alert\"><i class=\"fas fa-exclamation-triangle\"></i> You do not have any plugins providing ETA data. Install one from the plugins manager.</div>")
             }
         }
     };
