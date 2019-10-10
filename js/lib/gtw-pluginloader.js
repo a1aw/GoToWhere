@@ -4,7 +4,7 @@ define(function (require, exports, module) {
     var Misc = require("gtw-misc");
     var Cors = require("gtw-cors");
     var RequestLimiter = require("gtw-requestlimiter");
-    var ETAManager = require("gtw-eta");
+    var TransitManager = require("gtw-transit");
 
     //Code to create callback functions
     const PRE_CODE =
@@ -245,8 +245,8 @@ define(function (require, exports, module) {
             interpreter.setProperty(scope, "TextEncoder", interpreter.nativeToPseudo(TextEncoder));
             interpreter.setProperty(scope, "console", interpreter.nativeToPseudo(console));
             interpreter.setProperty(scope, "TransitType", interpreter.nativeToPseudo(TransitType));
-            interpreter.setProperty(scope, "registerEtaProvider", interpreter.createNativeFunction(function (package, providerObjName, transit, name) {
-                ETAManager.registerProvider(package, providerObjName, transit, name);
+            interpreter.setProperty(scope, "registerTransitProvider", interpreter.createNativeFunction(function (package, providerObjName, transit, name) {
+                TransitManager.registerProvider(package, providerObjName, transit, name);
             }));
             interpreter.setProperty(scope, "registerCors", interpreter.createNativeFunction(function (domain, allowCors) {
                 Cors.register(domain, allowCors);

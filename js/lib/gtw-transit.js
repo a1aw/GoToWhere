@@ -12,14 +12,14 @@ define(function (require, exports, module) {
     var PluginLoader = require("gtw-pluginloader");
     var RequestLimiter = require("gtw-requestlimiter");
 
-    var ETAProvider = function (packageName, providerObjName, transit, name) {
+    var TransitProvider = function (packageName, providerObjName, transit, name) {
         this.packageName = packageName;
         this.providerObjName = providerObjName;
         this.transit = transit;
         this.name = name;
         var plugin = PluginLoader.plugins[packageName];
         if (!plugin) {
-            throw new Error("No such plugin \"" + packageName + "\" installed! Cannot initialize ETA provider.");
+            throw new Error("No such plugin \"" + packageName + "\" installed! Cannot initialize TransitProvider.");
         }
         this.interpreter = plugin.interpreter;
         this.dbKey = "transit-db-" + packageName + "-" + name;
@@ -275,7 +275,7 @@ define(function (require, exports, module) {
     }
 
     exports.registerProvider = function (package, providerObjName, transit, name) {
-        exports.providers.push(new ETAProvider(package, providerObjName, transit, name));
+        exports.providers.push(new TransitProvider(package, providerObjName, transit, name));
     }
 
     exports.unregisterProvider = function (name) {
@@ -305,7 +305,7 @@ define(function (require, exports, module) {
         var provider = exports.getProvider(options.provider);
 
         if (!provider) {
-            throw new Error("Could not find registered ETA provider with name \"" + options.provider + "\"");
+            throw new Error("Could not find registered Transit provider with name \"" + options.provider + "\"");
         }
 
         var key = options.provider + "-" + options.route.routeId + "-" + options.selectedPath + "-" + options.stop.stopId;

@@ -77,7 +77,7 @@ requirejs.config({
     }
 });
 
-requirejs(["gtw-cors", "gtw-pluginloader", "gtw-eta", "gtw-map", "gtw-location", "gtw-ui", "gtw-settings", "gtw-requestlimiter", "gtw-log"], function (Cors, PluginLoader, ETAManager, Map, loc, ui, settings, RequestLimiter, log) {
+requirejs(["gtw-cors", "gtw-pluginloader", "gtw-transit", "gtw-map", "gtw-location", "gtw-ui", "gtw-settings", "gtw-requestlimiter", "gtw-log"], function (Cors, PluginLoader, TransitManager, Map, loc, ui, settings, RequestLimiter, log) {
     /*
     Settings = new Settings();
     Settings.load();
@@ -85,8 +85,8 @@ requirejs(["gtw-cors", "gtw-pluginloader", "gtw-eta", "gtw-map", "gtw-location",
     Func = new Func();
     OpenETAMap = new OpenETAMap();
     LocationManager = new LocationManager();
-    ETAManager = new ETAManager();
-    ETAManager.start();
+    TransitManager = new TransitManager();
+    TransitManager.start();
     EventManager = new EventManager();
     UIManager = new UIManager();
     RequestLimiter = new RequestLimiter();
@@ -121,7 +121,7 @@ requirejs(["gtw-cors", "gtw-pluginloader", "gtw-eta", "gtw-map", "gtw-location",
         promise = PluginLoader.load();
         promise.then(function () {
             $("#startup-status").html("Initializing database...");
-            promise = ETAManager.requestAllDatabase(function (progress) {
+            promise = TransitManager.requestAllDatabase(function (progress) {
                 $("#startup-progress").css("width", (25 + progress / 4 * 3) + "%");
             });
             promise.then(function () {
@@ -132,12 +132,12 @@ requirejs(["gtw-cors", "gtw-pluginloader", "gtw-eta", "gtw-map", "gtw-location",
                     $("#startup-status").html("Finish!");
 
                     ui.init();
-                    //ETAManager.start();
-                    //ETAManager.forceUpdate();
+                    //TransitManager.start();
+                    //TransitManager.forceUpdate();
 
                     loc.requestLocationAccess(function () {
                         ui.init();
-                        //ETAManager.forceUpdate();
+                        //TransitManager.forceUpdate();
                         $("#loc-status-btn").addClass("btn-success");
                         $("#loc-status-btn").removeClass("btn-warning");
                         setTimeout(function () {

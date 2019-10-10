@@ -1,7 +1,7 @@
 //GTW UI
 
 define(function (require, exports, module) {
-    var ETAManager = require("gtw-eta");
+    var TransitManager = require("gtw-transit");
     var Map = require("gtw-map");
     var Settings = require("gtw-settings");
     var RequestLimiter = require("gtw-requestlimiter");
@@ -180,7 +180,7 @@ define(function (require, exports, module) {
         var dbStop;
         var i;
         for (i = 0; i < path.length; i++) {
-            dbStop = ETAManager.getStopById(path[i]);
+            dbStop = TransitManager.getStopById(path[i]);
             pos = { lat: dbStop.lat, lng: dbStop.lng };
             coords.push(pos);
             Map.addMarker(pos, dbStop.stopName, "" + (i + 1));
@@ -195,7 +195,7 @@ define(function (require, exports, module) {
         var dbStop;
         var i;
         for (i = 0; i < path.length; i++) {
-            dbStop = ETAManager.getStopById(path[i]);
+            dbStop = TransitManager.getStopById(path[i]);
             html +=
                 "<article class=\"timeline-entry\" stop-id=\"" + dbStop.stopId + "\" stop-index=\"" + i + "\">" +
                 "    <div class=\"timeline-entry-inner\">" +
@@ -214,7 +214,7 @@ define(function (require, exports, module) {
         $(".half-map-container").html(html);
 
         $(".half-map-container button").on("click", function () {
-            var x = ETAManager.getStopById($(this).attr("stop-id"));
+            var x = TransitManager.getStopById($(this).attr("stop-id"));
             if (x) {
                 exports.showRouteList(route, bound, x);
             }
@@ -227,7 +227,7 @@ define(function (require, exports, module) {
             "        <div>" + route.provider + "</div>" +
             "        <div>" + route.routeId + "</div>" +
             "    </div>" +
-            "    <div><b>To:</b> " + ETAManager.getStopById(lastStopId).stopName + "</div>" +
+            "    <div><b>To:</b> " + TransitManager.getStopById(lastStopId).stopName + "</div>" +
             "</li></ul>"
             ;
         $(".half-map-tab-panel").html(html);
@@ -268,7 +268,7 @@ define(function (require, exports, module) {
             "<table class=\"table stop-eta\">"
             ;
 
-        var h = ETAManager.request({
+        var h = TransitManager.request({
             provider: route.provider,
             route: route,
             selectedPath: parseInt(bound),
@@ -287,7 +287,7 @@ define(function (require, exports, module) {
                 "    <td colspan=\"2\"><div class=\"spinner-border spinner-border-sm\" role=\"status\"></div> Retrieving data...</td>" +
                 "</tr>";
 
-            var p = ETAManager.fetchEta(h);
+            var p = TransitManager.fetchEta(h);
             p.then(function (data) {
                 console.log("stop eta returned!");
                 console.log(data);
@@ -311,7 +311,7 @@ define(function (require, exports, module) {
                 } else {
                     var active = false;
                     for (var schedule of data.schedules) {
-                        var eta = ETAManager.timeDifference(schedule.time, data.serverTime);
+                        var eta = TransitManager.timeDifference(schedule.time, data.serverTime);
                         var html = "<tr class=\"table-";
 
                         if (eta >= 20) {
@@ -662,14 +662,14 @@ define(function (require, exports, module) {
             //var h;
             console.log("Request ALL!!!!!!!!!!!")
             for (var result of allNearbyRoutes) {
-                const h = ETAManager.request({
+                const h = TransitManager.request({
                     provider: result.route.provider,
                     route: result.route,
                     selectedPath: result.bound,
                     stop: result.stop
                 });
 
-                var p = ETAManager.fetchEta(h);
+                var p = TransitManager.fetchEta(h);
                 p.then(function (eta) {
                     var text = "";
                     var h = eta.handler;
@@ -697,7 +697,7 @@ define(function (require, exports, module) {
                     } else {
                         var schedule = eta.schedules[0];
 
-                        var eta = ETAManager.timeDifference(schedule.time, eta.serverTime);
+                        var eta = TransitManager.timeDifference(schedule.time, eta.serverTime);
                         var css = "";
 
                         if (eta >= 20) {
@@ -771,10 +771,10 @@ define(function (require, exports, module) {
         },
         "transitEta": function () {
             RequestLimiter.clear();
-            ETAManager.clearCache();
+            TransitManager.clearCache();
 
             var pos = Loc.getCurrentPosition();
-            var providers = ETAManager.getProviders();
+            var providers = TransitManager.getProviders();
 
             if (providers.length > 0) {
                 var buttonScroll =
@@ -842,13 +842,13 @@ define(function (require, exports, module) {
                 var lng = pos.lng;
                 var range = Settings.get("min_nearby_transit_range", 200) / 1000.0;
 
-                var allNearbyStops = ETAManager.getAllStopsNearbyCoord(lat, lng, range, true, true);
+                var allNearbyStops = TransitManager.getAllStopsNearbyCoord(lat, lng, range, true, true);
 
                 if (allNearbyStops.length == 0) {
                     var testRange = range;
                     do {
                         testRange += 0.05;
-                        allNearbyStops = ETAManager.getAllStopsNearbyCoord(lat, lng, testRange, true, true);
+                        allNearbyStops = TransitManager.getAllStopsNearbyCoord(lat, lng, testRange, true, true);
                     } while (allNearbyStops.length == 0 && testRange < 10);
 
                     if (testRange >= 10) {
@@ -875,7 +875,7 @@ define(function (require, exports, module) {
                         break;
                     }
 
-                    var routeResults = ETAManager.searchRoutesOfStop(stopResult.stop);
+                    var routeResults = TransitManager.searchRoutesOfStop(stopResult.stop);
 
                     for (var routeResult of routeResults) {
                         allNearbyRoutes.push({
@@ -904,7 +904,7 @@ define(function (require, exports, module) {
                         "        </div>" +
                         "        <div class=\"d-flex flex-column stop-info mr-auto\">" +
                         "            <div>" +
-                        "                <b>To:</b> <small>" + ETAManager.getStopById(stopId).stopName +
+                        "                <b>To:</b> <small>" + TransitManager.getStopById(stopId).stopName +
                         "</small></div>" +
                         "            <div>" +
                         "                " + result.stop.stopName + " (" + distance + "m)" +
@@ -913,7 +913,7 @@ define(function (require, exports, module) {
                         "        <span class=\"badge badge-primary badge-pill transit-eta\">Retrieving...</span>" +
                         "    </li>";
 
-                    ETAManager.request({
+                    TransitManager.request({
                         provider: result.route.provider,
                         route: result.route,
                         selectedPath: result.bound,
@@ -922,7 +922,7 @@ define(function (require, exports, module) {
                 }
                 html += "</ul></div>";
 
-                var routes = ETAManager.getAllRoutes();
+                var routes = TransitManager.getAllRoutes();
                 var path;
                 var i;
 
@@ -938,7 +938,7 @@ define(function (require, exports, module) {
                             "        <div>" + route.provider + "</div>" +
                             "        <div>" + route.routeId + "</div>" +
                             "    </div>" +
-                            "    <div><b>To:</b> " + ETAManager.getStopById(stopId).stopName + "</div>" +
+                            "    <div><b>To:</b> " + TransitManager.getStopById(stopId).stopName + "</div>" +
                             "</li>";
                     }
                 }
@@ -949,9 +949,9 @@ define(function (require, exports, module) {
                 $(".route-selection").on("mouseenter", function () {
                     Map.removeAllMarkers();
                     Map.removeAllPolylines();
-                    var provider = ETAManager.getProvider($(this).attr("gtw-provider"));
+                    var provider = TransitManager.getProvider($(this).attr("gtw-provider"));
                     var route = provider.getRouteById($(this).attr("gtw-route-id"));
-                    var stop = ETAManager.getStopById($(this).attr("gtw-stop-id"));
+                    var stop = TransitManager.getStopById($(this).attr("gtw-stop-id"));
                     var bound = $(this).attr("gtw-bound");
                     exports.drawRouteOnMap(route, bound);
 
@@ -965,7 +965,7 @@ define(function (require, exports, module) {
                         var latlngs = [];
                         var stop;
                         for (var stopId of path) {
-                            stop = ETAManager.getStopById(stopId);
+                            stop = TransitManager.getStopById(stopId);
                             latlngs.push({lat: parseFloat(stop.lat), lng: parseFloat(stop.lng)});
                         }
                         Map.fitBounds(latlngs);
@@ -985,9 +985,9 @@ define(function (require, exports, module) {
                     Map.removeAllMarkers();
                     Map.removeAllPolylines();
 
-                    var provider = ETAManager.getProvider($(this).attr("gtw-provider"));
+                    var provider = TransitManager.getProvider($(this).attr("gtw-provider"));
                     var route = provider.getRouteById($(this).attr("gtw-route-id"));
-                    var stop = ETAManager.getStopById($(this).attr("gtw-stop-id"));
+                    var stop = TransitManager.getStopById($(this).attr("gtw-stop-id"));
                     var bound = $(this).attr("gtw-bound");
 
                     exports.showRouteList(route, bound, stop, true);
@@ -1013,10 +1013,10 @@ define(function (require, exports, module) {
                         var providerName = $(this).attr("gtw-provider");
                         var bound = $(this).attr("gtw-bound");
 
-                        var provider = ETAManager.getProvider(providerName);
+                        var provider = TransitManager.getProvider(providerName);
                         var route = provider.getRouteById(routeId);
                         var paths = route.paths[bound];
-                        var lastStop = ETAManager.getStopById(paths[paths.length - 1]);
+                        var lastStop = TransitManager.getStopById(paths[paths.length - 1]);
 
                         var rp = Misc.similarity(routeId, val);
                         var pp = Misc.similarity(providerName, val);
