@@ -77,7 +77,7 @@ requirejs.config({
     }
 });
 
-requirejs(["gtw-cors", "gtw-pluginloader", "gtw-transit", "gtw-map", "gtw-location", "gtw-ui", "gtw-settings", "gtw-requestlimiter", "gtw-log"], function (Cors, PluginLoader, TransitManager, Map, loc, ui, settings, RequestLimiter, log) {
+requirejs(["gtw-cors", "gtw-pluginloader", "gtw-citydata-transit", "gtw-map", "gtw-location", "gtw-ui", "gtw-settings", "gtw-requestlimiter", "gtw-log"], function (Cors, PluginLoader, TransitManager, Map, loc, ui, settings, RequestLimiter, log) {
     /*
     Settings = new Settings();
     Settings.load();

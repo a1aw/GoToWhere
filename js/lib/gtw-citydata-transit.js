@@ -161,7 +161,7 @@ define(function (require, exports, module) {
                             return;
                         }
 
-                        if (!serverTime.hr || !serverTime.min || isNaN(parseInt(serverTime.hr)) || isNaN(parseInt(serverTime.min))) {
+                        if (isNaN(parseInt(serverTime.hr)) || isNaN(parseInt(serverTime.min))) {
                             console.error("Error: Plugin returned a TransitSchedule object with invalid server time.");
                             reject();
                             return;

@@ -1,7 +1,7 @@
 //GTW UI
 
 define(function (require, exports, module) {
-    var TransitManager = require("gtw-transit");
+    var TransitManager = require("gtw-citydata-transit");
     var Map = require("gtw-map");
     var Settings = require("gtw-settings");
     var RequestLimiter = require("gtw-requestlimiter");

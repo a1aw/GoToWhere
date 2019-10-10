@@ -4,7 +4,7 @@ define(function (require, exports, module) {
     var Misc = require("gtw-misc");
     var Cors = require("gtw-cors");
     var RequestLimiter = require("gtw-requestlimiter");
-    var TransitManager = require("gtw-transit");
+    var TransitManager = require("gtw-citydata-transit");
 
     //Code to create callback functions
     const PRE_CODE =
