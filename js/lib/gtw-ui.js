@@ -1048,7 +1048,7 @@ define(function (require, exports, module) {
                 }, 30000));
             } else {
                 //TODO: better message or auto add plugins according to region
-                $(".tab-panel").html("<br /><div class=\"alert alert-danger\" role=\"alert\"><i class=\"fas fa-exclamation-triangle\"></i> You do not have any plugins providing ETA data. Install one from the plugins manager.</div>")
+                $(".tab-panel").html("<br /><div class=\"alert alert-danger\" role=\"alert\"><i class=\"fas fa-exclamation-triangle\"></i> You do not have any plugins providing transit data. Install one from the plugins manager.</div>")
             }
         }
     };
