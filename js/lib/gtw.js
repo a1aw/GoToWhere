@@ -1,4 +1,4 @@
-// OpenETA script loader
+﻿// OpenETA script loader
 
 if (!window["_urlPrefix"]){
     window._urlPrefix = "";
@@ -22,7 +22,7 @@ const _allModules = [
 ];
 */
 
-var __headerTexts = ["<i class=\"fas fa-map-marked-alt\"></i> GoToWhere<small>.ga</small>", "<i class=\"fas fa-map-marked-alt\"></i> \u53bb\u908a\u35ce", "<i class=\"fas fa-map-marked-alt\"></i> HeuiBin<small>.ga</small>"];
+var __headerTexts = ["<i class=\"fas fa-map-marked-alt\"></i> \u53bb\u908a\u35ce GoToWhere", "<i class=\"fas fa-map-marked-alt\"></i> GoToWhere<small>.ga</small>", "<i class=\"fas fa-map-marked-alt\"></i> HeuiBin<small>.ga</small>"];
 var __stopHeaderAnimation = false;
 
 function __headerAnimation(i) {
@@ -132,12 +132,12 @@ requirejs(["gtw-cors", "gtw-pluginloader", "gtw-eta", "gtw-map", "gtw-location",
                     $("#startup-status").html("Finish!");
 
                     ui.init();
-                    ETAManager.start();
-                    ETAManager.forceUpdate();
+                    //ETAManager.start();
+                    //ETAManager.forceUpdate();
 
                     loc.requestLocationAccess(function () {
                         ui.init();
-                        ETAManager.forceUpdate();
+                        //ETAManager.forceUpdate();
                         $("#loc-status-btn").addClass("btn-success");
                         $("#loc-status-btn").removeClass("btn-warning");
                         setTimeout(function () {

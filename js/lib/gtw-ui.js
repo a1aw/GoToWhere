@@ -256,7 +256,7 @@ define(function (require, exports, module) {
                 exports.showStopEta(route, bound, stop);
             };
             func();
-            exports.timers["stopEtaUpdate"] = setInterval(func, 1000);
+            exports.timers["stopEtaUpdate"] = setInterval(func, 30000);
         }
     };
 
@@ -277,24 +277,34 @@ define(function (require, exports, module) {
         if (!h) {
             content +=
                 "<tr class=\"table-dark\">" +
-                "    <td>Not available to this route</td>" +
+                "    <td colspan=\"2\">Not available to this route</td>" +
                 //"    <td>---</td>" +
                 "</tr>"
                 ;
         } else {
-            var p = ETAManager.getEta(h);
+            content +=
+                "<tr class=\"table-dark\">" +
+                "    <td colspan=\"2\"><div class=\"spinner-border spinner-border-sm\" role=\"status\"></div> Retrieving data...</td>" +
+                "</tr>";
+
+            var p = ETAManager.fetchEta(h);
             p.then(function (data) {
+                console.log("stop eta returned!");
+                console.log(data);
+                var h = data.handler;
+                var content = "";
+                var node = $(".timeline-entry[stop-id='" + h.stop + "'] p table tbody");
                 if (!data || !data.schedules || !data.serverTime) {
                     content +=
                         "<tr class=\"table-dark\">" +
-                        "    <td>No data received currently. Please wait a moment.</td>" +
+                        "    <td colspan=\"2\">No data received currently. Please wait a moment.</td>" +
                         //"    <td>---</td>" +
                         "</tr>"
                         ;
                 } else if (data.schedules.length == 0) {
                     content +=
                         "<tr class=\"table-dark\">" +
-                        "    <td>No schedules pending</td>" +
+                        "    <td colspan=\"2\">No schedules pending</td>" +
                         //"    <td>---</td>" +
                         "</tr>"
                         ;
@@ -323,13 +333,14 @@ define(function (require, exports, module) {
                             html += " active";
                         }
 
-                        html += "\"><td>";
+                        html += "\">";
 
                         //TODO: isOutdated
 
                         if (schedule.hasMsg && !schedule.hasTime) {
-                            html += schedule.msg + "</td>";
+                            html += "<td colspan=\"2\">" + schedule.msg + "</td>";
                         } else {
+                            html += "<td>";
                             if (schedule.hasMsg) {
                                 html += schedule.msg;
                             }
@@ -369,6 +380,7 @@ define(function (require, exports, module) {
                         content += html;
                     }
                 }
+                node.html(content);
             });
         }
 
@@ -648,6 +660,7 @@ define(function (require, exports, module) {
             }
             var allNearbyRoutes = exports.vars["allNearbyRoutes"];
             //var h;
+            console.log("Request ALL!!!!!!!!!!!")
             for (var result of allNearbyRoutes) {
                 const h = ETAManager.request({
                     provider: result.route.provider,
@@ -656,9 +669,13 @@ define(function (require, exports, module) {
                     stop: result.stop
                 });
 
-                var text = "";
-                var p = ETAManager.getEta(h);
+                var p = ETAManager.fetchEta(h);
                 p.then(function (eta) {
+                    var text = "";
+                    var h = eta.handler;
+                    console.log("Returned! ETA");
+                    console.log(h);
+                    console.log(eta);
                     var node = $(".nearby-route-list .route-selection[gtw-provider=\"" + h.provider + "\"][gtw-route-id=\"" + h.route + "\"][gtw-bound=\"" + h.selectedPath + "\"][gtw-stop-id=\"" + h.stop + "\"]");
 
                     node.removeClass("list-group-item-secondary");
@@ -934,7 +951,7 @@ define(function (require, exports, module) {
                     Map.removeAllPolylines();
                     var provider = ETAManager.getProvider($(this).attr("gtw-provider"));
                     var route = provider.getRouteById($(this).attr("gtw-route-id"));
-                    var stop = provider.getStopById($(this).attr("gtw-stop-id"));
+                    var stop = ETAManager.getStopById($(this).attr("gtw-stop-id"));
                     var bound = $(this).attr("gtw-bound");
                     exports.drawRouteOnMap(route, bound);
 
@@ -948,7 +965,7 @@ define(function (require, exports, module) {
                         var latlngs = [];
                         var stop;
                         for (var stopId of path) {
-                            stop = provider.getStopById(stopId);
+                            stop = ETAManager.getStopById(stopId);
                             latlngs.push({lat: parseFloat(stop.lat), lng: parseFloat(stop.lng)});
                         }
                         Map.fitBounds(latlngs);
@@ -970,7 +987,7 @@ define(function (require, exports, module) {
 
                     var provider = ETAManager.getProvider($(this).attr("gtw-provider"));
                     var route = provider.getRouteById($(this).attr("gtw-route-id"));
-                    var stop = provider.getStopById($(this).attr("gtw-stop-id"));
+                    var stop = ETAManager.getStopById($(this).attr("gtw-stop-id"));
                     var bound = $(this).attr("gtw-bound");
 
                     exports.showRouteList(route, bound, stop, true);
@@ -999,7 +1016,7 @@ define(function (require, exports, module) {
                         var provider = ETAManager.getProvider(providerName);
                         var route = provider.getRouteById(routeId);
                         var paths = route.paths[bound];
-                        var lastStop = provider.getStopById(paths[paths.length - 1]);
+                        var lastStop = ETAManager.getStopById(paths[paths.length - 1]);
 
                         var rp = Misc.similarity(routeId, val);
                         var pp = Misc.similarity(providerName, val);
@@ -1024,10 +1041,11 @@ define(function (require, exports, module) {
                     $(".all-route-list .route-selection:nth-child(1)").mouseenter();
                 });
 
+                exports.vars["allNearbyRoutes"] = allNearbyRoutes;
+                exports.scripts["transitEtaUpdateUi"]();
                 exports.timers["nearbyRoutesUpdate"] = (setInterval(function () {
                     exports.scripts["transitEtaUpdateUi"]();
-                }, 1000));
-                exports.vars["allNearbyRoutes"] = allNearbyRoutes;
+                }, 30000));
             } else {
                 //TODO: better message or auto add plugins according to region
                 $(".tab-panel").html("<br /><div class=\"alert alert-danger\" role=\"alert\"><i class=\"fas fa-exclamation-triangle\"></i> You do not have any plugins providing ETA data. Install one from the plugins manager.</div>")

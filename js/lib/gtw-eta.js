@@ -24,7 +24,7 @@ define(function (require, exports, module) {
         this.interpreter = plugin.interpreter;
         this.dbKey = "transit-db-" + packageName + "-" + name;
         this.db = false;
-        this.inc = 0;
+        this.cache = {};
 
         if (localStorage) {
             var dbJson = localStorage.getItem(this.dbKey);
@@ -122,14 +122,76 @@ define(function (require, exports, module) {
             return p;
         }
 
+        /*
         this.getEta = function (etaHandler) {
             return this.runCode("getEta", etaHandler);
         }
+        */
 
         this.fetchEta = function (etaHandler) {
-            var global = this;
-            return new Promise(function (resolve, reject) {
-                global.runCode("fetchEta", resolve, reject, etaHandler);
+            console.log("Return promise ETA");
+            return new Promise((resolve, reject) => {
+                console.log("Enter promise eta")
+                var key = JSON.stringify(etaHandler);
+                var cached = this.cache[key];
+                var now = new Date();
+
+                if (cached && (now - cached.lastFetched) > 30000) {
+                    console.log("Invalidate")
+                    cached = false;
+                    delete this.cache[key];
+                }
+
+                if (!cached) {
+                    console.log("Not cached")
+                    var global = this;
+                    var p = new Promise(function (resolve, reject) {
+                        global.runCode("fetchEta", resolve, reject, etaHandler);
+                    });
+                    p.then(function (scheObj) {
+                        if (!scheObj) {
+                            resolve(false);
+                            return;
+                        }
+
+                        const { schedules, serverTime, handler } = scheObj;
+                        if (!schedules || !serverTime) {
+                            console.error("Error: Plugin returned a TransitSchedule object with invalid structure.");
+                            reject();
+                            return;
+                        }
+
+                        if (!serverTime.hr || !serverTime.min || isNaN(parseInt(serverTime.hr)) || isNaN(parseInt(serverTime.min))) {
+                            console.error("Error: Plugin returned a TransitSchedule object with invalid server time.");
+                            reject();
+                            return;
+                        }
+
+                        //TODO: Validate schedules
+
+                        //for (var sche of schedules) {
+                        //}
+
+                        var time = new Date();
+
+                        global.cache[key] = {
+                            lastFetched: time.getTime(),
+                            data: scheObj
+                        };
+
+                        console.log("scheObj");
+                        console.log(scheObj);
+
+                        resolve(scheObj);
+                    }).catch(function(err){
+                        reject(err);
+                    });
+                } else {
+                    //cached.lastAccess = now.getTime();
+                    console.log("cache");
+                    console.log(cached);
+                    resolve(cached.data);
+                }
             });
         }
 
@@ -173,6 +235,7 @@ define(function (require, exports, module) {
 
     exports.handlers = {};
 
+    /*
     exports.forceUpdate = function () {
         var d = new Date();
         var cache;
@@ -186,11 +249,13 @@ define(function (require, exports, module) {
             }
         }
     }
+    */
 
     exports.clearCache = function () {
         exports.handlers = {};
     }
 
+    /*
     exports.start = function () {
         var global = this;
         exports.timer = setInterval(function () {
@@ -201,6 +266,7 @@ define(function (require, exports, module) {
     exports.stop = function () {
         clearInterval(exports.timer);
     }
+    */
 
     exports.timeDifference = function (a, b) {
         var x = a.hr * 60 + a.min;
@@ -235,7 +301,7 @@ define(function (require, exports, module) {
         return false;
     };
 
-    exports.request = function (options, fetchNow) {
+    exports.request = function (options) {
         var provider = exports.getProvider(options.provider);
 
         if (!provider) {
@@ -259,15 +325,11 @@ define(function (require, exports, module) {
                 lastAccess: d.getTime(),
                 handler: h
             };
-            if (fetchNow) {
-                RequestLimiter.stack(function () {
-                    exports.fetchEta(h);
-                });
-            }
             return h;
         }
     }
 
+    /*
     exports.getEta = function (handler) {
         var provider = exports.getProvider(handler.provider);
 
@@ -277,6 +339,7 @@ define(function (require, exports, module) {
 
         return provider.getEta(handler);
     }
+    */
 
     exports.fetchEta = function (handler) {
         var provider = exports.getProvider(handler.provider);
