@@ -99,6 +99,50 @@ define(function (require, exports, module) {
         return exports.plugins[package];
     };
 
+    exports.runCode = function (package, codeName, args) {
+        var plugin = exports.plugins[package];
+        if (!plugin) {
+            return false;
+        }
+        return new Promise((resolve, reject) => {
+            plugin.executions.push([codeName, args, resolve, reject]);
+        });
+    };
+
+    var timer = setInterval(function () {
+        for (var key in exports.plugins) {
+            var plugin = exports.plugins[key];
+
+            if (plugin.executions.length == 0) {
+                continue;
+            }
+
+            var exec = plugin.executions.shift();
+            if (exec) {
+                var codeName = exec[0];
+                var args = exec[1];
+                if (args) {
+                    plugin.interpreter.setProperty(plugin.interpreter.getScope(), "_args", plugin.interpreter.nativeToPseudo(args));
+                    //global.interpreter.appendCode("var _args = " + JSON.stringify(args) + ";");
+                    plugin.interpreter.appendCode(codeName + ".apply(this, _args);");
+                } else {
+                    plugin.interpreter.appendCode(codeName + "();");
+                }
+                try {
+                    plugin.interpreter.run();
+                } catch (err) {
+                    console.error("Error: Error occurred in \"" + plugin.packageName + "\" when running code \"" + codeName + "\"");
+                    exec[3](err);
+                    throw err;
+                }
+                console.log("plugin exec resolve!");
+                var out = plugin.interpreter.pseudoToNative(plugin.interpreter.value);
+                console.log(out);
+                exec[2](out);
+            }
+        }
+    }, 50);
+
     exports.compareVersion = function (ver0, ver1) {
         var ver0sub = ver0.split(".");
         var ver1sub = ver1.split(".");
@@ -348,6 +392,7 @@ define(function (require, exports, module) {
                             priority: 100,
                             status: 1,
                             interpreter: interpreter,
+                            executions: [],
                             msg: "Not enabled"
                         };
                         resolve();
@@ -408,6 +453,7 @@ define(function (require, exports, module) {
                     priority: 100,
                     status: 1,
                     interpreter: interpreter,
+                    executions: [],
                     msg: "Not enabled"
                 };
             } else {

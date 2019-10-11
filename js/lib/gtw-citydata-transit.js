@@ -76,6 +76,7 @@ define(function (require, exports, module) {
             return new Promise((resolve, reject) => {
                 if (this.db) {
                     var p = this.runCode("isDatabaseUpdateNeeded", this.db.version);
+                    var global = this;
                     p.then(function (needed) {
                         if (!needed) {
                             global.routes = global.db.routes;
@@ -198,35 +199,9 @@ define(function (require, exports, module) {
         this.executions = [];
 
         this.runCode = function (codeName, ...args) {
-            return new Promise((resolve, reject) => {
-                this.executions.push([codeName, args, resolve, reject]);
-            });
+            console.log("Execute code");
+            return PluginLoader.runCode(this.packageName, this.providerObjName + "." + codeName, args);
         }
-
-        var global = this;
-        this.timer = setInterval(function () {
-            var exec = global.executions.shift();
-            if (exec) {
-                var codeName = exec[0];
-                var args = exec[1];
-                if (args) {
-                    global.interpreter.setProperty(global.interpreter.getScope(), "_args", global.interpreter.nativeToPseudo(args));
-                    //global.interpreter.appendCode("var _args = " + JSON.stringify(args) + ";");
-                    global.interpreter.appendCode(global.providerObjName + "." + codeName + ".apply(this, _args);");
-                } else {
-                    global.interpreter.appendCode(global.providerObjName + "." + codeName + "();");
-                }
-                try {
-                    global.interpreter.run();
-                } catch (err) {
-                    console.error("Error: Error occurred in \"" + global.packageName + "\" when running code \"" + codeName + "\"");
-                    exec[3](err);
-                    throw err;
-                }
-                console.log("exec resolve!");
-                exec[2](global.interpreter.pseudoToNative(global.interpreter.value));
-            }
-        }, 100);
     }
 
     exports.timer = 0;
