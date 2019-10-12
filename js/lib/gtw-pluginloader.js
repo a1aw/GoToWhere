@@ -366,7 +366,7 @@ define(function (require, exports, module) {
         };
 
         var getInfoFunc = function (json) {
-            var url = "https://plugins.openeta.ml/repos/" + json.package + "/info.json";
+            var url = "https://plugins.gotowhere.ga/repos/" + json.package + "/info.json";
             return new Promise((resolve, reject) => {
                 $.ajax({
                     url: url,
@@ -388,7 +388,7 @@ define(function (require, exports, module) {
 
         var getPluginFunc = function (resolve, reject, localJson, json) {
             return $.ajax({
-                url: "https://plugins.openeta.ml/repos/" + json.package + "/plugin.js",
+                url: "https://plugins.gotowhere.ga/repos/" + json.package + "/plugin.js",
                 dataType: "text",
                 success: function (pluginJs) {
                     try {

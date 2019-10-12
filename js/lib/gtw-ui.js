@@ -398,9 +398,8 @@ define(function (require, exports, module) {
             });
 
             var packageJson = 0;
-            for (var key in reposJson) {
-                var i;
-                for (var json of reposJson[key]) {
+            for (var category of reposJson) {
+                for (var json of category.plugins) {
                     if (json.package === package) {
                         packageJson = json;
                         break;
@@ -421,22 +420,27 @@ define(function (require, exports, module) {
             }
 
             var html = "";
+
+            if (packageJson.closedApi) {
+                html += "<div class=\"alert alert-warning\" role=\"alert\"><i class=\"fas fa-exclamation-triangle\"></i> This plugin uses a Closed API. By using this plugin, you will take all the risks and responsibilities and cannot be liable to the developer (due to MIT License).</div>";
+            }
+
             html += "<h3>Details</h3>";
             html += "<hr />";
-            html += "<p>Name: " + json.name + "<br />";
-            html += "Full Name: " + json.fullName + "<br />";
-            html += "Author: " + json.author + "<br />";
-            html += "Version: " + json.version + "<br />";
-            html += "GitHub: <a href=\"" + json.github + "\" target=\"_blank\">" + json.github + "</a><br />";
-            html += "Package: " + json.package + "<br />";
-            html += "Description: " + json.desc + "</p>";
+            html += "<p>Name: " + packageJson.name + "<br />";
+            html += "Full Name: " + packageJson.fullName + "<br />";
+            html += "Author: " + packageJson.author + "<br />";
+            html += "Version: " + packageJson.version + "<br />";
+            html += "GitHub: <a href=\"" + packageJson.github + "\" target=\"_blank\">" + packageJson.github + "</a><br />";
+            html += "Package: " + packageJson.package + "<br />";
+            html += "Description: " + packageJson.desc + "</p>";
 
             var localChecksum = 0;
 
             html += "<h3>Installation</h3>";
             html += "<hr />";
 
-            var json = PluginLoader.getPlugin(json.package);
+            var json = PluginLoader.getPlugin(packageJson.package);
 
             var statusMsg = "<span class=\"font-weight-bold ";
             if (!json) {
@@ -459,9 +463,9 @@ define(function (require, exports, module) {
             if (json) {
                 html += "Local version: " + json.local.version + "<br />";
                 html += "Local Checksum: " + json.local.checksum + "<br />";
-                html += "Online Checksum: " + json.checksum + "<br />";
+                html += "Online Checksum: " + packageJson.checksum + "<br />";
                 html += "Checksum validity: <span class=\"font-weight-bold " +
-                    (json.checksum === localChecksum ? "text-success\">Valid" : "text-danger\">Invalid") + "</span></p>";
+                    (packageJson.checksum === localChecksum ? "text-success\">Valid" : "text-danger\">Invalid") + "</span></p>";
             }
 
             html += "<hr />";
@@ -475,7 +479,7 @@ define(function (require, exports, module) {
             $(".modal-body").html(html);
 
             $(".ui-btn-viewplugin-install").on("click", function () {
-                PluginLoader.install(packageJson.package, "dummychecksum");
+                PluginLoader.install(packageJson.package, packageJson.checksum);
                 window.location.reload();
             });
 
@@ -515,52 +519,41 @@ define(function (require, exports, module) {
                 success: function (reposJson) {
                     exports.modalVars["reposJson"] = reposJson;
 
-                    var cats = [
-                        "transit",
-                        "lib"
-                    ];
+                    if (!reposJson || !reposJson.length) {
+                        alert("TODO: Handle invalid repos JSON error");
+                        return;
+                    }
 
-                    var html = "<div class=\"list-group\"></div>";
-
-                    $("#nav-all").html(html);
-                    $("#nav-installed").html(html);
-                    $("#nav-transit").html(html);
-                    $("#nav-lib").html(html);
-                    $("#nav-others").html(html);
-
+                    var allHtml = "<div class=\"list-group\">";
+                    var tabNode = $("#nav-tab");
+                    var tabContentNode = $("#nav-tabContent");
+                    var pluginHtml;
+                    var categoryTabHtml;
+                    var categoryTabContentHtml;
                     var total = 0;
-                    var others = 0;
-                    for (var key in reposJson) {
-                        var json;
-                        var i;
-                        for (i = 0; i < reposJson[key].length; i++) {
-                            json = reposJson[key][i];
-
-                            html = "<a href=\"#\" class=\"list-group-item list-group-item-action ui-pluginmanager-view-plugin\" package=\"" + json.package + "\">";
-                            html += "    <div class=\"d-flex w-100 justify-content-between\">";
-                            html += "        <h5 class=\"mb-1\">" + json.fullName + "</h5>";
-                            html += "        <small>" + json.version + "</small>";
-                            html += "    </div>";
-                            html += "    <p class=\"mb-1\">" + json.desc + "</p>";
-                            html += "    <small>By " + json.author + "</small>";
-                            html += "</a>";
-
-                            $("#nav-all div.list-group").append(html);
-                            if (cats.includes(key)) {
-                                $("#nav-" + key + " div.list-group").append(html);
-                            } else {
-                                $("#nav-others div.list-group").append(html);
-                                others++;
-                            }
-
-                            total++;
+                    for (var category of reposJson) {
+                        total += category.plugins.length;
+                        categoryTabHtml = "<a class=\"nav-item nav-link\" id=\"nav-" + category.id + "-tab\" data-toggle=\"tab\" href=\"#nav-" + category.id + "\" role=\"tab\" aria-controls=\"nav-" + category.id + "\" aria-selected=\"true\">" + category.name + " (" + category.plugins.length + ")</a>";
+                        categoryTabContentHtml = "<div class=\"tab-pane fade\" id=\"nav-" + category.id + "\" role=\"tabpanel\" aria-labelledby=\"nav-" + category.id + "-tab\"><div class=\"list-group\">";
+                        for (var pluginJson of category.plugins) {
+                            pluginHtml = "<a href=\"#\" class=\"list-group-item list-group-item-action ui-pluginmanager-view-plugin\" package=\"" + pluginJson.package + "\">";
+                            pluginHtml += "    <div class=\"d-flex w-100 justify-content-between\">";
+                            pluginHtml += "        <h5 class=\"mb-1\">" + pluginJson.fullName + "</h5>";
+                            pluginHtml += "        <small>" + pluginJson.version + "</small>";
+                            pluginHtml += "    </div>";
+                            pluginHtml += "    <p class=\"mb-1\">" + pluginJson.desc + "</p>";
+                            pluginHtml += "    <small>By " + pluginJson.author + "</small>";
+                            pluginHtml += "</a>";
+                            categoryTabContentHtml += pluginHtml;
+                            allHtml += pluginHtml;
                         }
+                        categoryTabContentHtml += "</div></div>";
+                        tabNode.append(categoryTabHtml);
+                        tabContentNode.append(categoryTabContentHtml);
                     }
 
                     $("#nav-all-tab").html("All (" + total + ")");
-                    $("#nav-transit-tab").html("Transit (" + reposJson["transit"].length + ")");
-                    $("#nav-lib-tab").html("Libraries (" + reposJson["lib"].length + ")");
-                    $("#nav-others-tab").html("Others (" + others + ")");
+                    $("#nav-all").html(allHtml);
 
                     $(".ui-pluginmanager-view-plugin").on("click", function () {
                         exports.showModal("viewplugin", exports.modalVars["reposJson"], $(this).attr("package"));
