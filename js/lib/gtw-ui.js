@@ -824,7 +824,8 @@ define(function (require, exports, module) {
                     "<div class=\"input-group mb-3\" style=\"margin-top: 16px;\">" +
                     "    <input type=\"text\" class=\"form-control\" placeholder=\"Search for transit...\" aria-label=\"Search for transit...\" aria-describedby=\"search-transit-icon\" id=\"search-transit-text\"/>" +
                     "    <div class=\"input-group-append\">" +
-                    "        <span class=\"input-group-text\" id=\"search-transit-icon\"><i class=\"fas fa-search\"></i></span>" +
+                    //"        <span class=\"input-group-text\" id=\"search-transit-icon\"><i class=\"fas fa-search\"></i></span>" +
+                    "        <button class=\"btn btn-light disabled\" type=\"button\" id=\"button-cancel-search\"><i class=\"fas fa-search\"></i></button>" + 
                     "    </div>" +
                     "</div>"
                     ;
@@ -1010,17 +1011,44 @@ define(function (require, exports, module) {
                     exports.drawRouteOnMap(route, bound);
                 });
 
+                $("#button-cancel-search").on("click", function () {
+                    if (!$(this).hasClass("disabled")) {
+                        $("#search-transit-text").val("");
+                        $("#button-cancel-search").addClass("btn-light");
+                        $("#button-cancel-search").addClass("disabled");
+                        $("#button-cancel-search").removeClass("btn-danger");
+                        $("#button-cancel-search").html("<i class=\"fas fa-search\"></i>");
+
+                        $(".nearby-route-list").css("display", "flex")
+                        $(".all-route-list").css("display", "none");
+                        Map.setCenter(Loc.getCurrentPosition());
+                        Map.setZoom(16);
+                        Map.removeAllMarkers();
+                        Map.removeAllPolylines();
+                    }
+                });
+
                 $("#search-transit-text").on("input", function () {
                     var val = $(this).val();
                     if (val && val != "") {
+                        $("#button-cancel-search").removeClass("btn-light");
+                        $("#button-cancel-search").removeClass("disabled");
+                        $("#button-cancel-search").addClass("btn-danger");
+                        $("#button-cancel-search").html("<i class=\"fas fa-times\"></i>");
+
                         $(".nearby-route-list").css("display", "none")
-                        $(".all-route-list").css("display", "block");
+                        $(".all-route-list").css("display", "flex");
                         Map.setCenter(Loc.getCurrentPosition());
                         Map.setZoom(16);
                         Map.removeAllMarkers();
                         Map.removeAllPolylines();
                     } else {
-                        $(".nearby-route-list").css("display", "block")
+                        $("#button-cancel-search").addClass("btn-light");
+                        $("#button-cancel-search").addClass("disabled");
+                        $("#button-cancel-search").removeClass("btn-danger");
+                        $("#button-cancel-search").html("<i class=\"fas fa-search\"></i>");
+
+                        $(".nearby-route-list").css("display", "flex")
                         $(".all-route-list").css("display", "none");
                     }
 

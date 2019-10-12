@@ -1,7 +1,8 @@
 body {
     width: 100%;
-    height: 100%;
+    height: 100vh;
     overflow: hidden;
+    position: fixed;
 }
 
 /* Startup DIV CSS */
@@ -97,8 +98,8 @@ body {
 /* Map CSS */
 
 #gtw-map {
-    width: 100%;
-    height: 100%;
+    width: 100vw;
+    height: 100vh;
     top: 0px;
     left: 0px;
     position: absolute;
