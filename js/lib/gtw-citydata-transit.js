@@ -144,18 +144,20 @@ define(function (require, exports, module) {
                 }
             }
             Promise.all(proms).then(function () {
+                console.log(needs);
                 var proms = [];
                 var p;
-                for (var provider of exports.providers) {
+                for (const provider of exports.providers) {
                     if (needs[provider.name]) {
                         p = new Promise((resolve, reject) => {
                             provider.fetchDatabase(resolve, reject);
                         });
                         p.then(function (data) {
+                            console.log(data);
                             const { routes, stops, version } = data;
 
                             if (!routes || !stops || !version) {
-                                console.error("Error: Returned database is in wrong structure.");
+                                console.error("Error: Returned database is in wrong structure for " + provider.name);
                                 return;
                             }
 
@@ -164,7 +166,8 @@ define(function (require, exports, module) {
                                 stops: stops,
                                 version: version
                             };
-
+                            console.log("db");
+                            console.log(db);
                             localStorage.setItem(provider.dbKey, JSON.stringify(db));
                             provider.db = db;
                         });
@@ -176,15 +179,15 @@ define(function (require, exports, module) {
         });
     }
 
-    exports.fetchEta = function (options) {
+    exports.fetchEta = function (opt) {
         return new Promise((resolve, reject) => {
-            var provider = exports.getProvider(options.provider);
+            var provider = exports.getProvider(opt.provider);
 
             if (!provider) {
-                throw new Error("Could not find registered Transit provider with name \"" + options.provider + "\"");
+                throw new Error("Could not find registered Transit provider with name \"" + opt.provider + "\"");
             }
 
-            var key = options.provider + "-" + options.routeId + "-" + options.selectedPath + "-" + options.stopId;
+            var key = opt.provider + "-" + opt.routeId + "-" + opt.selectedPath + "-" + opt.stopId;
             var cached = exports.cache[key];
             var now = new Date();
 
@@ -196,7 +199,7 @@ define(function (require, exports, module) {
             if (!cached) {
                 var global = this;
                 var p = new Promise((resolve, reject) => {
-                    provider.fetchEta(resolve, reject, options);
+                    provider.fetchEta(resolve, reject, opt);
                 });
                 p.then(function (scheObj) {
                     console.log("Returned ETA data");
@@ -209,13 +212,13 @@ define(function (require, exports, module) {
                     if (!schedules || !serverTime || !options) {
                         console.log(scheObj);
                         console.error("Error: Plugin returned a TransitSchedule object with invalid structure.");
-                        reject();
+                        reject(opt, "Invalid TransitSchedule structure");
                         return;
                     }
 
                     if (isNaN(parseInt(serverTime))) {
                         console.error("Error: Plugin returned a TransitSchedule object with invalid server time.");
-                        reject();
+                        reject(opt, "Invalid server time");
                         return;
                     }
 
@@ -239,7 +242,7 @@ define(function (require, exports, module) {
 
                     resolve(out);
                 }).catch(function (err) {
-                    reject(err);
+                    reject(options, err);
                 });
             } else {
                 resolve(cached.data);

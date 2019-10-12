@@ -68,7 +68,7 @@ define(function (require, exports, module) {
         var json;
         var p;
         var proms = [];
-        for (var package in exports.plugins) {
+        for (const package in exports.plugins) {
             json = exports.plugins[package];
 
             if (json.status <= 0) {
@@ -120,7 +120,7 @@ define(function (require, exports, module) {
                     console.log("Err" + err);
                     exports.plugins[package].status = -2;
                     exports.plugins[package].msg = err;
-                    reject(err);
+                    resolve(err);
                 });
             });
             proms.push(p);
@@ -135,7 +135,7 @@ define(function (require, exports, module) {
         }
 
         var data;
-        var json;
+        //var json;
         var key;
         var i;
         var count = 0;
@@ -149,7 +149,7 @@ define(function (require, exports, module) {
             count++;
 
             data = localStorage.getItem(key);
-            json = JSON.parse(data);
+            const json = JSON.parse(data);
 
             if (!json.package || !json.method || !json.checksum || !json.version) {
                 var t = "Error: \"" + key + "\" is missing a method, package, version or checksum";
@@ -165,7 +165,8 @@ define(function (require, exports, module) {
                     $.ajax({
                         url: url,
                         dataType: "json",
-                        success: function (infoJson) {
+                        success: function (_infoJson) {
+                            const infoJson = _infoJson;
                             $.ajax({
                                 url: "https://plugins.gotowhere.ga/repos/" + infoJson.package + "/plugin.js",
                                 dataType: "text",

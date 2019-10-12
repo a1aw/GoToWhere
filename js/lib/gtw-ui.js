@@ -455,7 +455,7 @@ define(function (require, exports, module) {
             } else if (json.status == 1) {
                 statusMsg += "text-secondary\">Not enabled";
             } else if (json.status <= -2 && json.status >= -5) {
-                statusMsg += "text-danger\">Plugin download and load errors (" + json.status + ")";
+                statusMsg += "text-danger\">Plugin load errors (" + json.status + ")";
             } else if (json.status <= -6 && json.status >= -7) {
                 statusMsg += "text-danger\">Checksum Mismatch (" + json.status + ")";
             } else {
@@ -760,10 +760,33 @@ define(function (require, exports, module) {
                     badge.removeClass("badge-primary");
                     badge.removeClass("badge-secondary");
                     badge.removeClass("badge-warning");
+                    badge.removeClass("badge-danger");
                     badge.removeClass("badge-dark");
                     badge.addClass(badgeClass);
 
                     badge.html(text);
+                }).catch(function (options, err) {
+                    var node = $(".nearby-route-list .route-selection[gtw-provider=\"" + options.provider + "\"][gtw-route-id=\"" + options.routeId + "\"][gtw-bound=\"" + options.selectedPath + "\"][gtw-stop-id=\"" + options.stopId + "\"]");
+
+                    node.removeClass("list-group-item-secondary");
+                    node.removeClass("list-group-item-info");
+                    node.removeClass("list-group-item-success");
+                    node.removeClass("list-group-item-warning");
+                    node.removeClass("list-group-item-danger");
+                    node.removeClass("list-group-item-light");
+                    node.removeClass("list-group-item-dark");
+                    node.addClass("list-group-item-light");
+
+                    var badge = node.children(".transit-eta");
+
+                    badge.removeClass("badge-primary");
+                    badge.removeClass("badge-secondary");
+                    badge.removeClass("badge-warning");
+                    badge.removeClass("badge-danger");
+                    badge.removeClass("badge-dark");
+                    badge.addClass("badge-danger");
+
+                    badge.html("Failed");
                 });
             }
         },
