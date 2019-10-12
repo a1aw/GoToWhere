@@ -482,7 +482,7 @@ define(function (require, exports, module) {
             $(".modal-body").html(html);
 
             $(".ui-btn-viewplugin-install").on("click", function () {
-                PluginLoader.install(packageJson.package, packageJson.checksum);
+                PluginLoader.install(packageJson.package, packageJson.checksum, packageJson.version);
                 window.location.reload();
             });
 
