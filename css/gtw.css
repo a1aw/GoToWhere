@@ -282,6 +282,11 @@ body {
         background-color: unset;
     }
 
+    .modal {
+        margin-top: env(safe-area-inset-top);
+        margin-bottom: env(safe-area-inset-bottom);
+    }
+
     .mobile-split-container {
         margin-top: 50vh;
         padding: 0px;
