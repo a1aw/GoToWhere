@@ -99,8 +99,6 @@ define(function (require, exports, module) {
         return exports.plugins[package];
     };
 
-    var inc = 0;
-
     exports.runCode = function (package, codeName, args) {
         var plugin = exports.plugins[package];
         if (!plugin) {
@@ -108,7 +106,7 @@ define(function (require, exports, module) {
         }
         console.log("Return new promise for " + package + ":" + codeName);
         return new Promise((resolve, reject) => {
-            var x = [codeName, args, resolve, reject, inc++];
+            var x = [codeName, args, resolve, reject];
             console.log("Push these");
             console.log(x);
             plugin.executions.push(x);
@@ -133,9 +131,9 @@ define(function (require, exports, module) {
                 console.log(args);
                 if (args) {
                     console.log("Has args");
-                    plugin.interpreter.setProperty(plugin.interpreter.getScope(), "_args" + exec[4], plugin.interpreter.nativeToPseudo(args));
+                    plugin.interpreter.setProperty(plugin.interpreter.getScope(), "_args", plugin.interpreter.nativeToPseudo(args));
                     //global.interpreter.appendCode("var _args = " + JSON.stringify(args) + ";");
-                    plugin.interpreter.appendCode(codeName + ".apply(this, _args" + exec[4] + ");");
+                    plugin.interpreter.appendCode(codeName + ".apply(this, _args);");
                 } else {
                     console.log("No args");
                     plugin.interpreter.appendCode(codeName + "();");
