@@ -110,7 +110,7 @@ body {
 .top-panel {
     padding: 8px;
     margin-bottom: 0px;
-    background-color: rgba(233,236,239,0.7);
+    background-color: unset;
 }
 
 .top-panel .tabs, .hori-scroll {
@@ -140,9 +140,11 @@ body {
     z-index: 1;
 }
 
+/*
 .header nav {
     background-color: #343a40
 }
+*/
 
 .footer {
     padding-top: 8px;
@@ -153,8 +155,6 @@ body {
     width: 100%;
 }
 
-/* Map Overlay CSS
-
 .map-overlay {
     position: fixed;
     width: 100%;
@@ -163,12 +163,11 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgb(255, 255, 255);
+    background-color: rgba(233,236,239,0.7);
     z-index: 1;
     opacity: 0.8;
     cursor: pointer;
 }
-*/
 
 /* Loading Overlay CSS */
 
@@ -255,6 +254,10 @@ body {
         width: 25%;
     }
 
+    .map-overlay {
+        display: none;
+    }
+
     .desktop.half-map-panel.gtw-half-map {
         display: block;
     }
@@ -273,8 +276,9 @@ body {
 }
 
 @media only screen and (max-width: 768px) {
-    .header nav.gtw-half-map {
-        /*background-color: rgba(0,0,0,0.3);
+    .header nav {
+        margin-top: env(safe-area-inset-top);
+        background-color: unset;
     }
 
     .mobile-split-container {
@@ -290,6 +294,10 @@ body {
         display: none;
     }
     */
+
+    .map-overlay.gtw-half-map {
+        display: none;
+    }
 
     #gtw-map.gtw-half-map {
         height: 50vh;

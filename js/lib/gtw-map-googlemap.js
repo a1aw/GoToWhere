@@ -19,7 +19,8 @@ define(function (require, exports, module) {
             window.initMap = function () {
                 exports.map = new google.maps.Map(document.getElementById("gtw-map"), {
                     center: loc.getCurrentPosition(),
-                    zoom: 12
+                    zoom: 12,
+                    disableDefaultUI: true  
                 });
                 resolve();
                 delete window.initMap;

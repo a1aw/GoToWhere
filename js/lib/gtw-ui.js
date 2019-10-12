@@ -144,6 +144,7 @@ define(function (require, exports, module) {
 
         $("body").removeClass("gtw-half-map");
         $("#gtw-map").removeClass("gtw-half-map");
+        $(".map-overlay").removeClass("gtw-half-map");
         $(".half-map-panel").removeClass("gtw-half-map");
         $(".half-map-container").removeClass("gtw-half-map");
 
@@ -162,6 +163,7 @@ define(function (require, exports, module) {
 
         //$("body").addClass("gtw-half-map");
         $("#gtw-map").addClass("gtw-half-map");
+        $(".map-overlay").addClass("gtw-half-map");
         $(".half-map-panel").addClass("gtw-half-map");
         $(".half-map-container").addClass("gtw-half-map");
         
