@@ -75,8 +75,11 @@ define(function (require, exports, module) {
         this.isDatabaseUpdateNeeded = function () {
             return new Promise((resolve, reject) => {
                 if (this.db) {
-                    var p = this.runCode("isDatabaseUpdateNeeded", this.db.version);
                     var global = this;
+                    var p = new Promise((resolve, reject) => {
+                        global.runCode("isDatabaseUpdateNeeded", resolve, reject, global.db.version);
+                        
+                    });
                     p.then(function (needed) {
                         if (!needed) {
                             global.routes = global.db.routes;
@@ -101,7 +104,6 @@ define(function (require, exports, module) {
                 global.runCode("fetchDatabase", resolve, reject);
             });
             p.then(function (data) {
-                console.log(data);
                 const { routes, stops, version } = data;
 
                 if (!routes || !stops || !version) {
@@ -130,26 +132,28 @@ define(function (require, exports, module) {
         */
 
         this.fetchEta = function (etaHandler) {
-            console.log("Return promise ETA");
+            console.log("SubmitETAH");
+            console.log(etaHandler);
             return new Promise((resolve, reject) => {
-                console.log("Enter promise eta")
                 var key = JSON.stringify(etaHandler);
                 var cached = this.cache[key];
                 var now = new Date();
 
                 if (cached && (now - cached.lastFetched) > 30000) {
-                    console.log("Invalidate")
                     cached = false;
                     delete this.cache[key];
                 }
 
                 if (!cached) {
-                    console.log("Not cached")
                     var global = this;
                     var p = new Promise(function (resolve, reject) {
+                        console.log("Queue to run fetchEta code");
+                        console.log("Queue ETAHandler:");
+                        console.log(etaHandler);
                         global.runCode("fetchEta", resolve, reject, etaHandler);
                     });
                     p.then(function (scheObj) {
+                        console.log("Returned ETA data");
                         if (!scheObj) {
                             resolve(false);
                             return;
@@ -175,22 +179,23 @@ define(function (require, exports, module) {
 
                         var time = new Date();
 
-                        global.cache[key] = {
-                            lastFetched: time.getTime(),
-                            data: scheObj
+                        var out = {
+                            schedules: schedules,
+                            serverTime: serverTime,
+                            handler: handler
                         };
 
-                        console.log("scheObj");
-                        console.log(scheObj);
+                        global.cache[key] = {
+                            lastFetched: time.getTime(),
+                            data: out
+                        };
 
-                        resolve(scheObj);
+                        resolve(out);
                     }).catch(function(err){
                         reject(err);
                     });
                 } else {
                     //cached.lastAccess = now.getTime();
-                    console.log("cache");
-                    console.log(cached);
                     resolve(cached.data);
                 }
             });
@@ -199,7 +204,8 @@ define(function (require, exports, module) {
         this.executions = [];
 
         this.runCode = function (codeName, ...args) {
-            console.log("Execute code");
+            console.log("Queue to run code " + codeName + " in " + this.packageName);
+            console.log(args);
             return PluginLoader.runCode(this.packageName, this.providerObjName + "." + codeName, args);
         }
     }
@@ -249,8 +255,8 @@ define(function (require, exports, module) {
         return x - y;
     }
 
-    exports.registerProvider = function (package, providerObjName, transit, name) {
-        exports.providers.push(new TransitProvider(package, providerObjName, transit, name));
+    exports.registerProvider = function (packageName, providerObjName, transit, name) {
+        exports.providers.push(new TransitProvider(packageName, providerObjName, transit, name));
     }
 
     exports.unregisterProvider = function (name) {
@@ -422,7 +428,6 @@ define(function (require, exports, module) {
                 var path = paths[i];
                 for (var stopId of path) {
                     if (stop.stopId === stopId) {
-                        console.log("Found: " + route.routeId);
                         out.push({
                             route: route,
                             bound: i
@@ -445,15 +450,12 @@ define(function (require, exports, module) {
 
     exports.requestAllDatabase = function (pc) {
         return new Promise((resolve, reject) => {
-            console.log("is update needed");
             var updateNeeded = {};
             var proms = [];
             for (const provider of exports.providers) {
-                console.log(provider);
                 if (provider) {
                     var p = provider.isDatabaseUpdateNeeded();
                     p.then(function (needed) {
-                        console.log(provider.name + ":" + needed);
                         updateNeeded[provider.name] = needed;
                     }).catch(function (err) {
                         console.error("Error occurred in plugin while checking is DB update needed, forcing to update: " + err);
@@ -463,15 +465,11 @@ define(function (require, exports, module) {
                 }
             }
             Promise.all(proms).then(function () {
-                console.log(updateNeeded);
                 var proms = [];
                 var pm;
                 for (var provider of exports.providers) {
-                    console.log(provider);
                     if (provider && updateNeeded[provider.name]) {
-                        console.log("Update is needed for " + provider.name);
                         pm = provider.fetchDatabase();
-                        console.log("Fetch");
                         if (pm) {
                             proms.push(pm);
                         }

@@ -138,7 +138,7 @@ define(function (require, exports, module) {
     };
 
     exports.showPanel = function () {
-        $(".content-panel-container").css("display", "block");
+        $(".content-panel-container").css("display", "inline-block");
         $(".top-panel").css("display", "block");
         $(".header nav").removeClass("gtw-half-map");
 
@@ -273,7 +273,7 @@ define(function (require, exports, module) {
             route: route,
             selectedPath: parseInt(bound),
             stop: stop
-        }, true);
+        });
         if (!h) {
             content +=
                 "<tr class=\"table-dark\">" +
@@ -286,11 +286,8 @@ define(function (require, exports, module) {
                 "<tr class=\"table-dark\">" +
                 "    <td colspan=\"2\"><div class=\"spinner-border spinner-border-sm\" role=\"status\"></div> Retrieving data...</td>" +
                 "</tr>";
-
             var p = TransitManager.fetchEta(h);
             p.then(function (data) {
-                console.log("stop eta returned!");
-                console.log(data);
                 var h = data.handler;
                 var content = "";
                 var node = $(".timeline-entry[stop-id='" + h.stop + "'] p table tbody");
@@ -381,6 +378,9 @@ define(function (require, exports, module) {
                     }
                 }
                 node.html(content);
+            }).catch(function (err) {
+                var node = $(".timeline-entry[stop-id='" + h.stop + "'] p table tbody");
+                node.html("<tr class=\"table-danger\"><td colspan=\"2\">Error when fetching ETA!</td></tr>");
             });
         }
 
@@ -660,7 +660,6 @@ define(function (require, exports, module) {
             }
             var allNearbyRoutes = exports.vars["allNearbyRoutes"];
             //var h;
-            console.log("Request ALL!!!!!!!!!!!")
             for (var result of allNearbyRoutes) {
                 const h = TransitManager.request({
                     provider: result.route.provider,
@@ -673,9 +672,6 @@ define(function (require, exports, module) {
                 p.then(function (eta) {
                     var text = "";
                     var h = eta.handler;
-                    console.log("Returned! ETA");
-                    console.log(h);
-                    console.log(eta);
                     var node = $(".nearby-route-list .route-selection[gtw-provider=\"" + h.provider + "\"][gtw-route-id=\"" + h.route + "\"][gtw-bound=\"" + h.selectedPath + "\"][gtw-stop-id=\"" + h.stop + "\"]");
 
                     node.removeClass("list-group-item-secondary");

@@ -71,7 +71,7 @@ define(function (require, exports, module) {
         return json;
     };
 
-    exports.install = function (package, checksum) {
+    exports.install = function (packageName, checksum) {
         var localStorage = window.localStorage;
         if (!localStorage) {
             return false;
@@ -80,8 +80,8 @@ define(function (require, exports, module) {
         var json = {};
         json.method = "online";
         json.checksum = checksum;
-        json.package = package;
-        localStorage.setItem(package, JSON.stringify(json));
+        json.package = packageName;
+        localStorage.setItem(packageName, JSON.stringify(json));
         return true;
     };
 
@@ -99,16 +99,22 @@ define(function (require, exports, module) {
         return exports.plugins[package];
     };
 
+    var inc = 0;
+
     exports.runCode = function (package, codeName, args) {
         var plugin = exports.plugins[package];
         if (!plugin) {
             return false;
         }
+        console.log("Return new promise for " + package + ":" + codeName);
         return new Promise((resolve, reject) => {
-            plugin.executions.push([codeName, args, resolve, reject]);
+            var x = [codeName, args, resolve, reject, inc++];
+            console.log("Push these");
+            console.log(x);
+            plugin.executions.push(x);
         });
     };
-
+    
     var timer = setInterval(function () {
         for (var key in exports.plugins) {
             var plugin = exports.plugins[key];
@@ -116,32 +122,38 @@ define(function (require, exports, module) {
             if (plugin.executions.length == 0) {
                 continue;
             }
-
             var exec = plugin.executions.shift();
             if (exec) {
-                var codeName = exec[0];
-                var args = exec[1];
+                console.log("Execution for " + key);
+                console.log(exec);
+                const codeName = exec[0];
+                const args = exec[1];
+                console.log("codeName: " + codeName);
+                console.log("args:");
+                console.log(args);
                 if (args) {
-                    plugin.interpreter.setProperty(plugin.interpreter.getScope(), "_args", plugin.interpreter.nativeToPseudo(args));
+                    console.log("Has args");
+                    plugin.interpreter.setProperty(plugin.interpreter.getScope(), "_args" + exec[4], plugin.interpreter.nativeToPseudo(args));
                     //global.interpreter.appendCode("var _args = " + JSON.stringify(args) + ";");
-                    plugin.interpreter.appendCode(codeName + ".apply(this, _args);");
+                    plugin.interpreter.appendCode(codeName + ".apply(this, _args" + exec[4] + ");");
                 } else {
+                    console.log("No args");
                     plugin.interpreter.appendCode(codeName + "();");
                 }
+                console.log("Run till complete");
                 try {
                     plugin.interpreter.run();
                 } catch (err) {
-                    console.error("Error: Error occurred in \"" + plugin.packageName + "\" when running code \"" + codeName + "\"");
+                    console.error("Error: Error occurred in \"" + plugin.package + "\" when running code \"" + codeName + "\"");
                     exec[3](err);
                     throw err;
                 }
-                console.log("plugin exec resolve!");
+                console.log("Finish");
                 var out = plugin.interpreter.pseudoToNative(plugin.interpreter.value);
-                console.log(out);
                 exec[2](out);
             }
         }
-    }, 50);
+    }, 100);
 
     exports.compareVersion = function (ver0, ver1) {
         var ver0sub = ver0.split(".");
@@ -170,32 +182,32 @@ define(function (require, exports, module) {
 
     exports.load = function () {
         var json;
-        for (var package in exports.plugins) {
-            json = exports.plugins[package];
+        for (var packageName in exports.plugins) {
+            json = exports.plugins[packageName];
 
             if (json.info.dependencies) {
                 for (var dependency in json.info.dependencies) {
                     if (!exports.plugins[dependency]) {
-                        alert("The package \"" + package + "\" requires \"" + dependency + "\" to be installed. You must install it in Plugin Manager in order to enable this plugin.");
+                        alert("The package \"" + packageName + "\" requires \"" + dependency + "\" to be installed. You must install it in Plugin Manager in order to enable this plugin.");
                         continue;
                     }
 
                     if (exports.compareVersion(exports.plugins[dependency].info.version, json.info.dependencies[dependency]) == -1) {
-                        alert("The package \"" + package + "\" requires a newer version of \"" + dependency + "\" to be installed. You must install a new version in Plugin Manager in order to enable this plugin.");
+                        alert("The package \"" + packageName + "\" requires a newer version of \"" + dependency + "\" to be installed. You must install a new version in Plugin Manager in order to enable this plugin.");
                         continue;
                     }
 
-                    exports.plugins[package].priority++;
+                    exports.plugins[packageName].priority++;
                     exports.plugins[dependency].priority--;
                 }
             }
         }
 
         var loadSeq = [];
-        for (var package in exports.plugins) {
+        for (var packageName in exports.plugins) {
             loadSeq.push({
-                package: package,
-                priority: exports.plugins[package].priority
+                package: packageName,
+                priority: exports.plugins[packageName].priority
             });
         }
         loadSeq.sort(function (a, b) {
@@ -289,8 +301,8 @@ define(function (require, exports, module) {
             interpreter.setProperty(scope, "TextEncoder", interpreter.nativeToPseudo(TextEncoder));
             interpreter.setProperty(scope, "console", interpreter.nativeToPseudo(console));
             interpreter.setProperty(scope, "TransitType", interpreter.nativeToPseudo(TransitType));
-            interpreter.setProperty(scope, "registerTransitProvider", interpreter.createNativeFunction(function (package, providerObjName, transit, name) {
-                TransitManager.registerProvider(package, providerObjName, transit, name);
+            interpreter.setProperty(scope, "registerTransitProvider", interpreter.createNativeFunction(function (packageName, providerObjName, transit, name) {
+                TransitManager.registerProvider(packageName, providerObjName, transit, name);
             }));
             interpreter.setProperty(scope, "registerCors", interpreter.createNativeFunction(function (domain, allowCors) {
                 Cors.register(domain, allowCors);
@@ -330,12 +342,19 @@ define(function (require, exports, module) {
                 for (var funcKey of funcKeys) {
                     if (data[funcKey]) {
                         const val = data[funcKey];
+                        const pkg = data.package;
                         out[funcKey] = function (...args) {
+                            //TODO: The following code has extreme bugs that may occur in a plugin with multiple providers using AJAX
+                            //      Must be implemented to queue to run code
+
                             interpreter.setProperty(interpreter.getScope(), "_val", interpreter.nativeToPseudo(val));
                             interpreter.setProperty(interpreter.getScope(), "_args", interpreter.nativeToPseudo(args));
                             interpreter.appendCode("executeFunction(_val, _args);");
                             new InterpreterRunner(interpreter).run();
                             return interpreter.value;
+
+                            //var PluginLoader = require("gtw-pluginloader");
+                            //return PluginLoader.runCode(pkg, "executeFunction", [val, args]);
                         };
                     }
                 }

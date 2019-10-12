@@ -110,6 +110,7 @@ body {
 .top-panel {
     padding: 8px;
     margin-bottom: 0px;
+    background-color: rgba(233,236,239,0.7);
 }
 
 .top-panel .tabs, .hori-scroll {
@@ -273,7 +274,7 @@ body {
 
 @media only screen and (max-width: 768px) {
     .header nav.gtw-half-map {
-        background-color: rgba(0,0,0,0.3);
+        /*background-color: rgba(0,0,0,0.3);
     }
 
     .mobile-split-container {
@@ -284,11 +285,11 @@ body {
     body.gtw-half-map {
         overflow-y: scroll;
     }
-    */
 
     #gtw-map {
         display: none;
     }
+    */
 
     #gtw-map.gtw-half-map {
         height: 50vh;
