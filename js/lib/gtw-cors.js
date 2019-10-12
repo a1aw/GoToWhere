@@ -1,6 +1,8 @@
 //GTW CORS Handling
 
 define(function (require, exports, module) {
+    var xhook = require("xhook");
+
     const CORS_PROTOCOL = "https://";
     
     var Cors = require("gtw-cors");

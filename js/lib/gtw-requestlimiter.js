@@ -37,7 +37,7 @@ define(function (require, exports, module) {
         var global = this;
 
         if (next && typeof next[0] === 'function') {
-            next[0](next[1]);
+            next[0].apply(null, next[1]);
         }
 
         if (exports.running) {

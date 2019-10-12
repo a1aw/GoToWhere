@@ -73,11 +73,12 @@ function adjustMargin() {
 requirejs.config({
     baseUrl: 'js/lib',
     paths: {
-        "p-progress": "p-progress/index"
+        "xhook": "../xhook.min",
+        "crypto-js": "../../vendor/crypto-js-3.1.9-1/crypto-js"
     }
 });
 
-requirejs(["gtw-cors", "gtw-pluginloader", "gtw-citydata-transit", "gtw-map", "gtw-location", "gtw-ui", "gtw-settings", "gtw-requestlimiter", "gtw-log"], function (Cors, PluginLoader, TransitManager, Map, loc, ui, settings, RequestLimiter, log) {
+requirejs(["gtw-cors", "gtw-pluginloader", "gtw-citydata-transit", "gtw-map", "gtw-location", "gtw-ui", "gtw-settings", "gtw-requestlimiter", "gtw-log", "crypto-js"], function (Cors, PluginLoader, TransitManager, Map, loc, ui, settings, RequestLimiter, log) {
     /*
     Settings = new Settings();
     Settings.load();
@@ -118,10 +119,12 @@ requirejs(["gtw-cors", "gtw-pluginloader", "gtw-citydata-transit", "gtw-map", "g
 
         $("#startup-progress").css("width", "25%");
         $("#startup-status").html("Loading plugins...");
-        promise = PluginLoader.load();
+        promise = PluginLoader.load(function (progress) {
+            $("#startup-progress").css("width", 25 + (progress / 8) + "%");
+        });
         promise.then(function () {
             $("#startup-status").html("Initializing database...");
-            promise = TransitManager.requestAllDatabase(function (progress) {
+            promise = TransitManager.fetchAllDatabase(function (progress) {
                 $("#startup-progress").css("width", (25 + progress / 4 * 3) + "%");
             });
             promise.then(function () {

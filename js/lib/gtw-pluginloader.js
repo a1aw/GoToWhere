@@ -1,77 +1,16 @@
 // GTW Plugin Loader
 
 define(function (require, exports, module) {
+    var CryptoJS = require("crypto-js");
     var Misc = require("gtw-misc");
-    var Cors = require("gtw-cors");
-    var RequestLimiter = require("gtw-requestlimiter");
-    var TransitManager = require("gtw-citydata-transit");
-
-    //Code to create callback functions
-    const PRE_CODE =
-        "var __gtwFunctions = {};" +
-        "var __gtwFunctionsInc = 0;" +
-        "var createFunction = function(func) {" +
-        "    var num = ++__gtwFunctionsInc;" +
-        "    __gtwFunctions[num] = func;" +
-        "    return num;" +
-        "};" +
-        "var executeFunction = function(num, args) {" +
-        "    var func = __gtwFunctions[num];" +
-        "    if (typeof func === \"function\") {" +
-        "        var val = func.apply(this, args);" +
-        "        delete __gtwFunctions[num];" +
-        "        return val;" +
-        "    }" +
-        "};"
-        ;
-
-    var InterpreterRunner = function (interpreter, doneFunc) {
-        this.interpreter = interpreter;
-        this.doneFunc = doneFunc;
-
-        var global = this;
-
-        this.run = function () {
-            this.nextStep();
-        }
-
-        this.nextStep = function () {
-            var x = 0;
-            var st = false;
-
-            try {
-                do {
-                    st = global.interpreter.step();
-                    x++;
-                } while (x < 2500 && st);
-                if (st) {
-                    window.setTimeout(global.nextStep, 0);
-                } else {
-                    if (typeof global.doneFunc === "function") {
-                        global.doneFunc();
-                    }
-                }
-            } catch (err) {
-                console.error("Error: Error occurred in \"" + this.packageName + "\" when using InterpreterRunner.");
-                throw err;
-            }
-            
-        }
-    };
 
     exports.plugins = {};
 
     exports.getLoadedPlugins = function () {
         return exports.plugins.length;
-    };
+    }
 
-    exports.decode = function (code) {
-        var json = JSON.parse(Base64.decode(code));
-        //TODO Compression / encryption stuff
-        return json;
-    };
-
-    exports.install = function (packageName, checksum) {
+    exports.install = function (package, checksum, version) {
         var localStorage = window.localStorage;
         if (!localStorage) {
             return false;
@@ -79,11 +18,12 @@ define(function (require, exports, module) {
 
         var json = {};
         json.method = "online";
+        json.version = version;
         json.checksum = checksum;
-        json.package = packageName;
-        localStorage.setItem(packageName, JSON.stringify(json));
+        json.package = package;
+        localStorage.setItem(package, JSON.stringify(json));
         return true;
-    };
+    }
 
     exports.uninstall = function (package) {
         var localStorage = window.localStorage;
@@ -93,65 +33,11 @@ define(function (require, exports, module) {
 
         localStorage.removeItem(package);
         return true;
-    };
+    }
 
     exports.getPlugin = function (package) {
         return exports.plugins[package];
-    };
-
-    exports.runCode = function (package, codeName, args) {
-        var plugin = exports.plugins[package];
-        if (!plugin) {
-            return false;
-        }
-        console.log("Return new promise for " + package + ":" + codeName);
-        return new Promise((resolve, reject) => {
-            var x = [codeName, args, resolve, reject];
-            console.log("Push these");
-            console.log(x);
-            plugin.executions.push(x);
-        });
-    };
-    
-    var timer = setInterval(function () {
-        for (var key in exports.plugins) {
-            var plugin = exports.plugins[key];
-
-            if (plugin.executions.length == 0) {
-                continue;
-            }
-            var exec = plugin.executions.shift();
-            if (exec) {
-                console.log("Execution for " + key);
-                console.log(exec);
-                const codeName = exec[0];
-                const args = exec[1];
-                console.log("codeName: " + codeName);
-                console.log("args:");
-                console.log(args);
-                if (args) {
-                    console.log("Has args");
-                    plugin.interpreter.setProperty(plugin.interpreter.getScope(), "_args", plugin.interpreter.nativeToPseudo(args));
-                    //global.interpreter.appendCode("var _args = " + JSON.stringify(args) + ";");
-                    plugin.interpreter.appendCode(codeName + ".apply(this, _args);");
-                } else {
-                    console.log("No args");
-                    plugin.interpreter.appendCode(codeName + "();");
-                }
-                console.log("Run till complete");
-                try {
-                    plugin.interpreter.run();
-                } catch (err) {
-                    console.error("Error: Error occurred in \"" + plugin.package + "\" when running code \"" + codeName + "\"");
-                    exec[3](err);
-                    throw err;
-                }
-                console.log("Finish");
-                var out = plugin.interpreter.pseudoToNative(plugin.interpreter.value);
-                exec[2](out);
-            }
-        }
-    }, 100);
+    }
 
     exports.compareVersion = function (ver0, ver1) {
         var ver0sub = ver0.split(".");
@@ -176,108 +62,66 @@ define(function (require, exports, module) {
         }
 
         return 0;
-    };
+    }
 
-    exports.load = function () {
+    exports.load = function (pc) {
         var json;
-        for (var packageName in exports.plugins) {
-            json = exports.plugins[packageName];
+        var p;
+        var proms = [];
+        for (var package in exports.plugins) {
+            json = exports.plugins[package];
 
             if (json.info.dependencies) {
                 for (var dependency in json.info.dependencies) {
                     if (!exports.plugins[dependency]) {
-                        alert("The package \"" + packageName + "\" requires \"" + dependency + "\" to be installed. You must install it in Plugin Manager in order to enable this plugin.");
+                        alert("The package \"" + package + "\" requires \"" + dependency + "\" to be installed. You must install it in Plugin Manager in order to enable this plugin.");
                         continue;
                     }
 
                     if (exports.compareVersion(exports.plugins[dependency].info.version, json.info.dependencies[dependency]) == -1) {
-                        alert("The package \"" + packageName + "\" requires a newer version of \"" + dependency + "\" to be installed. You must install a new version in Plugin Manager in order to enable this plugin.");
+                        alert("The package \"" + package + "\" requires a newer version of \"" + dependency + "\" to be installed. You must install a new version in Plugin Manager in order to enable this plugin.");
                         continue;
                     }
-
-                    exports.plugins[packageName].priority++;
-                    exports.plugins[dependency].priority--;
                 }
             }
-        }
 
-        var loadSeq = [];
-        for (var packageName in exports.plugins) {
-            loadSeq.push({
-                package: packageName,
-                priority: exports.plugins[packageName].priority
-            });
-        }
-        loadSeq.sort(function (a, b) {
-            return a.priority - b.priority;
-        });
-
-        return new Promise(function (resolve, reject) {
-            exports._postLoadSeq(resolve, loadSeq);
-        });
-    };
-
-    exports._postLoadSeq = function (resolve, loadSeq) {
-        var seq = loadSeq.shift();
-
-        if (!seq) {
-            resolve();
-            return;
-        }
-
-        var pluginJson = exports.plugins[seq.package];
-        var json = pluginJson.info;
-        var interpreter = pluginJson.interpreter;
-
-        window["t"] = interpreter;
-        interpreter.run();
-
-        var scope = interpreter.getScope();
-
-        if (!interpreter.hasProperty(scope, "onload")) {
-            var t = "Error: Main class of \"" + pluginJson.package + "\" does not contain onload function";
-            cmt = document.createComment(t);
-            document.head.appendChild(cmt);
-            resolve();
-            return;
-        }
-
-        interpreter.appendCode("onload();");
-        interpreter.run();
-
-        var result = interpreter.value;
-
-        if (result) {
-            var t = "Error: \"" + pluginJson.package + "\" reported error " + result + " for onload() function.";
-            pluginJson.status = -1;
-            pluginJson.msg = t;
-            
-            cmt = document.createComment(t);
-            alert(t);
-            document.head.appendChild(cmt);
-            exports._postLoadSeq(resolve, loadSeq);
-            /*} else if (promise instanceof Promise) {
-                promise.then(function (status) {
-                    pluginJson.status = 0;
-                    delete pluginJson.msg;
-                    exports._postLoadSeq(resolve, loadSeq);
+            p = new Promise((resolve, reject) => {
+                console.log("Loading" + package);
+                requirejs([package], function (mod) {
+                    console.log("Loaded" + package);
+                    if (!mod) {
+                        var msg = "Error: No module returned from " + package + "!";
+                        console.error(msg);
+                        exports.plugins[package].status = -3;
+                        exports.plugins[package].msg = msg;
+                    } else if (!mod.onload || typeof mod.onload != "function") {
+                        var msg = "Error: " + package + " does not contain onload function!";
+                        console.error(msg);
+                        exports.plugins[package].status = -4;
+                        exports.plugins[package].msg = msg;
+                    } else {
+                        var status = mod.onload();
+                        if (status) {
+                            exports.plugins[package].status = 0;
+                            delete exports.plugins[package].msg;
+                        } else {
+                            var msg = "Error: " + package + " returned error on onload function!";
+                            console.error(msg);
+                            exports.plugins[package].status = -5;
+                            exports.plugins[package].msg = msg;
+                        }
+                    }
+                    resolve();
+                }, function (err) {
+                    console.log("Err" + err);
+                    exports.plugins[package].status = -2;
+                    exports.plugins[package].msg = err;
+                    reject(err);
                 });
-                promise.catch(function (error) {
-                    var t = "Error: \"" + pluginJson.package + "\" reported error for onload() function after promise.";
-                    pluginJson.status = -1;
-                    pluginJson.msg = t;
-    
-                    console.log(t);
-                    cmt = document.createComment(t);
-                    alert(t);
-                    document.head.appendChild(cmt);
-                    exports._postLoadSeq(resolve, loadSeq);
-                });*/
-        } else {
-            pluginJson.status = 0;
-            delete pluginJson.msg;
-            exports._postLoadSeq(resolve, loadSeq);
+            });
+            proms.push(p);
         }
+        return Misc.allProgress(proms, pc);
     }
 
     exports.download = function (pc) {
@@ -286,196 +130,135 @@ define(function (require, exports, module) {
             return false;
         }
 
-        var initFunc = function (interpreter, scope) {
-            //Expose APIs
-            interpreter.setProperty(scope, "atob", interpreter.createNativeFunction(function (x) {
-                return atob(x);
-            }));
-            interpreter.setProperty(scope, "btoa", interpreter.createNativeFunction(function (x) {
-                return btoa(x);
-            }));
-            interpreter.setProperty(scope, "Number", interpreter.nativeToPseudo(Number));
-            interpreter.setProperty(scope, "Uint8Array", interpreter.nativeToPseudo(Uint8Array));
-            interpreter.setProperty(scope, "TextEncoder", interpreter.nativeToPseudo(TextEncoder));
-            interpreter.setProperty(scope, "console", interpreter.nativeToPseudo(console));
-            interpreter.setProperty(scope, "TransitType", interpreter.nativeToPseudo(TransitType));
-            interpreter.setProperty(scope, "registerTransitProvider", interpreter.createNativeFunction(function (packageName, providerObjName, transit, name) {
-                TransitManager.registerProvider(packageName, providerObjName, transit, name);
-            }));
-            interpreter.setProperty(scope, "registerCors", interpreter.createNativeFunction(function (domain, allowCors) {
-                Cors.register(domain, allowCors);
-            }));
-            interpreter.setProperty(scope, "fast_arraySearch", interpreter.createNativeFunction(function (p_array, p_element) {
-                var i;
-                var array = interpreter.pseudoToNative(p_array);
-                var element = interpreter.pseudoToNative(p_element);
-                return array.includes(element);
-            }));
-            interpreter.setProperty(scope, "fast_createStopFromRoutePath", interpreter.createNativeFunction(function (p_stopsArray, p_pathArray, p_map) {
-                var i;
-                var stopsArray = interpreter.pseudoToNative(p_stopsArray);
-                var pathArray = interpreter.pseudoToNative(p_pathArray);
-                var map = interpreter.pseudoToNative(p_map);
-                var out = [];
-                for (i = 0; i < pathArray.length; i++) {
-                    var stop = pathArray[i];
-                    if (!Misc.isSamePropertyValueInArray(stopsArray, "stopId", stop[map["stopId"]])) {
-                        out.push({
-                            transit: TransitType.TRANSIT_BUS,
-                            provider: map["provider"],
-                            stopId: stop[map["stopId"]],
-                            stopName: stop[map["stopName"]],
-                            addr: stop[map["addr"]],
-                            lat: parseFloat(stop[map["lat"]]),
-                            lng: parseFloat(stop[map["lng"]])
-                        });
-                    }
-                }
-                return interpreter.nativeToPseudo(out);
-            }));
-            interpreter.setProperty(scope, "ajax", interpreter.createNativeFunction(function (settings) {
-                var data = interpreter.pseudoToNative(settings);
-                var out = $.extend({}, data);
-                var funcKeys = ["beforeSend", "complete", "dataFilter", "error", "success", "xhr"];
-                for (var funcKey of funcKeys) {
-                    if (data[funcKey]) {
-                        const val = data[funcKey];
-                        const pkg = data.package;
-                        out[funcKey] = function (...args) {
-                            //TODO: The following code has extreme bugs that may occur in a plugin with multiple providers using AJAX
-                            //      Must be implemented to queue to run code
-
-                            interpreter.setProperty(interpreter.getScope(), "_val", interpreter.nativeToPseudo(val));
-                            interpreter.setProperty(interpreter.getScope(), "_args", interpreter.nativeToPseudo(args));
-                            interpreter.appendCode("executeFunction(_val, _args);");
-                            new InterpreterRunner(interpreter).run();
-                            return interpreter.value;
-
-                            //var PluginLoader = require("gtw-pluginloader");
-                            //return PluginLoader.runCode(pkg, "executeFunction", [val, args]);
-                        };
-                    }
-                }
-
-                RequestLimiter.queue(function () {
-                    $.ajax(out);
-                });
-            }));
-        };
-
-        var getInfoFunc = function (json) {
-            var url = "https://plugins.gotowhere.ga/repos/" + json.package + "/info.json";
-            return new Promise((resolve, reject) => {
-                $.ajax({
-                    url: url,
-                    dataType: "json",
-                    success: function (infoJson) {
-                        getPluginFunc(resolve, reject, json, infoJson);
-                    },
-                    error: function () {
-                        exports.plugins[json.package] = {
-                            package: json.package,
-                            local: json,
-                            status: -1,
-                            msg: "Could not fetch information from plugins server."
-                        };
-                    }
-                });
-            });
-        };
-
-        var getPluginFunc = function (resolve, reject, localJson, json) {
-            return $.ajax({
-                url: "https://plugins.gotowhere.ga/repos/" + json.package + "/plugin.js",
-                dataType: "text",
-                success: function (pluginJs) {
-                    try {
-                        var cmt = document.createComment("Plugin: " + json.package);
-                        document.head.appendChild(cmt);
-
-                        var node = document.createElement("script");
-                        node.innerHTML = pluginJs;
-                        document.head.appendChild(node);
-
-                        pluginJs = PRE_CODE + pluginJs;
-                        
-                        var interpreter = new Interpreter(pluginJs, initFunc);
-
-                        exports.plugins[json.package] = {
-                            package: json.package,
-                            local: localJson,
-                            info: json,
-                            script: pluginJs,
-                            priority: 100,
-                            status: 1,
-                            interpreter: interpreter,
-                            executions: [],
-                            msg: "Not enabled"
-                        };
-                        resolve();
-                    } catch (err) {
-                        console.error("Error loading " + key + ": " + err);
-                        reject(err);
-                    }
-                },
-                error: function (err) {
-                    exports.plugins[json.package] = {
-                        package: json.package,
-                        local: localJson,
-                        info: json,
-                        status: -1,
-                        msg: "Could not fetch plugin script from plugins server."
-                    };
-                    reject(err);
-                }
-            });
-        }
-
-        var total = 0;
-        var completed = 0;
+        var data;
+        var json;
+        var key;
+        var i;
+        var count = 0;
+        var p;
         var proms = [];
-        for (var i = 0; i < localStorage.length; i++) {
-            var key = localStorage.key(i);
+        for (i = 0; i < localStorage.length; i++) {
+            key = localStorage.key(i);
             if (!key.startsWith("gtwp-")) {
                 continue;
             }
-            total++;
+            count++;
 
-            var data = localStorage.getItem(key);
+            data = localStorage.getItem(key);
+            json = JSON.parse(data);
 
-            var json = JSON.parse(data);
-
-            if (!json.package || !json.method || !json.checksum) {
-                var t = "Error: \"" + key + "\" is missing a method, package or checksum";
+            if (!json.package || !json.method || !json.checksum || !json.version) {
+                var t = "Error: \"" + key + "\" is missing a method, package, version or checksum";
                 console.error(t);
                 cmt = document.createComment(t);
                 document.head.appendChild(cmt);
                 continue;
             }
 
-            if (json.method === "online") {
-                proms.push(getInfoFunc(json));
-            } else if (json.method === "offline") {
-                if (!json.info || !json.script) {
-                    console.log("Error: Missing script or info");
+            if (json.method == "online") {
+                p = new Promise((resolve, reject) => {
+                    var url = "https://plugins.gotowhere.ga/repos/" + json.package + "/info.json";
+                    $.ajax({
+                        url: url,
+                        dataType: "json",
+                        success: function (infoJson) {
+                            $.ajax({
+                                url: "https://plugins.gotowhere.ga/repos/" + infoJson.package + "/plugin.js",
+                                dataType: "text",
+                                success: function (script) {
+                                    var sha1 = CryptoJS.SHA1(script);
+
+                                    if (sha1 != infoJson.checksum) {
+                                        console.error("Error: Downloaded and online checksum mismatch detected for " + json.package + ". Online: " + infoJson.checksum + " Calculated: " + sha1);
+                                        alert("Error: Downloaded and online checksum mismatch detected for " + json.package + ". Online: " + infoJson.checksum + " Calculated: " + sha1 + ". There might be a man-in-the-middle attack running behind or CDN cache are not clean. Please wait a moment and try again later. If this persists, report it to the GitHub issue tracker.");
+                                        resolve();
+                                        return;
+                                    }
+
+                                    if (sha1 != json.checksum) {
+                                        console.warn("Warning: Local and calculated checksum mismatch detected for " + json.package + ". Local: " + json.checksum + " Calculated: " + sha1);
+                                        if (json.version != infoJson.version) {
+                                            console.warn("Warning: Installing online version of the plugin \"" + json.package + "\" and replace checksums");
+                                            exports.install(infoJson.package, infoJson.checksum, infoJson.version);
+                                        } else {
+                                            if (confirm("Warning: Local and calculated checksum mismatch detected for the same version of plugin \"" + json.package + ". It might be only the repository not clean, or a man-in-the-middle attack is running behind. Do you want to continue to use the online version instead?")) {
+                                                exports.install(infoJson.package, infoJson.checksum, infoJson.version);
+                                            } else {
+                                                alert("This plugin \"" + infoJson.package + "\" will be skipped from loading.");
+                                                resolve();
+                                                return;
+                                            }
+                                        }
+                                    }
+
+                                    var blob = new Blob([script], { type: "text/javascript" });
+
+                                    console.log(infoJson);
+                                    var paths = {};
+                                    paths[infoJson.package] = URL.createObjectURL(blob);
+                                    console.log(paths);
+                                    requirejs.config({
+                                        paths: paths
+                                    });
+                                    exports.plugins[infoJson.package] = {
+                                        package: json.package,
+                                        local: json,
+                                        info: infoJson,
+                                        status: 1,
+                                        msg: "Not enabled"
+                                    };
+                                    resolve();
+                                },
+                                error: function (err) {
+                                    reject(err);
+                                }
+                            });
+                        },
+                        error: function () {
+                            exports.plugins[json.package] = {
+                                package: json.package,
+                                local: json,
+                                status: -1,
+                                msg: "Could not fetch information from plugins server."
+                            };
+                            reject();
+                        }
+                    });
+                });
+                proms.push(p);
+            } else if (json.method == "local") {
+                var loc = json.location;
+                if (!loc.startsWith("file:")) {
+                    console.error("Error: Local development plugin for \"" + json.package + "\" must start with \"file:\".");
                     continue;
                 }
-
-                var interpreter = new Interpreter(PRE_CODE + json.script, initFunc);
+                if (window.location.origin.startsWith("http")) {
+                    localStorage.removeItem(json.package);
+                    console.error("Error: Local development plugin for \"" + json.package + "\" can only be used in local.");
+                    continue;
+                }
+                var infoJson = {
+                    dependencies: {},
+                    version: json.version
+                };
+                var paths = {};
+                paths[json.package] = loc;
+                console.log(paths);
+                requirejs.config({
+                    paths: paths
+                });
                 exports.plugins[json.package] = {
                     package: json.package,
                     local: json,
-                    info: json.info,
-                    script: json.script,
-                    priority: 100,
+                    info: infoJson,
                     status: 1,
-                    interpreter: interpreter,
-                    executions: [],
                     msg: "Not enabled"
                 };
             } else {
-                console.error("Error: Unknown plugin method");
+                console.error("Error: Unknown plugin method \"" + json.method + "\" for " + json.package + ".");
             }
+
+            
         }
         return Misc.allProgress(proms, pc);
     }

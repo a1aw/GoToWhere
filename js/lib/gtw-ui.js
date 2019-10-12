@@ -268,13 +268,13 @@ define(function (require, exports, module) {
             "<table class=\"table stop-eta\">"
             ;
 
-        var h = TransitManager.request({
+        var p = TransitManager.fetchEta({
             provider: route.provider,
-            route: route,
+            routeId: route.routeId,
             selectedPath: parseInt(bound),
-            stop: stop
+            stopId: stop.stopId
         });
-        if (!h) {
+        if (!p) {
             content +=
                 "<tr class=\"table-dark\">" +
                 "    <td colspan=\"2\">Not available to this route</td>" +
@@ -286,15 +286,15 @@ define(function (require, exports, module) {
                 "<tr class=\"table-dark\">" +
                 "    <td colspan=\"2\"><div class=\"spinner-border spinner-border-sm\" role=\"status\"></div> Retrieving data...</td>" +
                 "</tr>";
-            var p = TransitManager.fetchEta(h);
             p.then(function (data) {
-                var h = data.handler;
+                var h = data.options;
+                console.log(data);
                 var content = "";
-                var node = $(".timeline-entry[stop-id='" + h.stop + "'] p table tbody");
+                var node = $(".timeline-entry[stop-id='" + h.stopId + "'] p table tbody");
                 if (!data || !data.schedules || !data.serverTime) {
                     content +=
                         "<tr class=\"table-dark\">" +
-                        "    <td colspan=\"2\">No data received currently. Please wait a moment.</td>" +
+                        "    <td colspan=\"2\">No data received.</td>" +
                         //"    <td>---</td>" +
                         "</tr>"
                         ;
@@ -308,7 +308,8 @@ define(function (require, exports, module) {
                 } else {
                     var active = false;
                     for (var schedule of data.schedules) {
-                        var eta = TransitManager.timeDifference(schedule.time, data.serverTime);
+                        var eta = Math.floor((schedule.time - data.serverTime) / 1000 / 60);
+
                         var html = "<tr class=\"table-";
 
                         if (eta >= 20) {
@@ -362,8 +363,10 @@ define(function (require, exports, module) {
 
                             html += "</td><td>";
 
+                            var time = new Date(schedule.time);
+
                             if (schedule.hasTime) {
-                                html += Misc.fillZero(schedule.time.hr) + ":" + Misc.fillZero(schedule.time.min);
+                                html += Misc.fillZero(time.getHours()) + ":" + Misc.fillZero(time.getMinutes());
                             } else {
                                 html += "---";
                             }
@@ -378,8 +381,8 @@ define(function (require, exports, module) {
                     }
                 }
                 node.html(content);
-            }).catch(function (err) {
-                var node = $(".timeline-entry[stop-id='" + h.stop + "'] p table tbody");
+            }).catch(function (options, err) {
+                var node = $(".timeline-entry[stop-id='" + options.stopId + "'] p table tbody");
                 node.html("<tr class=\"table-danger\"><td colspan=\"2\">Error when fetching ETA!</td></tr>");
             });
         }
@@ -654,18 +657,17 @@ define(function (require, exports, module) {
             var allNearbyRoutes = exports.vars["allNearbyRoutes"];
             //var h;
             for (var result of allNearbyRoutes) {
-                const h = TransitManager.request({
+                var p = TransitManager.fetchEta({
                     provider: result.route.provider,
-                    route: result.route,
+                    routeId: result.route.routeId,
                     selectedPath: result.bound,
-                    stop: result.stop
+                    stopId: result.stop.stopId
                 });
-
-                var p = TransitManager.fetchEta(h);
                 p.then(function (eta) {
                     var text = "";
-                    var h = eta.handler;
-                    var node = $(".nearby-route-list .route-selection[gtw-provider=\"" + h.provider + "\"][gtw-route-id=\"" + h.route + "\"][gtw-bound=\"" + h.selectedPath + "\"][gtw-stop-id=\"" + h.stop + "\"]");
+                    var h = eta.options;
+                    console.log(eta);
+                    var node = $(".nearby-route-list .route-selection[gtw-provider=\"" + h.provider + "\"][gtw-route-id=\"" + h.routeId + "\"][gtw-bound=\"" + h.selectedPath + "\"][gtw-stop-id=\"" + h.stopId + "\"]");
 
                     node.removeClass("list-group-item-secondary");
                     node.removeClass("list-group-item-info");
@@ -686,7 +688,8 @@ define(function (require, exports, module) {
                     } else {
                         var schedule = eta.schedules[0];
 
-                        var eta = TransitManager.timeDifference(schedule.time, eta.serverTime);
+                        var eta = Math.floor((schedule.time - eta.serverTime) / 1000 / 60);
+
                         var css = "";
 
                         if (eta >= 20) {
@@ -901,13 +904,6 @@ define(function (require, exports, module) {
                         "        </div>" +
                         "        <span class=\"badge badge-primary badge-pill transit-eta\">Retrieving...</span>" +
                         "    </li>";
-
-                    TransitManager.request({
-                        provider: result.route.provider,
-                        route: result.route,
-                        selectedPath: result.bound,
-                        stop: result.stop
-                    });
                 }
                 html += "</ul></div>";
 

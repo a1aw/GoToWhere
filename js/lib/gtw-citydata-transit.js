@@ -12,242 +12,15 @@ define(function (require, exports, module) {
     var PluginLoader = require("gtw-pluginloader");
     var RequestLimiter = require("gtw-requestlimiter");
 
-    var TransitProvider = function (packageName, providerObjName, transit, name) {
-        this.packageName = packageName;
-        this.providerObjName = providerObjName;
-        this.transit = transit;
-        this.name = name;
-        var plugin = PluginLoader.plugins[packageName];
-        if (!plugin) {
-            throw new Error("No such plugin \"" + packageName + "\" installed! Cannot initialize TransitProvider.");
-        }
-        this.interpreter = plugin.interpreter;
-        this.dbKey = "transit-db-" + packageName + "-" + name;
-        this.db = false;
-        this.cache = {};
-
-        if (localStorage) {
-            var dbJson = localStorage.getItem(this.dbKey);
-            if (dbJson) {
-                this.db = JSON.parse(dbJson);
-            }
-            delete dbJson;
-        }
-
-        this.makeHandler = function(options) {
-            return {
-                transit: this.transit,
-                provider: this.name,
-                route: options.route,
-                stop: options.stop,
-                selectedPath: options.selectedPath
-            };
-        }
-
-        this.getRouteById = function (routeId) {
-            var routes = this.getRoutes();
-            for (var route of routes) {
-                if (route.routeId === routeId) {
-                    return route;
-                }
-            }
-            return false;
-        }
-
-        this.getRoutes = function () {
-            return this.routes;
-        }
-
-        this.getStopById = function (stopId) {
-            var stops = this.getStops();
-            for (var stop of stops) {
-                if (stop.stopId === stopId) {
-                    return stop;
-                }
-            }
-            return false;
-        }
-
-        this.getStops = function () {
-            return this.stops;
-        }
-
-        this.isDatabaseUpdateNeeded = function () {
-            return new Promise((resolve, reject) => {
-                if (this.db) {
-                    var global = this;
-                    var p = new Promise((resolve, reject) => {
-                        global.runCode("isDatabaseUpdateNeeded", resolve, reject, global.db.version);
-                        
-                    });
-                    p.then(function (needed) {
-                        if (!needed) {
-                            global.routes = global.db.routes;
-                            global.stops = global.db.stops;
-                            global.interpreter.setProperty(global.interpreter.getScope(), "routes", global.interpreter.nativeToPseudo(global.routes));
-                            global.interpreter.setProperty(global.interpreter.getScope(), "stops", global.interpreter.nativeToPseudo(global.stops));
-                            delete global.db;
-                        }
-                        resolve(needed);
-                    }).catch(function (err) {
-                        reject(err);
-                    });
-                } else {
-                    resolve(true);
-                }
-            });
-        }
-        
-        this.fetchDatabase = function () {
-            var global = this;
-            var p = new Promise(function (resolve, reject) {
-                global.runCode("fetchDatabase", resolve, reject);
-            });
-            p.then(function (data) {
-                const { routes, stops, version } = data;
-
-                if (!routes || !stops || !version) {
-                    console.error("Error: Returned database is in wrong structure.");
-                    return;
-                }
-
-                localStorage.setItem(global.dbKey, JSON.stringify({
-                    routes: routes,
-                    stops: stops,
-                    version: version
-                }));
-
-                global.routes = routes;
-                global.stops = stops;
-                global.interpreter.setProperty(global.interpreter.getScope(), "routes", global.interpreter.nativeToPseudo(global.routes));
-                global.interpreter.setProperty(global.interpreter.getScope(), "stops", global.interpreter.nativeToPseudo(global.stops));
-            });
-            return p;
-        }
-
-        /*
-        this.getEta = function (etaHandler) {
-            return this.runCode("getEta", etaHandler);
-        }
-        */
-
-        this.fetchEta = function (etaHandler) {
-            console.log("SubmitETAH");
-            console.log(etaHandler);
-            return new Promise((resolve, reject) => {
-                var key = JSON.stringify(etaHandler);
-                var cached = this.cache[key];
-                var now = new Date();
-
-                if (cached && (now - cached.lastFetched) > 30000) {
-                    cached = false;
-                    delete this.cache[key];
-                }
-
-                if (!cached) {
-                    var global = this;
-                    var p = new Promise(function (resolve, reject) {
-                        console.log("Queue to run fetchEta code");
-                        console.log("Queue ETAHandler:");
-                        console.log(etaHandler);
-                        global.runCode("fetchEta", resolve, reject, etaHandler);
-                    });
-                    p.then(function (scheObj) {
-                        console.log("Returned ETA data");
-                        if (!scheObj) {
-                            resolve(false);
-                            return;
-                        }
-
-                        const { schedules, serverTime, handler } = scheObj;
-                        if (!schedules || !serverTime) {
-                            console.error("Error: Plugin returned a TransitSchedule object with invalid structure.");
-                            reject();
-                            return;
-                        }
-
-                        if (isNaN(parseInt(serverTime.hr)) || isNaN(parseInt(serverTime.min))) {
-                            console.error("Error: Plugin returned a TransitSchedule object with invalid server time.");
-                            reject();
-                            return;
-                        }
-
-                        //TODO: Validate schedules
-
-                        //for (var sche of schedules) {
-                        //}
-
-                        var time = new Date();
-
-                        var out = {
-                            schedules: schedules,
-                            serverTime: serverTime,
-                            handler: handler
-                        };
-
-                        global.cache[key] = {
-                            lastFetched: time.getTime(),
-                            data: out
-                        };
-
-                        resolve(out);
-                    }).catch(function(err){
-                        reject(err);
-                    });
-                } else {
-                    //cached.lastAccess = now.getTime();
-                    resolve(cached.data);
-                }
-            });
-        }
-
-        this.executions = [];
-
-        this.runCode = function (codeName, ...args) {
-            console.log("Queue to run code " + codeName + " in " + this.packageName);
-            console.log(args);
-            return PluginLoader.runCode(this.packageName, this.providerObjName + "." + codeName, args);
-        }
-    }
-
     exports.timer = 0;
 
     exports.providers = [];
 
-    exports.handlers = {};
-
-    /*
-    exports.forceUpdate = function () {
-        var d = new Date();
-        var cache;
-        for (var key in exports.handlers) {
-            cache = exports.handlers[key];
-            if (cache.lastAccess && d.getTime() - cache.lastAccess > 30000) {
-                console.log("Invalidate inuse ETA cache: " + key)
-                delete exports.handlers[key];
-            } else {
-                exports.fetchEta(cache.handler);
-            }
-        }
-    }
-    */
+    exports.cache = {};
 
     exports.clearCache = function () {
-        exports.handlers = {};
+        exports.cache = {};
     }
-
-    /*
-    exports.start = function () {
-        var global = this;
-        exports.timer = setInterval(function () {
-            global.forceUpdate();
-        }, 30000);
-    }
-
-    exports.stop = function () {
-        clearInterval(exports.timer);
-    }
-    */
 
     exports.timeDifference = function (a, b) {
         var x = a.hr * 60 + a.min;
@@ -255,8 +28,75 @@ define(function (require, exports, module) {
         return x - y;
     }
 
-    exports.registerProvider = function (packageName, providerObjName, transit, name) {
-        exports.providers.push(new TransitProvider(packageName, providerObjName, transit, name));
+    exports.registerProvider = function (transit, name, provider) {
+        provider.transit = transit;
+        provider.name = name;
+        provider.dbKey = "transit-db-" + name;
+        provider.db = false;
+
+        if (localStorage) {
+            var dbJson = localStorage.getItem(provider.dbKey);
+            if (dbJson) {
+                provider.db = JSON.parse(dbJson);
+            }
+            delete dbJson;
+        }
+
+        provider.getRoute = function (routeId) {
+            if (!this.db) {
+                return false;
+            }
+            var i;
+            for (i = 0; i < this.db.routes.length; i++) {
+                if (this.db.routes[i].routeId === routeId) {
+                    return this.db.routes[i];
+                }
+            }
+            return false;
+        }
+
+        provider.getStop = function (stopId) {
+            if (!this.db) {
+                return false;
+            }
+            var i;
+            for (i = 0; i < this.db.stops.length; i++) {
+                if (this.db.stops[i].stopId === stopId) {
+                    return this.db.stops[i];
+                }
+            }
+            return false;
+        }
+
+        provider.getRouteById = function (routeId) {
+            var routes = this.getRoutes();
+            for (var route of routes) {
+                if (route.routeId === routeId) {
+                    return route;
+                }
+            }
+            return false;
+        };
+
+        provider.getRoutes = function () {
+            return this.db ? this.db.routes : [];
+        };
+
+        provider.getStopById = function (stopId) {
+            var stops = this.getStops();
+            for (var stop of stops) {
+                if (stop.stopId === stopId) {
+                    return stop;
+                }
+            }
+            return false;
+        };
+
+        provider.getStops = function () {
+            return this.db ? this.db.stops : [];
+        };
+
+        exports.providers.push(provider);
     }
 
     exports.unregisterProvider = function (name) {
@@ -282,32 +122,129 @@ define(function (require, exports, module) {
         return false;
     };
 
-    exports.request = function (options) {
-        var provider = exports.getProvider(options.provider);
+    exports.fetchAllDatabase = function (pc) {
+        return new Promise((resolve, reject) => {
+            var needs = {};
+            var proms = [];
+            var p;
+            for (var provider of exports.providers) {
+                if (provider.db) {
+                    p = new Promise((resolve, reject) => {
+                        provider.isDatabaseUpdateNeeded(resolve, reject, provider.db.version);
+                    });
+                    p.then(function (needed) {
+                        needs[provider.name] = needed;
+                    }).catch(function () {
+                        console.error("Error: Database check update for " + provider.name + " failed!")
+                        needs[provider.name] = false;
+                    });
+                    proms.push(p);
+                } else {
+                    needs[provider.name] = true;
+                }
+            }
+            Promise.all(proms).then(function () {
+                var proms = [];
+                var p;
+                for (var provider of exports.providers) {
+                    if (needs[provider.name]) {
+                        p = new Promise((resolve, reject) => {
+                            provider.fetchDatabase(resolve, reject);
+                        });
+                        p.then(function (data) {
+                            const { routes, stops, version } = data;
 
-        if (!provider) {
-            throw new Error("Could not find registered Transit provider with name \"" + options.provider + "\"");
-        }
+                            if (!routes || !stops || !version) {
+                                console.error("Error: Returned database is in wrong structure.");
+                                return;
+                            }
 
-        var key = options.provider + "-" + options.route.routeId + "-" + options.selectedPath + "-" + options.stop.stopId;
+                            var db = {
+                                routes: routes,
+                                stops: stops,
+                                version: version
+                            };
 
-        var d = new Date();
-        var cache = exports.handlers[key];
-        if (cache) {
-            exports.handlers[key].lastAccess = d.getTime();
-            return cache.handler;
-        } else {
-            var h = provider.makeHandler({
-                route: options.route.routeId,
-                selectedPath: options.selectedPath,
-                stop: options.stop.stopId
+                            localStorage.setItem(provider.dbKey, JSON.stringify(db));
+                            provider.db = db;
+                        });
+                        proms.push(p);
+                    }
+                }
+                Misc.allProgress(proms, pc).then(resolve).catch(reject);
             });
-            exports.handlers[key] = {
-                lastAccess: d.getTime(),
-                handler: h
-            };
-            return h;
-        }
+        });
+    }
+
+    exports.fetchEta = function (options) {
+        return new Promise((resolve, reject) => {
+            var provider = exports.getProvider(options.provider);
+
+            if (!provider) {
+                throw new Error("Could not find registered Transit provider with name \"" + options.provider + "\"");
+            }
+
+            var key = options.provider + "-" + options.routeId + "-" + options.selectedPath + "-" + options.stopId;
+            var cached = exports.cache[key];
+            var now = new Date();
+
+            if (cached && (now - cached.lastFetched) > 30000) {
+                cached = false;
+                delete exports.cache[key];
+            }
+
+            if (!cached) {
+                var global = this;
+                var p = new Promise((resolve, reject) => {
+                    provider.fetchEta(resolve, reject, options);
+                });
+                p.then(function (scheObj) {
+                    console.log("Returned ETA data");
+                    if (!scheObj) {
+                        resolve(false);
+                        return;
+                    }
+
+                    const { schedules, serverTime, options } = scheObj;
+                    if (!schedules || !serverTime || !options) {
+                        console.log(scheObj);
+                        console.error("Error: Plugin returned a TransitSchedule object with invalid structure.");
+                        reject();
+                        return;
+                    }
+
+                    if (isNaN(parseInt(serverTime))) {
+                        console.error("Error: Plugin returned a TransitSchedule object with invalid server time.");
+                        reject();
+                        return;
+                    }
+
+                    //TODO: Validate schedules
+
+                    //for (var sche of schedules) {
+                    //}
+
+                    var time = new Date();
+
+                    var out = {
+                        schedules: schedules,
+                        serverTime: serverTime,
+                        options: options
+                    };
+
+                    global.cache[key] = {
+                        lastFetched: time.getTime(),
+                        data: out
+                    };
+
+                    resolve(out);
+                }).catch(function (err) {
+                    reject(err);
+                });
+            } else {
+                resolve(cached.data);
+            }
+        });
     }
 
     /*
@@ -321,16 +258,6 @@ define(function (require, exports, module) {
         return provider.getEta(handler);
     }
     */
-
-    exports.fetchEta = function (handler) {
-        var provider = exports.getProvider(handler.provider);
-
-        if (!provider) {
-            throw new Error("Could not find registered ETA provider with name \"" + handler.provider + "\"");
-        }
-
-        return provider.fetchEta(handler);
-    }
 
     exports.getHandlers = function () {
         return exports.handlers;
@@ -446,42 +373,6 @@ define(function (require, exports, module) {
         return result.map(function (value, index) {
             return value[0];
         });;
-    }
-
-    exports.requestAllDatabase = function (pc) {
-        return new Promise((resolve, reject) => {
-            var updateNeeded = {};
-            var proms = [];
-            for (const provider of exports.providers) {
-                if (provider) {
-                    var p = provider.isDatabaseUpdateNeeded();
-                    p.then(function (needed) {
-                        updateNeeded[provider.name] = needed;
-                    }).catch(function (err) {
-                        console.error("Error occurred in plugin while checking is DB update needed, forcing to update: " + err);
-                        updateNeeded[provider.name] = true;
-                    });
-                    proms.push(p);
-                }
-            }
-            Promise.all(proms).then(function () {
-                var proms = [];
-                var pm;
-                for (var provider of exports.providers) {
-                    if (provider && updateNeeded[provider.name]) {
-                        pm = provider.fetchDatabase();
-                        if (pm) {
-                            proms.push(pm);
-                        }
-                    }
-                }
-                Misc.allProgress(proms, pc).then(function () {
-                    resolve();
-                }).catch(function () {
-                    reject();
-                });
-            });
-        });
     }
 });
 
