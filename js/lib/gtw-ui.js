@@ -454,6 +454,12 @@ define(function (require, exports, module) {
                 statusMsg += "text-success\">Installed and running";
             } else if (json.status == 1) {
                 statusMsg += "text-secondary\">Not enabled";
+            } else if (json.status <= -2 && json.status >= -5) {
+                statusMsg += "text-danger\">Plugin download and load errors (" + json.status + ")";
+            } else if (json.status <= -6 && json.status >= -7) {
+                statusMsg += "text-danger\">Checksum Mismatch (" + json.status + ")";
+            } else {
+                statusMsg += "text-secondary\">Unknown status code (" + json.status + ")";
             }
             statusMsg += "</span>";
 
@@ -468,7 +474,7 @@ define(function (require, exports, module) {
                 html += "Local Checksum: " + json.local.checksum + "<br />";
                 html += "Online Checksum: " + packageJson.checksum + "<br />";
                 html += "Checksum validity: <span class=\"font-weight-bold " +
-                    (packageJson.checksum === localChecksum ? "text-success\">Valid" : "text-danger\">Invalid") + "</span></p>";
+                    (packageJson.checksum === json.local.checksum ? "text-success\">Valid" : "text-danger\">Invalid") + "</span></p>";
             }
 
             html += "<hr />";

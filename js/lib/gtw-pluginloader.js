@@ -71,6 +71,10 @@ define(function (require, exports, module) {
         for (var package in exports.plugins) {
             json = exports.plugins[package];
 
+            if (json.status <= 0) {
+                continue;
+            }
+
             if (json.info.dependencies) {
                 for (var dependency in json.info.dependencies) {
                     if (!exports.plugins[dependency]) {
@@ -169,8 +173,16 @@ define(function (require, exports, module) {
                                     var sha1 = CryptoJS.SHA1(script);
 
                                     if (sha1 != infoJson.checksum) {
-                                        console.error("Error: Downloaded and online checksum mismatch detected for " + json.package + ". Online: " + infoJson.checksum + " Calculated: " + sha1);
-                                        alert("Error: Downloaded and online checksum mismatch detected for " + json.package + ". Online: " + infoJson.checksum + " Calculated: " + sha1 + ". There might be a man-in-the-middle attack running behind or CDN cache are not clean. Please wait a moment and try again later. If this persists, report it to the GitHub issue tracker.");
+                                        var msg = "Error: Downloaded and online checksum mismatch detected for " + json.package + ". Online: " + infoJson.checksum + " Calculated: " + sha1 + ". There might be a man-in-the-middle attack running behind or CDN cache are not clean. Please wait a moment and try again later. If this persists, report it to the GitHub issue tracker.";
+                                        console.error(msg);
+                                        alert(msg);
+                                        exports.plugins[infoJson.package] = {
+                                            package: json.package,
+                                            local: json,
+                                            info: infoJson,
+                                            status: -6,
+                                            msg: msg
+                                        };
                                         resolve();
                                         return;
                                     }
@@ -181,10 +193,16 @@ define(function (require, exports, module) {
                                             console.warn("Warning: Installing online version of the plugin \"" + json.package + "\" and replace checksums");
                                             exports.install(infoJson.package, infoJson.checksum, infoJson.version);
                                         } else {
-                                            if (confirm("Warning: Local and calculated checksum mismatch detected for the same version of plugin \"" + json.package + ". It might be only the repository not clean, or a man-in-the-middle attack is running behind. Do you want to continue to use the online version instead?")) {
+                                            if (confirm("Warning: Local and calculated checksum mismatch detected for the same version of plugin \"" + json.package + "\". It might be only the repository not clean, or a man-in-the-middle attack is running behind. Do you want to continue to use the online version instead? Or, it will be skipped from loading.")) {
                                                 exports.install(infoJson.package, infoJson.checksum, infoJson.version);
                                             } else {
-                                                alert("This plugin \"" + infoJson.package + "\" will be skipped from loading.");
+                                                exports.plugins[infoJson.package] = {
+                                                    package: json.package,
+                                                    local: json,
+                                                    info: infoJson,
+                                                    status: -7,
+                                                    msg: "Warning: Local and calculated checksum mismatch detected for the same version of plugin \"" + json.package + ". You can fix it by accepting the online checksum in startup."
+                                                };
                                                 resolve();
                                                 return;
                                             }
