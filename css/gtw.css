@@ -345,6 +345,11 @@ body {
         background-color: unset;
     }
 
+    .getting-started-panel {
+        margin-top: env(safe-area-inset-top);
+        margin-bottom: env(safe-area-inset-bottom);
+    }
+
     .modal {
         margin-top: env(safe-area-inset-top);
         margin-bottom: env(safe-area-inset-bottom);
