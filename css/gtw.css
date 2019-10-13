@@ -5,6 +5,24 @@ body {
     position: absolute;
 }
 
+.landscape-notice {
+    display: none;
+    width: 100%;
+    height: 100%;
+    background-color: white;
+    z-index: 5;
+    position: relative;
+    padding: 12%;
+    font-weight: bold;
+}
+
+@media screen and (orientation: landscape) {
+    .landscape-notice {
+        display: block;
+    }
+}
+
+
 /* Startup DIV CSS */
 
 .startup {
