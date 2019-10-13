@@ -2,7 +2,7 @@ body {
     width: 100%;
     height: 100vh;
     overflow: hidden;
-    position: fixed;
+    position: absolute;
 }
 
 /* Startup DIV CSS */
@@ -103,7 +103,7 @@ body {
     height: 100vh;
     top: 0px;
     left: 0px;
-    position: absolute;
+    position: fixed;
     overflow: hidden;
 }
 
@@ -222,6 +222,8 @@ body {
     background-color: unset;
     padding: 8px;
     margin-bottom: 0px;
+    position: relative;
+    z-index: 1;
 }
 
 /* Media Query */
@@ -295,6 +297,11 @@ body {
         margin-top: 50vh;
         padding: 0px;
     }
+
+    .startup .progress-panel {
+        margin-bottom: env(safe-area-inset-bottom);
+    }
+
     /*
     body.gtw-half-map {
         overflow-y: scroll;
@@ -306,13 +313,17 @@ body {
     */
 
     .map-overlay.gtw-half-map {
-        display: none;
+        /*display: none;*/
+        margin-top: 50vh;
+        height: 50vh;
     }
 
+    /*
     #gtw-map.gtw-half-map {
         height: 50vh;
         display: block;
     }
+    */
 
     .desktop.half-map-panel.gtw-half-map {
         display: none;

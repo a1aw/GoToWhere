@@ -15,9 +15,10 @@ define(function (require, exports, module) {
 
     exports.init = function () {
         return new Promise((resolve, reject) => {
+            $("#gtw-map").html("<div id=\"gmap\" style=\"width: 100%; height: 100%;\"></div>");
             //Required callback function from the API
             window.initMap = function () {
-                exports.map = new google.maps.Map(document.getElementById("gtw-map"), {
+                exports.map = new google.maps.Map(document.getElementById("gmap"), {
                     center: loc.getCurrentPosition(),
                     zoom: 12,
                     disableDefaultUI: true  

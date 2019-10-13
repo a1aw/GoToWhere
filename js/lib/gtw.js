@@ -50,7 +50,6 @@ $(document).ready(function () {
     console.log("GoToWhere (c) 2019. Licensed under the MIT License.");
     $("#startup-status").html("Loading OpenETA scripts...");
 });
-
 $(window).resize(function () {
     adjustMargin();
 });
