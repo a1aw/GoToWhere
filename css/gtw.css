@@ -16,12 +16,6 @@ body {
     font-weight: bold;
 }
 
-@media screen and (orientation: landscape) {
-    .landscape-notice {
-        display: block;
-    }
-}
-
 
 /* Startup DIV CSS */
 
@@ -358,6 +352,12 @@ body {
     .mobile.half-map-container.gtw-half-map {
         display: block;
         height: 30vh;
+    }
+}
+
+@media only screen and (max-height: 768px) and (orientation: landscape) {
+    .landscape-notice {
+        display: block;
     }
 }
 
