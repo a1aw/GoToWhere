@@ -186,7 +186,7 @@ define(function (require, exports, module) {
 
             $(".plugin-closed-api").change(function () {
                 if (this.checked) {
-                    exports.showModal("pluginclosedapi", $(this));
+                    exports.showModal("pluginclosedapi", $(this), calcInstallCount);
                     //$(this).prop("checked", returnVal);
                 }
             });
@@ -594,12 +594,14 @@ define(function (require, exports, module) {
     };
 
     exports.scripts = {
-        "pluginclosedapi": function (node) {
+        "pluginclosedapi": function (node, func) {
             $("#plugin-closed-api-confirm-yes").on("click", function () {
+                func();
                 exports.hideModal();
             });
             $("#plugin-closed-api-confirm-no").on("click", function () {
                 node.prop("checked", false);
+                func();
                 exports.hideModal();
             });
         },
