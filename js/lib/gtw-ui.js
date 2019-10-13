@@ -237,7 +237,7 @@ define(function (require, exports, module) {
                     if (errors.length == 0) {
                         setTimeout(function () {
                             window.location.reload();
-                        }, 1000);
+                        }, 500);
                         return;
                     }
 
