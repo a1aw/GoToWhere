@@ -59,7 +59,206 @@ define(function (require, exports, module) {
         exports.showTab("transitEta");
         adjustMargin();
         exports.showPanel();
+
+        if (Object.keys(PluginLoader.plugins).length == 0) {
+            console.log("Getting started");
+            exports.gettingStarted();
+        }
     };
+
+    var gettingStarted_reposJson = {};
+
+    exports.gettingStarted = function () {
+        $(".header nav").css("display", "none");
+        $("#gettingStartedWizard").smartWizard({
+            useURLhash: false,
+            showStepURLhash: false
+        });
+        $(".top-panel").css("display", "none");
+        $(".content-panel-container").css("display", "none");
+        $(".getting-started-panel").css("display", "block");
+
+        $.ajax({
+            url: "https://plugins.gotowhere.ga/repository.json",
+            cache: false,
+            dataType: "json",
+            success: function (reposJson) {
+                var byRegion = {};
+                for (var category of reposJson) {
+                    for (var plugin of category.plugins) {
+                        if (!byRegion[plugin.region]) {
+                            byRegion[plugin.region] = [];
+                        }
+                        byRegion[plugin.region].push(plugin);
+                    }
+                }
+                $("#regionSelect").html("");
+                var regionOptionsHtml = "<option value=\"notselected\">-- Select --</option>";
+                for (var region in byRegion) {
+                    regionOptionsHtml += "<option value=\"" + region + "\"> " + region + "</option>";
+                }
+                $("#regionSelect").removeAttr("disabled")
+                $("#regionSelect").html(regionOptionsHtml);
+                gettingStarted_reposJson = reposJson;
+            },
+            error: function (err) {
+
+            }
+        });
+
+        var calcInstallCount = function () {
+            var reposJson = gettingStarted_reposJson;
+            var totalCount = 0;
+            var categoryCount;
+            var node;
+            var allCount = 0;
+            for (var category of reposJson) {
+                categoryCount = 0;
+                $(".plugin-switch[category-id='" + category.id + "']").each(function () {
+                    if ($(this).prop("checked")) {
+                        categoryCount++;
+                    }
+                });
+                node = $(".category-btn[category-id='" + category.id + "']");
+                node.html(node.attr("category-name") + " (" + categoryCount + "/" + category.plugins.length + ")");
+                totalCount += categoryCount;
+                allCount += category.plugins.length;
+            }
+            $("#pluginsToInstallCount").html(totalCount + " over " + allCount + " plugin(s) will be installed.");
+            $("#installCount").html(totalCount);
+            $(".need-to-install").css("display", totalCount > 0 ? "none" : "block");
+            if (totalCount > 0) {
+                $("#getStartedBtn").removeClass("disabled");
+            } else {
+                $("#getStartedBtn").addClass("disabled");
+            }
+        };
+
+        $("#regionSelect").on("change", function () {
+            var val = $(this).val();
+            var node = $("#pluginsToInstallAccordion");
+            var installCountNode = $("#pluginsToInstallCount");
+            if (val == "notselected") {
+                node.html("");
+                installCountNode.html("");
+                calcInstallCount();
+                return;
+            }
+
+            var reposJson = gettingStarted_reposJson;
+
+            var html = "";
+            var pluginHtml;
+            for (var category of reposJson) {
+                installCount = 0;
+                pluginHtml = "";
+                for (var plugin of category.plugins) {
+                    pluginHtml +=
+                        "            <div class=\"custom-control custom-switch\">" +
+                        "                <input type=\"checkbox\" class=\"custom-control-input plugin-switch" + (plugin.closedApi ? " plugin-closed-api" : "") + "\" category-id=\"" + category.id + "\" package=\"" + plugin.package + "\" id=\"switch-" + plugin.package + "\"" + (plugin.closedApi ? "" : "checked") + ">" +
+                        "                <label class=\"custom-control-label\" for=\"switch-" + plugin.package + "\">" + plugin.fullName;
+                    if (plugin.closedApi) {
+                        pluginHtml +=
+                            "<br /><i class=\"fas fa-exclamation-triangle\"></i> This plugin uses a Closed API.";
+                    }
+                    pluginHtml +=
+                        "</label>" +
+                        "            </div>"
+                        ;
+                }
+
+                html +=
+                    "<div class=\"card\">" +
+                    "    <div class=\"card-header\" id=\"category-" + category.id + "-heading\">" +
+                    "        <h2 class=\"mb-0\">" +
+                    "            <button class=\"btn btn-link category-btn\" type=\"button\" data-toggle=\"collapse\" data-target=\"#collapse-category-" + category.id + "\" aria-expanded=\"true\" aria-controls=\"collapse-category-" + category.id + "\" category-id=\"" + category.id + "\" category-name=\"" + category.name + "\">" + category.name + "</button>" +
+                    "        </h2>" +
+                    "    </div>" +
+                    "    <div id=\"collapse-category-" + category.id + "\" class=\"collapse\" aria-labelledby=\"category-" + category.id + "-heading\" data-parent=\"#pluginsToInstallAccordion\">" +
+                    "        <div class=\"card-body\">" + pluginHtml +
+                    "        </div>" +
+                    "    </div>" +
+                    "</div>"
+                    ;
+            }
+            node.html(html);
+            calcInstallCount();
+
+            $(".plugin-closed-api").change(function () {
+                if (this.checked) {
+                    exports.showModal("pluginclosedapi", $(this));
+                    //$(this).prop("checked", returnVal);
+                }
+            });
+
+            $(".plugin-switch").change(function () {
+                calcInstallCount();
+            });
+
+            $("#getStartedBtn").on("click", function () {
+                if ($(this).hasClass("disabled")) {
+                    return;
+                }
+
+                $("#gettingStartedWizard").css("display", "none");
+                $(".getting-started-progress-panel").css("display", "block");
+
+                var pkgs = [];
+                $(".plugin-switch").each(function () {
+                    if ($(this).prop("checked")) {
+                        var pkg = $(this).attr("package");
+                        pkgs.push(pkg);
+                    }
+                });
+                var errors = [];
+                var proms = [];
+                var p;
+                for (var pkg of pkgs) {
+                    p = new Promise((resolve, reject) => {
+                        $.ajax({
+                            url: "https://plugins.gotowhere.ga/repos/" + pkg + "/info.json",
+                            cache: false,
+                            dataType: "json",
+                            success: function (info) {
+                                PluginLoader.install(info.package, info.checksum, info.version);
+                                resolve();
+                            },
+                            error: function (err) {
+                                errors.push(pkg);
+                                resolve();
+                            }
+                        });
+                    });
+                    proms.push(p);
+                }
+                Misc.allProgress(proms, function (p) {
+                    $("#gs-plugin-progress").css("width", p + "%");
+                }).then(function () {
+                    if (errors.length == 0) {
+                        setTimeout(function () {
+                            window.location.reload();
+                        }, 1000);
+                        return;
+                    }
+
+                    $(".getting-started-progress-panel").css("display", "none");
+                    $(".getting-started-plugin-error-panel").css("display", "block");
+
+                    var html = "<p>The following plugin(s) cannot be installed because of a network error. You may try to refresh the page to try again. If the problem persists, report it to the GitHub issue tracker.</p><button class=\"btn btn-block btn-warning\" onclick=\"window.location.reload()\" type=\"button\">Refresh</button><hr /><p><b>Affected plugins:</b><br />";
+                    var i;
+                    for (i = 0; i < errors.length; i++) {
+                        html += errors[i];
+                        if (i != errors.length - 1) {
+                            html += ", ";
+                        }
+                    }
+                    html += "</p>";
+
+                    $(".getting-started-plugin-error-panel .desc").html(html);
+                });
+            });
+        });
+    }
 
     exports.clearUp = function () {
         Map.setCenter(Loc.getCurrentPosition());
@@ -118,7 +317,7 @@ define(function (require, exports, module) {
 
         var p = Promise.all(proms);
         p.then(function () {
-            $(".modal").modal();
+            $(".modal").modal(options);
         });
         return p;
     };
@@ -395,6 +594,15 @@ define(function (require, exports, module) {
     };
 
     exports.scripts = {
+        "pluginclosedapi": function (node) {
+            $("#plugin-closed-api-confirm-yes").on("click", function () {
+                exports.hideModal();
+            });
+            $("#plugin-closed-api-confirm-no").on("click", function () {
+                node.prop("checked", false);
+                exports.hideModal();
+            });
+        },
         "errorplugins": function (errorPlugins) {
             var node = $("#errorPluginsAccordion");
             var html = "";

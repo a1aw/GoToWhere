@@ -16,7 +16,6 @@ body {
     font-weight: bold;
 }
 
-
 /* Startup DIV CSS */
 
 .startup {
@@ -64,8 +63,51 @@ body {
     display: none;
 }
 
-/* ETA CSS */
+/* Getting Started Panel */
+.getting-started-panel {
+    display: none;
+    padding: 1rem;
+    position: absolute;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+}
 
+.getting-started-panel p.app-title {
+    margin-top: 0.8125rem;
+    margin-left: 1rem;
+    margin-bottom: 0.8125rem;
+    white-space: nowrap;
+    line-height: inherit;
+    font-size: 1.25rem;
+}
+
+#gettingStartedWizard {
+    margin-top: 2rem;
+    background-color: white;
+    padding: 1rem;
+    width: 100%;
+}
+
+#gettingStartedWizard ul {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.getting-started-progress-panel {
+    display: none;
+}
+
+.getting-started-progress-panel .progress-panel {
+    text-align: center;
+}
+
+.getting-started-plugin-error-panel{
+    display: none;
+}
+
+/* ETA CSS */
 .bg-trans {
     background-color: unset;
 }
@@ -274,6 +316,10 @@ body {
     .map-overlay {
         width: 25%;
         /*display: none;*/
+    }
+
+    .getting-started-panel {
+        width: 25%;
     }
 
     .desktop.half-map-panel.gtw-half-map {

@@ -48,6 +48,7 @@
     <!-- Application CSS -->
     <link rel="stylesheet" href="css/gtw.css">
     <link rel="stylesheet" href="css/timeline.css">
+    <link href="vendor/SmartWizard-4.3.1/dist/css/smart_wizard.css" rel="stylesheet" type="text/css" /> 
 
     <title>GoToWhere</title>
 </head>
@@ -127,6 +128,67 @@
         </div>
     </div>
 
+    <div class="container-fluid getting-started-panel">
+        <p class="app-title"><i class="fas fa-map-marked-alt"></i> GoToWhere <span class="lead">Open city data map.</span></p>
+        <div id="gettingStartedWizard">
+            <ul>
+                <li><a href="#step-1">Language<br /></a></li>
+                <li><a href="#step-2">Plugins<br /></a></li>
+                <li><a href="#step-3">Finish<br /></a></li>
+            </ul>
+
+            <div>
+                <div id="step-1" class="">
+                    <p class="display-4">Welcome!</p>
+                    <p class="lead">It seems it is your first time to use this app! This wizard can help you to install city data plugins that is related to your region by going through a few steps.</p>
+                    <p class="display-5">Choose your preferred language:</p>
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <label class="input-group-text" for="langSelect">Language:</label>
+                        </div>
+                        <select class="custom-select" id="langSelect"></select>
+                    </div>
+                    <a href="https://github.com/mob41/GoToWhere" target="_blank">You can help to translate the app to more languages!</a>
+                </div>
+                <div id="step-2" class="">
+                    <p class="display-5">Please select your region to find and install related plugins:</p>
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <label class="input-group-text" for="regionSelect">Available Region(s):</label>
+                        </div>
+                        <select class="custom-select" id="regionSelect" disabled>
+                            <option>Loading...</option>
+                        </select>
+                    </div>
+                    <p id="pluginsToInstallCount"></p>
+                    <div class="accordion" id="pluginsToInstallAccordion">
+                    </div>
+                </div>
+                <div id="step-3" class="">
+                    <p class="display-4">Finish!</p>
+                    <p class="lead">How fast it is! You are ready to use the app with tons of useful data showing on your device!</p>
+                    <p class="display-5">By pressing the button below, <span id="installCount">0</span> plugin(s) will be installed on your device.</p>
+                    <p class="need-to-install"><em>You must install at least 1 plugin to make the application work. Please go back and pick a region.</em></p>
+                    <button class="btn btn-block btn-success disabled" type="button" id="getStartedBtn">Get Started</button>
+                </div>
+            </div>
+        </div>
+        <div class="getting-started-progress-panel">
+            <p class="display-4">Please Wait!</p>
+            <p class="lead">We are installing your plugins into your device! Just a moment and you will be able to access the world of city data!</p>
+            <div class="progress-panel">
+                <small id="startup-status">Installing plugin checksums...</small>
+                <div class="progress">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" id="gs-plugin-progress" style="width: 0%;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="getting-started-plugin-error-panel">
+            <p class="display-4">Error</p>
+            <p class="desc"></p>
+        </div>
+    </div>
+
     <div class="jumbotron text-center footer" style="margin-bottom:0">
         <p class="text-center">Licensed under MIT License. This application is intented for educational researches, but NOT for commericial uses.</p>
     </div>
@@ -175,10 +237,10 @@
     <script src="js/popper.min.js"></script>
     <script src="vendor/bootstrap-4.3.1-dist/js/bootstrap.min.js"></script>
     <script src="vendor/FitText.js-1.2.0/jquery.fittext.js"></script>
+    <script type="text/javascript" src="vendor/SmartWizard-4.3.1/dist/js/jquery.smartWizard.min.js"></script>
 
     <!-- MDB core JavaScript -->
     <!--<script type="text/javascript" src="vendor/MDB-Free_4.8.10/js/mdb.min.js"></script>-->
-
     <!-- GTW scripts -->
     <script data-main="js/lib/gtw.js" src="js/require.js"></script>
 </body>
