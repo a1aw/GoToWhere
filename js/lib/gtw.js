@@ -69,6 +69,11 @@ function adjustMargin() {
     $(".loading-overlay").css("margin-top", hh);
 }
 
+$.i18n().load({
+    en: "i18n/en.json"
+});
+$("body").i18n();
+
 requirejs.config({
     baseUrl: 'js/lib',
     paths: {
