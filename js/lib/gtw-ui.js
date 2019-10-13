@@ -395,6 +395,67 @@ define(function (require, exports, module) {
     };
 
     exports.scripts = {
+        "errorplugins": function (errorPlugins) {
+            var node = $("#errorPluginsAccordion");
+            var html = "";
+            var errSummary;
+            for (var plugin of errorPlugins) {
+                if (plugin.status >= -2 && plugin.status <= -1) {
+                    errSummary = "Network Error (" + plugin.status + ")";
+                } else if (plugin.status >= -5 && plugin.status <= -3) {
+                    errSummary = "Plugin Load Error (" + plugin.status + ")";
+                } else if (plugin.status >= -7 && plugin.status <= -6) {
+                    errSummary = "Checksum Mismatch (" + plugin.status + ")";
+                } else {
+                    errSummary = "Unknown status code (" + plugin.status + ")";
+                }
+                html +=
+                    "<div class=\"card\">" +
+                    "    <div class=\"card-header\" id=\"err-" + plugin.package + "-heading\">" +
+                    "        <h2 class=\"mb-0\">" +
+                    "            <button class=\"btn btn-link\" type=\"button\" data-toggle=\"collapse\" data-target=\"#collapse-err-" + plugin.package + "\" aria-expanded=\"true\" aria-controls=\"collapse-err-" + plugin.package + "\">" + plugin.package + ": " + errSummary + "</button>" +
+                    "        </h2>" +
+                    "    </div>" +
+                    "    <div id=\"collapse-err-" + plugin.package + "\" class=\"collapse\" aria-labelledby=\"err-" + plugin.package + "-heading\" data-parent=\"#errorPluginsAccordion\">" +
+                    "        <div class=\"card-body\">"
+                    ;
+
+                html += "<p><b>Message:</b><br/>" + plugin.msg + "</p>";
+                html += "<p><b>Solutions:</b><br/>";
+
+                if (plugin.status >= -2 && plugin.status <= -1) {
+                    html += "Check your network is connected properly and try again. If the problem persists, report to the GitHub issue tracker."
+                } else if (plugin.status >= -5 && plugin.status <= -3) {
+                    html += "Report the status code (" + plugin.status + ") to the GitHub issue tracker.";
+                } else if (plugin.status >= -7 && plugin.status <= -6) {
+                    html += "Please check you are in a secured wired/WiFi network, and the website is with HTTPS label on. Then, press the button the accept the new checksum.<br/><button class=\"btn btn-warning error-plugin-accept-checksum-btn\" type=\"button\" package=\"" + plugin.package + "\">Accept checksum and restart</button>";
+                } else {
+                    html += "Report the unknown status code (" + plugin.status + ") to the GitHub issue tracker.";
+                }
+                html += "</p>"
+
+                html +=
+                    "        </div>" +
+                    "    </div>" +
+                    "</div>"
+                    ;
+            }
+            node.html(html);
+
+            $(".error-plugin-accept-checksum-btn").on("click", function () {
+                var pkg = $(this).attr("package");
+
+                var plugin = PluginLoader.plugins[pkg];
+                if (!pkg) {
+                    console.error("Error: Accept checksum failed! Plugin \"" + pkg + "\" not found!");
+                    return;
+                }
+
+                var info = plugin.info;
+                PluginLoader.install(info.package, info.checksum, info.version);
+                window.location.reload();
+            });
+        },
         "viewplugin": function (reposJson, package) {
             console.log(reposJson);
             console.log(package);

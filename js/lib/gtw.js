@@ -138,6 +138,21 @@ requirejs(["gtw-cors", "gtw-pluginloader", "gtw-citydata-transit", "gtw-map", "g
                     //TransitManager.start();
                     //TransitManager.forceUpdate();
 
+                    var errPlugins = [];
+                    var plugin;
+                    for (var pluginKey in PluginLoader.plugins) {
+                        plugin = PluginLoader.plugins[pluginKey];
+                        if (plugin.status < 0) {
+                            errPlugins.push(plugin);
+                        }
+                    }
+                    console.log(errPlugins);
+
+                    if (errPlugins.length) {
+                        ui.showModal("errorplugins", errPlugins);
+                    }
+                    delete plugin, errPlugins;
+
                     loc.requestLocationAccess(function () {
                         ui.init();
                         //TransitManager.forceUpdate();

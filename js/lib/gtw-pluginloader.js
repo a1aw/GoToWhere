@@ -176,7 +176,7 @@ define(function (require, exports, module) {
                                     if (sha1 != infoJson.checksum) {
                                         var msg = "Error: Downloaded and online checksum mismatch detected for " + json.package + ". Online: " + infoJson.checksum + " Calculated: " + sha1 + ". There might be a man-in-the-middle attack running behind or CDN cache are not clean. Please wait a moment and try again later. If this persists, report it to the GitHub issue tracker.";
                                         console.error(msg);
-                                        alert(msg);
+                                        //alert(msg);
                                         exports.plugins[infoJson.package] = {
                                             package: json.package,
                                             local: json,
@@ -188,12 +188,13 @@ define(function (require, exports, module) {
                                         return;
                                     }
 
-                                    if (sha1 != json.checksum) {
+                                    if (sha1 != json.checksum || json.version != infoJson.version) {
                                         console.warn("Warning: Local and calculated checksum mismatch detected for " + json.package + ". Local: " + json.checksum + " Calculated: " + sha1);
                                         if (json.version != infoJson.version) {
                                             console.warn("Warning: Installing online version of the plugin \"" + json.package + "\" and replace checksums");
                                             exports.install(infoJson.package, infoJson.checksum, infoJson.version);
                                         } else {
+                                            /*
                                             if (confirm("Warning: Local and calculated checksum mismatch detected for the same version of plugin \"" + json.package + "\". It might be only the repository not clean, or a man-in-the-middle attack is running behind. Do you want to continue to use the online version instead? Or, it will be skipped from loading.")) {
                                                 exports.install(infoJson.package, infoJson.checksum, infoJson.version);
                                             } else {
@@ -207,6 +208,16 @@ define(function (require, exports, module) {
                                                 resolve();
                                                 return;
                                             }
+                                            */
+                                            exports.plugins[infoJson.package] = {
+                                                package: json.package,
+                                                local: json,
+                                                info: infoJson,
+                                                status: -7,
+                                                msg: "Warning: Local and calculated checksum mismatch detected for the same version of plugin \"" + json.package + "\". You can fix it by accepting the online checksum in startup."
+                                            };
+                                            resolve();
+                                            return;
                                         }
                                     }
 
