@@ -427,7 +427,7 @@ define(function (require, exports, module) {
             var html = "";
 
             if (packageJson.closedApi) {
-                html += "<div class=\"alert alert-warning\" role=\"alert\"><i class=\"fas fa-exclamation-triangle\"></i> This plugin uses a Closed API. By using this plugin, you will take all the risks and responsibilities and cannot be liable to the developer (due to MIT License).</div>";
+                html += "<div class=\"alert alert-warning\" role=\"alert\"><i class=\"fas fa-exclamation-triangle\"></i> This plugin uses a Closed API. By using this plugin, you will take all the risks and responsibilities and the developer cannot be liable. Please read the plugin license for more details.</div>";
             }
 
             html += "<h3>Details</h3>";

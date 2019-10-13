@@ -61,9 +61,10 @@ body {
 .half-map-container {
     display: none;
     width: 100%;
+    position: relative;
     overflow-x: hidden;
     overflow-y: scroll;
-    z-index: 1;
+    z-index: 2;
 }
 
 .content-panel-container {
@@ -218,6 +219,7 @@ body {
 /* Half-map Panel */
 .half-map-panel {
     display: none;
+    background-color: unset;
     padding: 8px;
     margin-bottom: 0px;
 }
@@ -225,11 +227,11 @@ body {
 /* Media Query */
 @media only screen and (min-width: 768px) {
     .top-panel {
-        width: 25%;
+        /*width: 25%;*/
     }
 
     .half-map-panel {
-        width: 25%;
+        /*width: 25%;*/
     }
 
     .half-map-container {
@@ -247,16 +249,18 @@ body {
     }
 
     #gtw-map {
-        width: 75%;
-        margin-left: 25%;
+        width: 100vw;
+        /*width: 75%;
+        margin-left: 25%;*/
     }
 
-    .header nav {
+    .header {
         width: 25%;
     }
 
     .map-overlay {
-        display: none;
+        width: 25%;
+        /*display: none;*/
     }
 
     .desktop.half-map-panel.gtw-half-map {
