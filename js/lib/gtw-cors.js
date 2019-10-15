@@ -27,7 +27,7 @@ define(function (require, exports, module) {
         if (cors) {
             var host = Cors.extractHost(request.url);
 
-            if (!host || host === "") {
+            if (!host || host === "" || host === "___local___") {
                 callback();
                 return;
             }
@@ -85,7 +85,9 @@ define(function (require, exports, module) {
     });
 
     exports.extractHost = function (url) {
-        if (url.startsWith("file://")) {
+        if (!url.includes("://")) {
+            return "___local___";
+        } else if (url.startsWith("file://")) {
             return "___file___";
         }
         var i = url.indexOf("://");

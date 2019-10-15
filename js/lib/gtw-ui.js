@@ -61,7 +61,6 @@ define(function (require, exports, module) {
         exports.showPanel();
 
         if (Object.keys(PluginLoader.plugins).length == 0) {
-            console.log("Getting started");
             exports.gettingStarted();
         }
     };
@@ -93,7 +92,7 @@ define(function (require, exports, module) {
                     }
                 }
                 $("#regionSelect").html("");
-                var regionOptionsHtml = "<option value=\"notselected\">-- Select --</option>";
+                var regionOptionsHtml = "<option value=\"notselected\">-- " + $.i18n("getting-started-wizard-step-plugins-select") + " --</option>";
                 for (var region in byRegion) {
                     regionOptionsHtml += "<option value=\"" + region + "\"> " + region + "</option>";
                 }
@@ -124,8 +123,8 @@ define(function (require, exports, module) {
                 totalCount += categoryCount;
                 allCount += category.plugins.length;
             }
-            $("#pluginsToInstallCount").html(totalCount + " over " + allCount + " plugin(s) will be installed.");
-            $("#installCount").html(totalCount);
+            $("#pluginsToInstallCount").html($.i18n("getting-started-wizard-step-plugins-install-count", totalCount, allCount));
+            $("#installCount").html($.i18n("getting-started-wizard-step-finish-press-button", totalCount));
             $(".need-to-install").css("display", totalCount > 0 ? "none" : "block");
             if (totalCount > 0) {
                 $("#getStartedBtn").removeClass("disabled");
@@ -159,7 +158,7 @@ define(function (require, exports, module) {
                         "                <label class=\"custom-control-label\" for=\"switch-" + plugin.package + "\">" + plugin.fullName;
                     if (plugin.closedApi) {
                         pluginHtml +=
-                            "<br /><i class=\"fas fa-exclamation-triangle\"></i> This plugin uses a Closed API.";
+                            "<br /><i class=\"fas fa-exclamation-triangle\"></i> " + $.i18n("getting-started-wizard-step-plugins-closed-api");
                     }
                     pluginHtml +=
                         "</label>" +
@@ -244,7 +243,7 @@ define(function (require, exports, module) {
                     $(".getting-started-progress-panel").css("display", "none");
                     $(".getting-started-plugin-error-panel").css("display", "block");
 
-                    var html = "<p>The following plugin(s) cannot be installed because of a network error. You may try to refresh the page to try again. If the problem persists, report it to the GitHub issue tracker.</p><button class=\"btn btn-block btn-warning\" onclick=\"window.location.reload()\" type=\"button\">Refresh</button><hr /><p><b>Affected plugins:</b><br />";
+                    var html = "<p>" + $.i18n("getting-started-error-plugin-network-error") + "</p><button class=\"btn btn-block btn-warning\" onclick=\"window.location.reload()\" type=\"button\">" + $.i18n("getting-started-error-refresh-btn") + "</button><hr /><p><b>" + $.i18n("getting-started-error-affected-plugins") + "</b><br />";
                     var i;
                     for (i = 0; i < errors.length; i++) {
                         html += errors[i];
@@ -465,7 +464,7 @@ define(function (require, exports, module) {
         var node = $(".timeline-entry[stop-id='" + stop.stopId + "'] p");
 
         var content =
-            "<p><u>Estimated Time Arrival</u></p>" +
+            "<p><u>" + $.i18n("transit-eta") + "</u></p>" +
             "<table class=\"table stop-eta\">"
             ;
 
@@ -478,14 +477,14 @@ define(function (require, exports, module) {
         if (!p) {
             content +=
                 "<tr class=\"table-dark\">" +
-                "    <td colspan=\"2\">Not available to this route</td>" +
+                "    <td colspan=\"2\">" + $.i18n("transit-eta-route-not-available") + "</td>" +
                 //"    <td>---</td>" +
                 "</tr>"
                 ;
         } else {
             content +=
                 "<tr class=\"table-dark\">" +
-                "    <td colspan=\"2\"><div class=\"spinner-border spinner-border-sm\" role=\"status\"></div> Retrieving data...</td>" +
+                "    <td colspan=\"2\"><div class=\"spinner-border spinner-border-sm\" role=\"status\"></div> " + $.i18n("transit-eta-retrieving") + "</td>" +
                 "</tr>";
             p.then(function (data) {
                 var h = data.options;
@@ -495,14 +494,14 @@ define(function (require, exports, module) {
                 if (!data || !data.schedules || !data.serverTime) {
                     content +=
                         "<tr class=\"table-dark\">" +
-                        "    <td colspan=\"2\">No data received.</td>" +
+                        "    <td colspan=\"2\">" + $.i18n("transit-eta-no-data-received") + "</td>" +
                         //"    <td>---</td>" +
                         "</tr>"
                         ;
                 } else if (data.schedules.length == 0) {
                     content +=
                         "<tr class=\"table-dark\">" +
-                        "    <td colspan=\"2\">No schedules pending</td>" +
+                        "    <td colspan=\"2\">" + $.i18n("transit-eta-no-schedules-pending") + "</td>" +
                         //"    <td>---</td>" +
                         "</tr>"
                         ;
@@ -556,9 +555,9 @@ define(function (require, exports, module) {
                                 }
 
                                 if (schedule.isLive) {
-                                    html += " <span style=\"color: red; float: right; font-size: 10px;\"><i class=\"fa fa-circle\"></i> Live</span>";
+                                    html += " <span style=\"color: red; float: right; font-size: 10px;\"><i class=\"fa fa-circle\"></i> " + $.i18n("transit-eta-live") + "</span>";
                                 } else {
-                                    html += " <span style=\"font-size: 10px; float: right; font-style: italic;\">Scheduled</span>";
+                                    html += " <span style=\"font-size: 10px; float: right; font-style: italic;\">" + $.i18n("transit-eta-scheduled") + "</span>";
                                 }
                             }
 
@@ -584,7 +583,7 @@ define(function (require, exports, module) {
                 node.html(content);
             }).catch(function (options, err) {
                 var node = $(".timeline-entry[stop-id='" + options.stopId + "'] p table tbody");
-                node.html("<tr class=\"table-danger\"><td colspan=\"2\">Error when fetching ETA!</td></tr>");
+                node.html("<tr class=\"table-danger\"><td colspan=\"2\">" + $.i18n("transit-eta-scheduled") + "</td></tr>");
             });
         }
 
@@ -611,13 +610,13 @@ define(function (require, exports, module) {
             var errSummary;
             for (var plugin of errorPlugins) {
                 if (plugin.status >= -2 && plugin.status <= -1) {
-                    errSummary = "Network Error (" + plugin.status + ")";
+                    errSummary = $.i18n("error-plugins-summary-network-error")  + " (" + plugin.status + ")";
                 } else if (plugin.status >= -5 && plugin.status <= -3) {
-                    errSummary = "Plugin Load Error (" + plugin.status + ")";
+                    errSummary = $.i18n("error-plugins-summary-plugin-load") + " Error (" + plugin.status + ")";
                 } else if (plugin.status >= -7 && plugin.status <= -6) {
-                    errSummary = "Checksum Mismatch (" + plugin.status + ")";
+                    errSummary = $.i18n("error-plugins-summary-checksum-mismatch") + " (" + plugin.status + ")";
                 } else {
-                    errSummary = "Unknown status code (" + plugin.status + ")";
+                    errSummary = $.i18n("error-plugins-summary-unknown-status-code") + " (" + plugin.status + ")";
                 }
                 html +=
                     "<div class=\"card\">" +
@@ -630,17 +629,17 @@ define(function (require, exports, module) {
                     "        <div class=\"card-body\">"
                     ;
 
-                html += "<p><b>Message:</b><br/>" + plugin.msg + "</p>";
-                html += "<p><b>Solutions:</b><br/>";
+                html += "<p><b>" + $.i18n("error-plugins-message") + "</b><br/>" + plugin.msg + "</p>";
+                html += "<p><b>" + $.i18n("error-plugins-solutions") + "</b><br/>";
 
                 if (plugin.status >= -2 && plugin.status <= -1) {
-                    html += "Check your network is connected properly and try again. If the problem persists, report to the GitHub issue tracker."
+                    html += $.i18n("error-plugins-solution-network-error");
                 } else if (plugin.status >= -5 && plugin.status <= -3) {
-                    html += "Report the status code (" + plugin.status + ") to the GitHub issue tracker.";
+                    html += $.i18n("error-plugins-solution-plugin-load", plugin.status);
                 } else if (plugin.status >= -7 && plugin.status <= -6) {
-                    html += "Please check you are in a secured wired/WiFi network, and the website is with HTTPS label on. Then, press the button the accept the new checksum.<br/><button class=\"btn btn-warning error-plugin-accept-checksum-btn\" type=\"button\" package=\"" + plugin.package + "\">Accept checksum and restart</button>";
+                    html += $.i18n("error-plugins-solution-checksum-mismatch") + "<br/><button class=\"btn btn-warning error-plugin-accept-checksum-btn\" type=\"button\" package=\"" + plugin.package + "\">" + $.i18n("error-plugins-solution-checksum-mismatch-accept-btn") + "</button>";
                 } else {
-                    html += "Report the unknown status code (" + plugin.status + ") to the GitHub issue tracker.";
+                    html += $.i18n("error-plugins-solution-unknown-status-code", plugin.status);
                 }
                 html += "</p>"
 
@@ -691,71 +690,71 @@ define(function (require, exports, module) {
             exports.modalVars["packageJson"] = packageJson;
 
             if (!packageJson) {
-                $(".modal-body").html("Could not find required package in repository.");
+                $(".modal-body").html($.i18n("view-plugin-repos-cannot-find-package"));
                 return;
             }
 
             var html = "";
 
             if (packageJson.closedApi) {
-                html += "<div class=\"alert alert-warning\" role=\"alert\"><i class=\"fas fa-exclamation-triangle\"></i> This plugin uses a Closed API. By using this plugin, you will take all the risks and responsibilities and the developer cannot be liable. Please read the plugin license for more details.</div>";
+                html += "<div class=\"alert alert-warning\" role=\"alert\"><i class=\"fas fa-exclamation-triangle\"></i> " + $.i18n("plugin-closed-api-warning") + "</div>";
             }
 
-            html += "<h3>Details</h3>";
+            html += "<h3>" + $.i18n("view-plugin-details") + "</h3>";
             html += "<hr />";
-            html += "<p>Name: " + packageJson.name + "<br />";
-            html += "Full Name: " + packageJson.fullName + "<br />";
-            html += "Author: " + packageJson.author + "<br />";
-            html += "Version: " + packageJson.version + "<br />";
-            html += "GitHub: <a href=\"" + packageJson.github + "\" target=\"_blank\">" + packageJson.github + "</a><br />";
-            html += "Package: " + packageJson.package + "<br />";
-            html += "Description: " + packageJson.desc + "</p>";
+            html += "<p>" + $.i18n("view-plugin-details-name") + ": " + packageJson.name + "<br />";
+            html += $.i18n("view-plugin-details-fullname") + ": " + packageJson.fullName + "<br />";
+            html += $.i18n("view-plugin-details-author") + ": " + packageJson.author + "<br />";
+            html += $.i18n("view-plugin-details-version") + ": " + packageJson.version + "<br />";
+            html += $.i18n("view-plugin-details-github") + ": <a href=\"" + packageJson.github + "\" target=\"_blank\">" + packageJson.github + "</a><br />";
+            html += $.i18n("view-plugin-details-package") + ": " + packageJson.package + "<br />";
+            html += $.i18n("view-plugin-details-description") + ": " + packageJson.desc + "</p>";
 
             var localChecksum = 0;
 
-            html += "<h3>Installation</h3>";
+            html += "<h3>" + + "</h3>";
             html += "<hr />";
 
             var json = PluginLoader.getPlugin(packageJson.package);
 
             var statusMsg = "<span class=\"font-weight-bold ";
             if (!json) {
-                statusMsg += "text-info\">Not installed";
+                statusMsg += "text-info\">" + $.i18n("view-plugin-installation-not-installed");
             } else if (json.status == -1) {
-                statusMsg += "text-danger\">Installed but could not start up correctly.";
+                statusMsg += "text-danger\">" + $.i18n("view-plugin-installation-installed-but-could-not-start-up-correctly");
             } else if (json.status == 0) {
-                statusMsg += "text-success\">Installed and running";
+                statusMsg += "text-success\">" + $.i18n("view-plugin-installation-installed-running");
             } else if (json.status == 1) {
-                statusMsg += "text-secondary\">Not enabled";
+                statusMsg += "text-secondary\">" + $.i18n("view-plugin-installation-not-enabled");
             } else if (json.status <= -2 && json.status >= -5) {
-                statusMsg += "text-danger\">Plugin load errors (" + json.status + ")";
+                statusMsg += "text-danger\">" + $.i18n("view-plugin-installation-plugin-load-errors", json.status);
             } else if (json.status <= -6 && json.status >= -7) {
-                statusMsg += "text-danger\">Checksum Mismatch (" + json.status + ")";
+                statusMsg += "text-danger\">" + $.i18n("view-plugin-installation-checksum-mismatch", json.status);
             } else {
-                statusMsg += "text-secondary\">Unknown status code (" + json.status + ")";
+                statusMsg += "text-secondary\">" + $.i18n("view-plugin-installation-unknown-status-code", json.status);
             }
             statusMsg += "</span>";
 
-            html += "<p>Status: " + statusMsg + "<br />";
+            html += "<p>" + $.i18n("view-plugin-installation-status") + ": " + statusMsg + "<br />";
 
             if (json && json.msg) {
-                html += "Message: " + json.msg + "</p>";
+                html += $.i18n("view-plugin-installation-message") + ": " + json.msg + "</p>";
             }
 
             if (json) {
-                html += "Local version: " + json.local.version + "<br />";
-                html += "Local Checksum: " + json.local.checksum + "<br />";
-                html += "Online Checksum: " + packageJson.checksum + "<br />";
-                html += "Checksum validity: <span class=\"font-weight-bold " +
-                    (packageJson.checksum === json.local.checksum ? "text-success\">Valid" : "text-danger\">Invalid") + "</span></p>";
+                html += $.i18n("view-plugin-installation-local-version") + ": " + json.local.version + "<br />";
+                html += $.i18n("view-plugin-installation-local-checksum") + ": " + json.local.checksum + "<br />";
+                html += $.i18n("view-plugin-installation-online-checksum") + ": " + packageJson.checksum + "<br />";
+                html += $.i18n("view-plugin-installation-checksum-validity") + ": <span class=\"font-weight-bold " +
+                    (packageJson.checksum === json.local.checksum ? "text-success\">" + $.i18n("view-plugin-installation-checksum-validity-valid") : "text-danger\">" + $.i18n("view-plugin-installation-checksum-validity-invalid")) + "</span></p>";
             }
 
             html += "<hr />";
 
             if (json) {
-                html += "<button type=\"button\" class=\"btn btn-danger ui-btn-viewplugin-uninstall\">Uninstall and restart</button>";
+                html += "<button type=\"button\" class=\"btn btn-danger ui-btn-viewplugin-uninstall\">" + $.i18n("view-plugin-installation-uninstall-and-restart-btn") + "</button>";
             } else {
-                html += "<button type=\"button\" class=\"btn btn-success ui-btn-viewplugin-install\">Install and restart</button>";
+                html += "<button type=\"button\" class=\"btn btn-success ui-btn-viewplugin-install\">" + $.i18n("view-plugin-installation-install-and-restart-btn") + "</button>";
             }
 
             $(".modal-body").html(html);
@@ -772,28 +771,13 @@ define(function (require, exports, module) {
         },
 
         "pluginmanager": function () {
-            var html = "<p>Loading...</p>";
+            var html = "<p>" + $.i18n("plugin-manager-loading") + "</p>";
 
             $("#nav-all").html(html);
             $("#nav-installed").html(html);
             $("#nav-transit").html(html);
             $("#nav-libraries").html(html);
             $("#nav-others").html(html);
-
-            $(".ui-btn-thirdparty").on("click", function () {
-                var jsonStr = prompt("JSON code:");
-                var json;
-                try {
-                    json = JSON.parse(jsonStr);
-                } catch (err) {
-                    alert("Parsing JSON failed!");
-                }
-
-                if (json && json.package) {
-                    localStorage.setItem(json.package, JSON.stringify(json));
-                    alert("Installed " + json.package + ". Restart the application to take effect.");
-                }
-            });
 
             $.ajax({
                 url: "https://plugins.gotowhere.ga/repository.json",
@@ -834,7 +818,7 @@ define(function (require, exports, module) {
                         tabContentNode.append(categoryTabContentHtml);
                     }
 
-                    $("#nav-all-tab").html("All (" + total + ")");
+                    $("#nav-all-tab").html($.i18n("plugin-manager-tab-all") + " (" + total + ")");
                     $("#nav-all").html(allHtml);
 
                     $(".ui-pluginmanager-view-plugin").on("click", function () {
@@ -860,12 +844,12 @@ define(function (require, exports, module) {
                     html += "    <select class=\"form-control\" id=\"gtw-settings-" + setting.key + "\">";
                     if (val) {
                         html +=
-                            "        <option selected>Yes</option>" +
-                            "        <option>No</option>";
+                            "        <option value=\"yes\" selected>" + $.i18n("settings-option-yes") + "</option>" +
+                            "        <option value=\"no\">" + $.i18n("settings-option-no") + "</option>";
                     } else {
                         html +=
-                            "        <option>Yes</option>" +
-                            "        <option selected>No</option>";
+                            "        <option value=\"yes\">" + $.i18n("settings-option-yes") + "</option>" +
+                            "        <option value=\"no\" selected>" + $.i18n("settings-option-no") + "</option>";
                     }
                     html += "    </select>";
                 } else {
@@ -882,8 +866,8 @@ define(function (require, exports, module) {
             }
 
             html +=
-                "<input type=\"button\" class=\"btn btn-success ui-btn-settings-save ui-btn-settings-save-close\" value=\"Save & Close\"/> " +
-                "<input type=\"button\" class=\"btn btn-default ui-btn-settings-save\" value=\"Apply\"/>";
+                "<input type=\"button\" class=\"btn btn-success ui-btn-settings-save ui-btn-settings-save-close\" value=\"" + $.i18n("settings-save-and-close-btn") + "\"/> " +
+                "<input type=\"button\" class=\"btn btn-default ui-btn-settings-save\" value=\"" + $.i18n("settings-apply-btn") + "\"/>";
 
             $(".modal-body").html(html);
 
@@ -893,14 +877,14 @@ define(function (require, exports, module) {
                 for (var setting of Settings.DEFAULT_SETTINGS) {
                     val = $("#gtw-settings-" + setting.key).val();
                     if (setting.type == "boolean") {
-                        out = val == "Yes";
+                        out = val == "yes";
                     } else if (setting.type == "number") {
                         out = parseInt(val);
                     } else {
                         out = val;
                     }
                     if (setting.checkfunc && !setting.checkfunc(out)) {
-                        alert("The value for \"" + setting.name + "\" is invalid.");
+                        alert($.i18n("settings-invalid-value", setting.name));
                         return;
                     }
                     Settings.set(setting.key, out);

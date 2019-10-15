@@ -48,7 +48,7 @@ $(document).ready(function () {
         __headerAnimation();
     });
     console.log("GoToWhere (c) 2019. Licensed under the MIT License.");
-    $("#startup-status").html("Loading OpenETA scripts...");
+    $("#startup-status").html("Loading GoToWhere scripts...");
 });
 $(window).resize(function () {
     adjustMargin();
@@ -69,11 +69,6 @@ function adjustMargin() {
     $(".loading-overlay").css("margin-top", hh);
 }
 
-$.i18n().load({
-    en: "i18n/en.json"
-});
-$("body").i18n();
-
 requirejs.config({
     baseUrl: 'js/lib',
     paths: {
@@ -82,7 +77,7 @@ requirejs.config({
     }
 });
 
-requirejs(["gtw-cors", "gtw-pluginloader", "gtw-citydata-transit", "gtw-map", "gtw-location", "gtw-ui", "gtw-settings", "gtw-requestlimiter", "gtw-log", "crypto-js"], function (Cors, PluginLoader, TransitManager, Map, loc, ui, settings, RequestLimiter, log) {
+requirejs(["gtw-cors", "gtw-pluginloader", "gtw-citydata-transit", "gtw-map", "gtw-location", "gtw-ui", "gtw-settings", "gtw-requestlimiter", "gtw-log", "gtw-lang", "crypto-js"], function (Cors, PluginLoader, TransitManager, Map, loc, ui, settings, RequestLimiter, log, lang) {
     /*
     Settings = new Settings();
     Settings.load();
@@ -100,12 +95,14 @@ requirejs(["gtw-cors", "gtw-pluginloader", "gtw-citydata-transit", "gtw-map", "g
 
     settings.load();
 
+    lang.changeLanguage("en");
+
     RequestLimiter.start();
 
     Cors.register("www.gotowhere.ga", true);
     Cors.register("plugins.gotowhere.ga", true);
 
-    $("#startup-status").html("Downloading plugins...");
+    $("#startup-status").html($.i18n("startup-status-downloading-plugins"));
 
     var promise = PluginLoader.download(function(progress){
         $("#startup-progress").css("width", (progress / 8) + "%");
@@ -113,30 +110,30 @@ requirejs(["gtw-cors", "gtw-pluginloader", "gtw-citydata-transit", "gtw-map", "g
 
 	if (!promise) {
 		$("#startup-status").attr("style", "color: red");
-		$("#startup-status").html("Your browser does not support local storage.");
+		$("#startup-status").html($.i18n("startup-status-not-supported"));
 		return;
     }
 
     promise.then(function () {
         $("#startup-progress").css("width", "12.5%");
-        $("#startup-status").html("Taking a rest!");
+        $("#startup-status").html($.i18n("startup-status-taking-a-rest"));
 
         $("#startup-progress").css("width", "25%");
-        $("#startup-status").html("Loading plugins...");
+        $("#startup-status").html($.i18n("startup-status-loading-plugins"));
         promise = PluginLoader.load(function (progress) {
             $("#startup-progress").css("width", 25 + (progress / 8) + "%");
         });
         promise.then(function () {
-            $("#startup-status").html("Initializing database...");
+            $("#startup-status").html($.i18n("startup-status-init-db"));
             promise = TransitManager.fetchAllDatabase(function (progress) {
                 $("#startup-progress").css("width", (25 + progress / 4 * 3) + "%");
             });
             promise.then(function () {
                 $("#startup-progress").css("width", "100%");
-                $("#startup-status").html("Initializing map...");
+                $("#startup-status").html($.i18n("startup-status-init-map"));
                 promise = Map.init();
                 promise.then(function () {
-                    $("#startup-status").html("Finish!");
+                    $("#startup-status").html($.i18n("startup-status-finish"));
 
                     ui.init();
                     //TransitManager.start();

@@ -1,3 +1,119 @@
 {
-    "app-name": "GoToWhereA"
+    "app-name": "GoToWhere",
+    "app-desc": "Open city data map",
+    "app-license-message": "Licensed under MIT License. This application is intented for educational researches, but NOT for commericial uses.",
+
+    "rotate-phone-message": "Please rotate your phone to portrait.<br />GoToWhere does not support mobile landscape mode currently.",
+    "rotate-phone-ignore-btn": "Ignore this message",
+
+    "startup-status-initializing": "Initializing...",
+    "startup-status-downloading-plugins": "Downloading plugins...",
+    "startup-status-not-supported": "Your browser does not support GoToWhere scripts.",
+    "startup-status-taking-a-rest": "Taking a rest!",
+    "startup-status-loading-plugins": "Loading plugins...",
+    "startup-status-init-db": "Initializing database...",
+    "startup-status-init-map": "Initializing map...",
+    "startup-status-finish": "Finish!",
+
+    "nav-plugins": "Plugins",
+    "nav-settings": "Settings",
+    "nav-about": "About",
+
+    "settings-option-yes": "Yes",
+    "settings-option-no": "No",
+    "settings-save-and-close-btn": "Save & Close",
+    "settings-apply-btn": "Apply",
+    "settings-invalid-value": "The value for \"$1\" is invalid.",
+
+    "home-tab-transit": "Transit",
+    "home-tab-alerts": "Alerts",
+
+    "transit-eta": "Estimated Time Arrival",
+    "transit-eta-route-not-available": "Not available to this route",
+    "transit-eta-retrieving": "Retrieving data...",
+    "transit-eta-no-data-received": "No data received.",
+    "transit-eta-no-schedules-pending": "No schedules pending.",
+    "transit-eta-live": "Live",
+    "transit-eta-scheduled": "Scheduled",
+
+    "plugin-closed-api-warning": "This plugin uses a Closed API. By using this plugin, you will take all the risks and responsibilities and the developer cannot be liable. Please read the plugin license for more details.",
+
+    "plugin-manager-loading": "Loading...",
+    "plugin-manager-tab-all":  "All",
+
+    "view-plugin-repos-cannot-find-package": "Could not find required package in repository.",
+    "view-plugin-details": "Details",
+    "view-plugin-details-name": "Name:",
+    "view-plugin-details-fullname": "Full Name:",
+    "view-plugin-details-author": "Author:",
+    "view-plugin-details-version": "Version:",
+    "view-plugin-details-github": "GitHub:",
+    "view-plugin-details-package": "Package:",
+    "view-plugin-details-description": "Description:",
+    "view-plugin-installation": "Installation",
+    "view-plugin-installation-not-installed": "Not installed",
+    "view-plugin-installation-installed-but-could-not-start-up-correctly": "Installed but could not start up correctly.",
+    "view-plugin-installation-installed-running": "Installed and running",
+    "view-plugin-installation-not-enabled": "Not enabled",
+    "view-plugin-installation-plugin-load-errors": "Plugin load errors ($1)",
+    "view-plugin-installation-checksum-mismatch": "Checksum Mismatch ($1)",
+    "view-plugin-installation-unknown-status-code": "Unknown status code ($1)",
+    "view-plugin-installation-status": "Status:",
+    "view-plugin-installation-message": "Message:",
+    "view-plugin-installation-local-version": "Local Version:",
+    "view-plugin-installation-local-checksum": "Local Checksum:",
+    "view-plugin-installation-online-checksum": "Online Checksum:",
+    "view-plugin-installation-checksum-validity": "Checksum Validity:",
+    "view-plugin-installation-checksum-validity-valid": "Valid",
+    "view-plugin-installation-checksum-validity-invalid": "Invalid",
+    "view-plugin-installation-uninstall-and-restart-btn": "Uninstall and restart",
+    "view-plugin-installation-install-and-restart-btn": "Install and restart",
+
+    "error-plugins-summary-network-error": "Network Error",
+    "error-plugins-summary-plugin-load": "Plugin Load",
+    "error-plugins-summary-checksum-mismatch": "Checksum Mismatch",
+    "error-plugins-summary-unknown-status-code": "Unknown status code",
+
+    "error-plugins-solution-network-error": "Check your network is connected properly and try again. If the problem persists, report to the GitHub issue tracker.",
+    "error-plugins-solution-plugin-load": "Report the status code ($1) to the GitHub issue tracker.",
+    "error-plugins-solution-checksum-mismatch": "Please check you are in a secured wired/WiFi network, and the website is with HTTPS label on. Then, press the button the accept the new checksum.",
+    "error-plugins-solution-checksum-mismatch-accept-btn": "Accept checksum and restart",
+    "error-plugins-solution-unknown-status-code": "Report the unknown status code ($1) to the GitHub issue tracker.",
+
+    "error-plugins-message": "Message:",
+    "error-plugins-solutions": "Solutions:",
+
+    "split-panel-back": "Back",
+
+    "getting-started-wizard-step-language": "Language",
+    "getting-started-wizard-step-plugins": "Plugins",
+    "getting-started-wizard-step-finish": "Finish",
+
+    "getting-started-wizard-step-language-welcome": "Welcome!",
+    "getting-started-wizard-step-language-desc": "It seems it is your first time to use this app! This wizard can help you to install city data plugins that is related to your region by going through a few steps.",
+    "getting-started-wizard-step-language-choose-language": "Choose your preferred language:",
+    "getting-started-wizard-step-language-input-language": "Language:",
+    "getting-started-wizard-step-language-help-translate": "You can help to translate the app to more languages!",
+
+    "getting-started-wizard-step-plugins-select": "Select",
+    "getting-started-wizard-step-plugins-select-region": "Please select your region to find and install related plugins:",
+    "getting-started-wizard-step-plugins-input-region": "Available Region(s):",
+    "getting-started-wizard-step-plugins-loading": "Loading...",
+    "getting-started-wizard-step-plugins-install-count": "$1 over $2 {{plural:$1|plugin|plugins}} will be installed.",
+    "getting-started-wizard-step-plugins-closed-api": "This plugin uses a Closed API.",
+
+    "getting-started-wizard-step-finish-finish-text": "Finish!",
+    "getting-started-wizard-step-finish-desc": "How fast it is! You are ready to use the app with tons of useful data showing on your device!",
+    "getting-started-wizard-step-finish-press-button": "By pressing the button below, $1 {{plural:$1|plugin|plugins}} will be installed on your device.",
+    "getting-started-wizard-step-finish-must-install": "<em>You must install at least 1 plugin to make the application work. Please go back and pick a region.</em>",
+    "getting-started-wizard-step-finish-get-started-btn": "Get Started",
+
+    "getting-started-please-wait": "Please Wait!",
+    "getting-started-please-wait-desc": "We are installing your plugins into your device! Just a moment and you will be able to access the world of city data!",
+    "getting-started-installing-plugins": "Installing plugin checksums...",
+
+    "getting-started-error": "Error",
+    "getting-started-error-plugin-network-error": "The following plugin(s) cannot be installed because of a network error. You may try to refresh the page to try again. If the problem persists, report it to the GitHub issue tracker.",
+    "getting-started-error-refresh-btn": "Refresh",
+    "getting-started-error-affected-plugins": "Affected plugins:"
 }
