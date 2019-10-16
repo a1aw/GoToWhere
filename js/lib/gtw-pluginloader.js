@@ -154,7 +154,7 @@ define(function (require, exports, module) {
             const json = JSON.parse(data);
 
             if (!json.package || !json.method || !json.checksum || !json.version) {
-                var t = $.i18n("plugin-error-json-missing-parameters", key);
+                var msg = $.i18n("plugin-error-json-missing-parameters", key);
                 exports.plugins[key] = {
                     package: key,
                     local: json,
