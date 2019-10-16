@@ -84,6 +84,7 @@
     "plugin-status-not-enabled": "Not enabled",
     "plugin-error-could-not-fetch-info": "Could not fetch information from plugins server.",
 
+    "plugin-manager-title": "Plugins",
     "plugin-manager-loading": "Loading...",
     "plugin-manager-tab-all": "All",
     "plugin-manager-tab-installed": "Installed",
