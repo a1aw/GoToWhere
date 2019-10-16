@@ -557,12 +557,10 @@ define(function (require, exports, module) {
                                 if (schedule.hasMsg) {
                                     html += "<br />";
                                 }
-                                if (eta > 1) {
-                                    html += eta + " mins";
-                                } else if (eta == 1) {
-                                    html += eta + " min";
+                                if (eta > 0) {
+                                    html += $.i18n("transit-eta-minutes", eta);
                                 } else {
-                                    html += "Arrived/Left";
+                                    html += $.i18n("transit-eta-arrived-left");
                                 }
 
                                 if (schedule.isLive) {
@@ -737,9 +735,9 @@ define(function (require, exports, module) {
                 statusMsg += "text-success\">" + $.i18n("view-plugin-installation-installed-running");
             } else if (json.status == 1) {
                 statusMsg += "text-secondary\">" + $.i18n("view-plugin-installation-not-enabled");
-            } else if (json.status <= -2 && json.status >= -5) {
+            } else if (json.status <= -2 && json.status >= -7) {
                 statusMsg += "text-danger\">" + $.i18n("view-plugin-installation-plugin-load-errors", json.status);
-            } else if (json.status <= -6 && json.status >= -7) {
+            } else if (json.status <= -8 && json.status >= -9) {
                 statusMsg += "text-danger\">" + $.i18n("view-plugin-installation-checksum-mismatch", json.status);
             } else {
                 statusMsg += "text-secondary\">" + $.i18n("view-plugin-installation-unknown-status-code", json.status);
@@ -954,10 +952,10 @@ define(function (require, exports, module) {
                     var badgeClass = "btn-secondary";
 
                     if (!eta || !eta.schedules || !eta.serverTime) {
-                        text = "N/A";
+                        text = $.i18n("transit-eta-route-not-available-short");
                         node.addClass("list-group-item-light");
                     } else if (eta.schedules.length == 0) {
-                        text = "No Schedules";
+                        text = $.i18n("transit-eta-no-schedules-pending-short");
                         node.addClass("list-group-item-light");
                     } else {
                         var schedule = eta.schedules[0];
