@@ -95,7 +95,7 @@ requirejs(["gtw-cors", "gtw-pluginloader", "gtw-citydata-transit", "gtw-map", "g
 
     settings.load();
 
-    lang.changeLanguage("en");
+    lang.changeLanguage(settings.get("preferred_language", "en"));
 
     RequestLimiter.start();
 

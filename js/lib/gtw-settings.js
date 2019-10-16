@@ -1,7 +1,7 @@
 //GTW Settings
 
 define(function (require, exports, module) {
-    const SETTINGS_STORAGE_KEY = "openeta-settings";
+    const SETTINGS_STORAGE_KEY = "gtw-settings";
 
     const VALUE_TYPES = {
         number: "number",
@@ -9,54 +9,74 @@ define(function (require, exports, module) {
         boolean: "boolean"
     };
 
-    exports.DEFAULT_SETTINGS = [
-        {
-            key: "min_nearby_transit_range",
-            type: "number",
-            name: "Minimum nearby transit search range",
-            desc: "Minimum range in metres to search for nearby transit. Must be less than 10000 m",
-            def: 200,
-            checkfunc: function (val) {
-                var x = parseInt(val);
-                return !Number.isNaN(x) && x < 10000;
+    exports.getDefaultSettings = function () {
+        return [
+            {
+                key: "preferred_language",
+                type: "string",
+                name: $.i18n("settings-key-preferred-language"),
+                desc: $.i18n("settings-key-preferred-language-desc"),
+                def: "en",
+                checkfunc: function (val) {
+                    var locales = require("gtw-lang").locales;
+                    var found = false;
+                    for (var locale in locales) {
+                        if (locale == val) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    return found;
+                }
+            },
+            {
+                key: "min_nearby_transit_range",
+                type: "number",
+                name: $.i18n("settings-key-min-nearby-transit-search-range"),
+                desc: $.i18n("settings-key-min-nearby-transit-search-range-desc"),
+                def: 200,
+                checkfunc: function (val) {
+                    var x = parseInt(val);
+                    return !Number.isNaN(x) && x < 10000;
+                }
+            },
+            {
+                key: "max_nearby_transit_to_display",
+                type: "number",
+                name: $.i18n("settings-key-max-nearby-transit-to-be-displayed"),
+                desc: $.i18n("settings-key-max-nearby-transit-to-be-displayed-desc"),
+                def: 20,
+                checkfunc: function (val) {
+                    var x = parseInt(val);
+                    return !Number.isNaN(x) && x < 100;
+                }
+            },
+            {
+                key: "use_cors_proxy",
+                type: "boolean",
+                name: $.i18n("settings-key-use-cors-proxy"),
+                desc: $.i18n("settings-key-use-cors-proxy-desc"),
+                def: true
+            },
+            {
+                key: "cors_proxy_server",
+                type: "string",
+                name: $.i18n("settings-key-cors-proxy-server"),
+                desc: $.i18n("settings-key-cors-proxy-server-desc"),
+                def: "https://cp1.gotowhere.ga/",
+                checkfunc: function (val) {
+                    return val.startsWith("https://") && val.endsWith("/")
+                }
+            },
+            {
+                key: "cors_check_bypass",
+                type: "boolean",
+                name: $.i18n("settings-key-cors-check-bypass"),
+                desc: $.i18n("settings-key-cors-check-bypass-desc"),
+                def: false
             }
-        },
-        {
-            key: "max_nearby_transit_to_display",
-            type: "number",
-            name: "Maximum nearby transit to be displayed",
-            desc: "Maxmium nearby transit to be displayed in the Home UI. Must be less than 100.",
-            def: 20,
-            checkfunc: function (val) {
-                var x = parseInt(val);
-                return !Number.isNaN(x) && x < 100;
-            }
-        },
-        {
-            key: "use_cors_proxy",
-            type: "boolean",
-            name: "Use CORS Proxy",
-            desc: "For security reasons, browsers are not allowed to perform cross domain requests, aka CORS Policy. This will disallow plugins to fetch data from servers without required headers. This proxy is for adding Access-Control-Allow-Origin headers to server responses.",
-            def: true
-        },
-        {
-            key: "cors_proxy_server",
-            type: "string",
-            name: "CORS Proxy Server URL",
-            desc: "It must be a secure URL starting with \"https://\" and ending with a slash \"/\".",
-            def: "https://cp1.gotowhere.ga/",
-            checkfunc: function (val) {
-                return val.startsWith("https://") && val.endsWith("/")
-            }
-        },
-        {
-            key: "cors_check_bypass",
-            type: "boolean",
-            name: "Bypass OpenETA-CORS Check",
-            desc: "For development use only. This will bypass OpenETA's internal CORS check, disable CORS proxy. Requests will only work if the web browser's CORS policy is disabled.",
-            def: false
-        }
-    ];
+        ];
+    };
 
     exports.json = {};
 

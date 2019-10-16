@@ -8,6 +8,7 @@ define(function (require, exports, module) {
     var PluginLoader = require("gtw-pluginloader");
     var Loc = require("gtw-location");
     var Misc = require("gtw-misc");
+    var Lang = require("gtw-lang");
 
     $(document).ready(function () {
         $(".header-links-plugins").on("click", function () {
@@ -76,6 +77,15 @@ define(function (require, exports, module) {
         $(".top-panel").css("display", "none");
         $(".content-panel-container").css("display", "none");
         $(".getting-started-panel").css("display", "block");
+
+        var html = "";
+        for (var lang in Lang.locales) {
+            html += "<option value=\"" + lang + "\">" + Lang.locales[lang] + " (" + lang + ")</option>";
+        }
+        $("#langSelect").html(html);
+        $("#langSelect").on("change", function () {
+            Lang.changeLanguage($(this).val());
+        });
 
         $.ajax({
             url: "https://plugins.gotowhere.ga/repository.json",
@@ -288,6 +298,7 @@ define(function (require, exports, module) {
         exports.modalVars = {};
 
         exports.loadModalLayout(layout, true).then(function () {
+            $(".modal").i18n();
             if (typeof exports.scripts[layout] === "function") {
                 (exports.scripts[layout]).apply(this, args);
             }
@@ -484,7 +495,7 @@ define(function (require, exports, module) {
         } else {
             content +=
                 "<tr class=\"table-dark\">" +
-                "    <td colspan=\"2\"><div class=\"spinner-border spinner-border-sm\" role=\"status\"></div> " + $.i18n("transit-eta-retrieving") + "</td>" +
+                "    <td colspan=\"2\"><div class=\"spinner-border spinner-border-sm\" role=\"status\"></div> " + $.i18n("transit-eta-retrieving-data") + "</td>" +
                 "</tr>";
             p.then(function (data) {
                 var h = data.options;
@@ -611,9 +622,9 @@ define(function (require, exports, module) {
             for (var plugin of errorPlugins) {
                 if (plugin.status >= -2 && plugin.status <= -1) {
                     errSummary = $.i18n("error-plugins-summary-network-error")  + " (" + plugin.status + ")";
-                } else if (plugin.status >= -5 && plugin.status <= -3) {
+                } else if (plugin.status >= -7 && plugin.status <= -3) {
                     errSummary = $.i18n("error-plugins-summary-plugin-load") + " Error (" + plugin.status + ")";
-                } else if (plugin.status >= -7 && plugin.status <= -6) {
+                } else if (plugin.status >= -9 && plugin.status <= -8) {
                     errSummary = $.i18n("error-plugins-summary-checksum-mismatch") + " (" + plugin.status + ")";
                 } else {
                     errSummary = $.i18n("error-plugins-summary-unknown-status-code") + " (" + plugin.status + ")";
@@ -634,9 +645,9 @@ define(function (require, exports, module) {
 
                 if (plugin.status >= -2 && plugin.status <= -1) {
                     html += $.i18n("error-plugins-solution-network-error");
-                } else if (plugin.status >= -5 && plugin.status <= -3) {
+                } else if (plugin.status >= -7 && plugin.status <= -3) {
                     html += $.i18n("error-plugins-solution-plugin-load", plugin.status);
-                } else if (plugin.status >= -7 && plugin.status <= -6) {
+                } else if (plugin.status >= -9 && plugin.status <= -8) {
                     html += $.i18n("error-plugins-solution-checksum-mismatch") + "<br/><button class=\"btn btn-warning error-plugin-accept-checksum-btn\" type=\"button\" package=\"" + plugin.package + "\">" + $.i18n("error-plugins-solution-checksum-mismatch-accept-btn") + "</button>";
                 } else {
                     html += $.i18n("error-plugins-solution-unknown-status-code", plugin.status);
@@ -712,7 +723,7 @@ define(function (require, exports, module) {
 
             var localChecksum = 0;
 
-            html += "<h3>" + + "</h3>";
+            html += "<h3>" + $.i18n("view-plugin-installation") + "</h3>";
             html += "<hr />";
 
             var json = PluginLoader.getPlugin(packageJson.package);
@@ -835,7 +846,7 @@ define(function (require, exports, module) {
             var html = "";
 
             var val;
-            for (var setting of Settings.DEFAULT_SETTINGS) {
+            for (var setting of Settings.getDefaultSettings()) {
                 val = Settings.get(setting.key, setting.def);
                 html +=
                     "<div class=\"form-group\">" +
@@ -874,7 +885,7 @@ define(function (require, exports, module) {
             $(".ui-btn-settings-save").on("click", function () {
                 var val;
                 var out;
-                for (var setting of Settings.DEFAULT_SETTINGS) {
+                for (var setting of Settings.getDefaultSettings()) {
                     val = $("#gtw-settings-" + setting.key).val();
                     if (setting.type == "boolean") {
                         out = val == "yes";
@@ -907,7 +918,7 @@ define(function (require, exports, module) {
                     max = exports.vars["maxRequest"] = requestLen;
                 }
 
-                $(".request-progress-panel .progress-bar").html("Getting " + (max - requestLen) + "/" + max + " data...");
+                $(".request-progress-panel .progress-bar").html($.i18n("transit-eta-requesting-data", (max - requestLen), max));
                 //$(".request-progress-panel .progress-bar").html(Math.floor((max - requestLen) / max * 100) + "%");
                 $(".request-progress-panel .progress-bar").css("width", Math.floor((max - requestLen) / max * 100)+ "%");
             } else {
@@ -975,7 +986,7 @@ define(function (require, exports, module) {
                         if (schedule.hasMsg) {
                             var msg = schedule.msg;
                             if (msg.length > 20) {
-                                text = "Transit Notice";
+                                text = $.i18n("transit-eta-transit-notice");
                             } else {
                                 text = schedule.msg;
                             }
@@ -986,19 +997,18 @@ define(function (require, exports, module) {
                             }
 
                             badgeClass = "badge-primary";
-                            if (eta > 1) {
-                                text += eta + " mins";
-                            } else if (eta == 1) {
-                                text += eta + " min";
+                            if (eta > 0) {
+                                text += $.i18n("transit-eta-minutes", eta);
                             } else {
-                                text += "Arrived/Left";
+                                text += $.i18n("transit-eta-arrived-left", eta);
                                 badgeClass = "badge-dark";
                             }
 
+                            text += "<br /><span style=\"font-size: 10px; position: absolute; top: 16px; right: 16px; "
                             if (schedule.isLive) {
-                                text += "<br /><span style=\"color: red; position: absolute; top: 16px; right: 16px; font-size: 10px;\"><i class=\"fa fa-circle\"></i> Live</span>";
+                                text += "color: red;\"><i class=\"fa fa-circle\"></i> " + $.i18n("transit-eta-live") + "</span>";
                             } else {
-                                text += "<br /><span style=\"font-size: 10px; color: black; position: absolute; top: 16px; right: 16px; font-style: italic;\">Scheduled</span>";
+                                text += "color: black; font-style: italic;\">" + $.i18n("transit-eta-scheduled") + "</span>";
                             }
                         }
 
@@ -1057,7 +1067,7 @@ define(function (require, exports, module) {
             if (providers.length > 0) {
                 var buttonScroll =
                     "<div class=\"hori-scroll btn-group\">" +
-                    "    <button type=\"button\" class=\"btn btn-primary gtw-providersort gtw-providersort-all\"><i class=\"fa fa-reply-all\"></i><br />All</button>";
+                    "    <button type=\"button\" class=\"btn btn-primary gtw-providersort gtw-providersort-all\"><i class=\"fa fa-reply-all\"></i><br />" + $.i18n("transit-eta-sort-all") + "</button>";
 
                 for (var provider of providers) {
                     var image = "";
@@ -1077,7 +1087,7 @@ define(function (require, exports, module) {
 
                 var searchField =
                     "<div class=\"input-group mb-3\" style=\"margin-top: 16px;\">" +
-                    "    <input type=\"text\" class=\"form-control\" placeholder=\"Search for transit...\" aria-label=\"Search for transit...\" aria-describedby=\"search-transit-icon\" id=\"search-transit-text\"/>" +
+                    "    <input type=\"text\" class=\"form-control\" placeholder=\"" + $.i18n("transit-eta-placeholder-search-for-transit") + "\" aria-label=\"" + $.i18n("transit-eta-placeholder-search-for-transit") + "\" aria-describedby=\"search-transit-icon\" id=\"search-transit-text\"/>" +
                     "    <div class=\"input-group-append\">" +
                     //"        <span class=\"input-group-text\" id=\"search-transit-icon\"><i class=\"fas fa-search\"></i></span>" +
                     "        <button class=\"btn btn-light disabled\" type=\"button\" id=\"button-cancel-search\"><i class=\"fas fa-search\"></i></button>" + 
@@ -1141,7 +1151,7 @@ define(function (require, exports, module) {
                         $(".tab-panel").append(
                             "<div class=\"alert alert-warning alert-dismissable\">" +
                             "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\" >&#215;</button>" +
-                            "No routes " + (range * 1000) + "m nearby! The following routes are in " + Math.ceil(testRange * 1000) + " m range." +
+                            $.i18n("transit-eta-no-routes-found-nearby-extended-range", range * 1000, Math.ceil(testRange * 1000)) +
                             "</div>"
                         );
                     }
@@ -1189,7 +1199,7 @@ define(function (require, exports, module) {
                         "                " + result.stop.stopName + " (" + distance + "m)" +
                         "            </div>" +
                         "        </div>" +
-                        "        <span class=\"badge badge-primary badge-pill transit-eta\">Retrieving...</span>" +
+                        "        <span class=\"badge badge-primary badge-pill transit-eta\">" + $.i18n("transit-eta-retrieving") + "</span>" +
                         "    </li>";
                 }
                 html += "</ul></div>";
@@ -1347,7 +1357,7 @@ define(function (require, exports, module) {
                 }, 30000));
             } else {
                 //TODO: better message or auto add plugins according to region
-                $(".tab-panel").html("<br /><div class=\"alert alert-danger\" role=\"alert\"><i class=\"fas fa-exclamation-triangle\"></i> You do not have any plugins providing transit data. Install one from the plugins manager.</div>")
+                $(".tab-panel").html("<br /><div class=\"alert alert-danger\" role=\"alert\"><i class=\"fas fa-exclamation-triangle\"></i> " + $.i18n("transit-eta-no-plugins-providing-transit-data") + "</div>")
             }
         }
     };

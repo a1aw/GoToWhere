@@ -68,8 +68,8 @@ define(function (require, exports, module) {
         var json;
         var p;
         var proms = [];
-        for (const package in exports.plugins) {
-            json = exports.plugins[package];
+        for (const pkg in exports.plugins) {
+            json = exports.plugins[pkg];
 
             if (json.status <= 0) {
                 continue;
@@ -78,48 +78,50 @@ define(function (require, exports, module) {
             if (json.info.dependencies) {
                 for (var dependency in json.info.dependencies) {
                     if (!exports.plugins[dependency]) {
-                        alert("The package \"" + package + "\" requires \"" + dependency + "\" to be installed. You must install it in Plugin Manager in order to enable this plugin.");
+                        exports.plugins[pkg].status = -6;
+                        exports.plugins[pkg].msg = $.i18n("plugin-error-dependency-not-installed", pkg, dependency);
                         continue;
                     }
 
                     if (exports.compareVersion(exports.plugins[dependency].info.version, json.info.dependencies[dependency]) == -1) {
-                        alert("The package \"" + package + "\" requires a newer version of \"" + dependency + "\" to be installed. You must install a new version in Plugin Manager in order to enable this plugin.");
+                        alert();
+                        exports.plugins[pkg].status = -6;
+                        exports.plugins[pkg].msg = $.i18n("plugin-error-dependency-version-too-old", pkg, dependency);
                         continue;
                     }
                 }
             }
 
             p = new Promise((resolve, reject) => {
-                console.log("Loading" + package);
-                requirejs([package], function (mod) {
-                    console.log("Loaded" + package);
+                console.log("Loading" + pkg);
+                requirejs([pkg], function (mod) {
+                    console.log("Loaded" + pkg);
                     if (!mod) {
-                        var msg = "Error: No module returned from " + package + "!";
+                        var msg = $.i18n("plugin-error-no-module-returned", pkg);
                         console.error(msg);
-                        exports.plugins[package].status = -3;
-                        exports.plugins[package].msg = msg;
+                        exports.plugins[pkg].status = -3;
+                        exports.plugins[pkg].msg = msg;
                     } else if (!mod.onload || typeof mod.onload != "function") {
-                        var msg = "Error: " + package + " does not contain onload function!";
+                        var msg = $.i18n("plugin-error-no-onload-function", pkg);
                         console.error(msg);
-                        exports.plugins[package].status = -4;
-                        exports.plugins[package].msg = msg;
+                        exports.plugins[pkg].status = -4;
+                        exports.plugins[pkg].msg = msg;
                     } else {
                         var status = mod.onload();
                         if (status) {
-                            exports.plugins[package].status = 0;
-                            delete exports.plugins[package].msg;
+                            exports.plugins[pkg].status = 0;
+                            delete exports.plugins[pkg].msg;
                         } else {
-                            var msg = "Error: " + package + " returned error on onload function!";
+                            var msg = $.i18n("plugin-error-onload-function-error", pkg);
                             console.error(msg);
-                            exports.plugins[package].status = -5;
-                            exports.plugins[package].msg = msg;
+                            exports.plugins[pkg].status = -5;
+                            exports.plugins[pkg].msg = msg;
                         }
                     }
                     resolve();
                 }, function (err) {
-                    console.log("Err" + err);
-                    exports.plugins[package].status = -2;
-                    exports.plugins[package].msg = err;
+                    exports.plugins[pkg].status = -2;
+                    exports.plugins[pkg].msg = err;
                     resolve(err);
                 });
             });
@@ -152,10 +154,13 @@ define(function (require, exports, module) {
             const json = JSON.parse(data);
 
             if (!json.package || !json.method || !json.checksum || !json.version) {
-                var t = "Error: \"" + key + "\" is missing a method, package, version or checksum";
-                console.error(t);
-                cmt = document.createComment(t);
-                document.head.appendChild(cmt);
+                var t = $.i18n("plugin-error-json-missing-parameters", key);
+                exports.plugins[key] = {
+                    package: key,
+                    local: json,
+                    status: -7,
+                    msg: msg
+                };
                 continue;
             }
 
@@ -174,14 +179,14 @@ define(function (require, exports, module) {
                                     var sha1 = CryptoJS.SHA1(script);
 
                                     if (sha1 != infoJson.checksum) {
-                                        var msg = "Error: Downloaded and online checksum mismatch detected for " + json.package + ". Online: " + infoJson.checksum + " Calculated: " + sha1 + ". There might be a man-in-the-middle attack running behind or CDN cache are not clean. Please wait a moment and try again later. If this persists, report it to the GitHub issue tracker.";
+                                        var msg =  $.i18n("plugin-error-download-online-checksum-mismatch", json.package, infoJson.checksum, sha1);
                                         console.error(msg);
                                         //alert(msg);
                                         exports.plugins[infoJson.package] = {
                                             package: json.package,
                                             local: json,
                                             info: infoJson,
-                                            status: -6,
+                                            status: -8,
                                             msg: msg
                                         };
                                         resolve();
@@ -213,8 +218,8 @@ define(function (require, exports, module) {
                                                 package: json.package,
                                                 local: json,
                                                 info: infoJson,
-                                                status: -7,
-                                                msg: "Warning: Local and calculated checksum mismatch detected for the same version of plugin \"" + json.package + "\". You can fix it by accepting the online checksum in startup."
+                                                status: -8,
+                                                msg: $.i18n("plugin-error-local-calculated-checksum-mismatch", infoJson.package)
                                             };
                                             resolve();
                                             return;
@@ -235,7 +240,7 @@ define(function (require, exports, module) {
                                         local: json,
                                         info: infoJson,
                                         status: 1,
-                                        msg: "Not enabled"
+                                        msg: $.i18n("plugin-status-not-enabled")
                                     };
                                     resolve();
                                 },
@@ -249,7 +254,7 @@ define(function (require, exports, module) {
                                 package: json.package,
                                 local: json,
                                 status: -1,
-                                msg: "Could not fetch information from plugins server."
+                                msg: $.i18n("plugin-error-could-not-fetch-info")
                             };
                             reject();
                         }
@@ -282,7 +287,7 @@ define(function (require, exports, module) {
                     local: json,
                     info: infoJson,
                     status: 1,
-                    msg: "Not enabled"
+                    msg: $.i18n("plugin-status-not-enabled")
                 };
             } else {
                 console.error("Error: Unknown plugin method \"" + json.method + "\" for " + json.package + ".");

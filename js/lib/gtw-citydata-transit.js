@@ -242,7 +242,7 @@ define(function (require, exports, module) {
 
                     resolve(out);
                 }).catch(function (err) {
-                    reject(options, err);
+                    reject(opt, err);
                 });
             } else {
                 resolve(cached.data);
