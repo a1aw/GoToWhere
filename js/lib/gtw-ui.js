@@ -414,7 +414,7 @@ define(function (require, exports, module) {
                 "            " + (i + 1) +
                 "        </div>" +
                 "        <div class=\"timeline-label\">" +
-            "            <h2><button style=\"padding: 0px;\" class=\"btn btn-link\" stop-id=\"" + dbStop.stopId + "\">" + dbStop.stopName + "</button></h2>" +
+            "            <h2><button style=\"padding: 0px;\" class=\"btn btn-link\" stop-id=\"" + dbStop.stopId + "\">" + Lang.localizedKey(dbStop, "stopName") + "</button></h2>" +
                 "            <p></p>" +
                 "        </div>" +
                 "    </div>" +
@@ -438,7 +438,7 @@ define(function (require, exports, module) {
             "        <div>" + route.provider + "</div>" +
             "        <div>" + route.routeId + "</div>" +
             "    </div>" +
-            "    <div><b>To:</b> " + TransitManager.getStopById(lastStopId).stopName + "</div>" +
+            "    <div><b>To:</b> " + Lang.localizedKey(TransitManager.getStopById(lastStopId), "stopName") + "</div>" +
             "</li></ul>"
             ;
         $(".half-map-tab-panel").html(html);
@@ -1076,7 +1076,7 @@ define(function (require, exports, module) {
                     } else {
                         image = "fa-question";
                     }
-                    buttonScroll += " <button type=\"button\" class=\"btn btn-default gtw-providersort gtw-providersort-provider\" gtw-provider=\"" + provider.name + "\"><i class=\"fa " + image + "\"></i><br />" + provider.name + "</button>";
+                    buttonScroll += " <button type=\"button\" class=\"btn btn-default gtw-providersort gtw-providersort-provider\" gtw-provider=\"" + provider.name + "\"><i class=\"fa " + image + "\"></i><br />" + Lang.localizedKey(provider, "name") + "</button>";
                 }
 
                 buttonScroll += "</div>";
@@ -1191,10 +1191,10 @@ define(function (require, exports, module) {
                         "        </div>" +
                         "        <div class=\"d-flex flex-column stop-info mr-auto\">" +
                         "            <div>" +
-                        "                <b>To:</b> <small>" + TransitManager.getStopById(stopId).stopName +
+                        "                <b>To:</b> <small>" + Lang.localizedKey(TransitManager.getStopById(stopId), "stopName") +
                         "</small></div>" +
                         "            <div>" +
-                        "                " + result.stop.stopName + " (" + distance + "m)" +
+                        "                " + Lang.localizedKey(result.stop, "stopName") + " (" + distance + "m)" +
                         "            </div>" +
                         "        </div>" +
                         "        <span class=\"badge badge-primary badge-pill transit-eta\">" + $.i18n("transit-eta-retrieving") + "</span>" +
