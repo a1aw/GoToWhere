@@ -1218,7 +1218,7 @@ define(function (require, exports, module) {
                             "        <div>" + route.provider + "</div>" +
                             "        <div>" + route.routeId + "</div>" +
                             "    </div>" +
-                            "    <div><b>To:</b> " + TransitManager.getStopById(stopId).stopName + "</div>" +
+                            "    <div><b>To:</b> " + Lang.localizedKey(TransitManager.getStopById(stopId), "stopName") + "</div>" +
                             "</li>";
                     }
                 }
