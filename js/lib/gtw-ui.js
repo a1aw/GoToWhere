@@ -431,11 +431,12 @@ define(function (require, exports, module) {
             }
         });
 
+        var provider = TransitManager.getProvider(route.provider);
         var lastStopId = path[path.length - 1];
         html =
             "<ul class=\"list-group\"><li class=\"list-group-item d-flex align-items-center route-selection\">" +
             "    <div class=\"d-flex flex-column route-id\">" +
-            "        <div>" + route.provider + "</div>" +
+            "        <div>" + Lang.localizedKey(provider, "name") + "</div>" +
             "        <div>" + route.routeId + "</div>" +
             "    </div>" +
             "    <div><b>To:</b> " + Lang.localizedKey(TransitManager.getStopById(lastStopId), "stopName") + "</div>" +
@@ -1178,15 +1179,17 @@ define(function (require, exports, module) {
                 var distance;
                 var paths;
                 var stopId;
+                var provider;
                 html = "<div class=\"row item-list nearby-route-list\"><ul class=\"list-group\">"
                 for (var result of allNearbyRoutes) {
                     paths = result.route.paths[result.bound];
                     stopId = paths[paths.length - 1];
                     distance = Math.round(result.distance * 1000);
+                    provider = TransitManager.getProvider(result.route.provider);
                     html +=
                         "    <li class=\"list-group-item list-group-item-action d-flex justify-content-between align-items-center route-selection\" gtw-provider=\"" + result.route.provider + "\" gtw-route-id=\"" + result.route.routeId + "\" gtw-stop-id=\"" + result.stop.stopId + "\" gtw-bound=\"" + result.bound + "\">" +
                         "        <div class=\"d-flex flex-column route-id\">" +
-                        "            <div>" + result.route.provider + "</div>" +
+                        "            <div>" + Lang.localizedKey(provider, "name") + "</div>" +
                         "            <div>" + result.route.routeId + "</div>" +
                         "        </div>" +
                         "        <div class=\"d-flex flex-column stop-info mr-auto\">" +
@@ -1212,10 +1215,11 @@ define(function (require, exports, module) {
                     for (i = 0; i < route.paths.length; i++) {
                         path = route.paths[i];
                         stopId = path[path.length - 1];
+                        provider = TransitManager.getProvider(route.provider);
                         html +=
                             "<li class=\"list-group-item list-group-item-action d-flex align-items-center route-selection\" gtw-provider=\"" + route.provider + "\" gtw-route-id=\"" + route.routeId + "\" gtw-bound=\"" + i + "\">" +
                             "    <div class=\"d-flex flex-column route-id\">" +
-                            "        <div>" + route.provider + "</div>" +
+                            "        <div>" + Lang.localizedKey(provider, "name") + "</div>" +
                             "        <div>" + route.routeId + "</div>" +
                             "    </div>" +
                             "    <div><b>To:</b> " + Lang.localizedKey(TransitManager.getStopById(stopId), "stopName") + "</div>" +
