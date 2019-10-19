@@ -40,7 +40,6 @@ define(function (require, exports, module) {
     };
 
     exports.getLocale = function () {
-        console.log(Settings.get("preferred_language", "en").split("-")[0]  );
         return Settings.get("preferred_language", "en").split("-")[0];
     };
 

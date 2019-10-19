@@ -166,8 +166,6 @@ define(function (require, exports, module) {
                                 stops: stops,
                                 version: version
                             };
-                            console.log("db");
-                            console.log(db);
                             localStorage.setItem(provider.dbKey, JSON.stringify(db));
                             provider.db = db;
                         });
