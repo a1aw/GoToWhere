@@ -64,6 +64,7 @@
     "transit-eta-no-schedules-pending-short": "No schedules",
     "transit-eta-live": "Real-time",
     "transit-eta-scheduled": "Scheduled",
+    "transit-eta-error-fetching-eta": "Could not fetch ETA data.",
     "transit-eta-requesting-data": "Getting $1/$2 data...",
     "transit-eta-transit-notice": "Transit Notice",
     "transit-eta-arrived-left": "Arrived/Left",

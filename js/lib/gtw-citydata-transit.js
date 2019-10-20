@@ -9,8 +9,6 @@ const TransitType = {
 
 define(function (require, exports, module) {
     var Misc = require("gtw-misc");
-    var PluginLoader = require("gtw-pluginloader");
-    var RequestLimiter = require("gtw-requestlimiter");
 
     exports.timer = 0;
 

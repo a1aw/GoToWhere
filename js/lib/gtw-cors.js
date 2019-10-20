@@ -34,10 +34,10 @@ define(function (require, exports, module) {
 
             var config = Cors.domains[host];
             if (!config) {
-                console.error("openeta-cors: The request to \"" + host + "\" was dropped, because this cross-domain host was not registered before performing AJAX.");
+                console.error("gtw-cors: The request to \"" + host + "\" was dropped, because this cross-domain host was not registered before performing AJAX.");
                 callback({
                     status: 403,
-                    statusText: 'The request is dropped by OpenETA because this host was not registered before performing AJAX.',
+                    statusText: 'The request is dropped by GoToWhere because this host was not registered before performing AJAX.',
                     headers: {}
                 });
                 return;
@@ -53,7 +53,7 @@ define(function (require, exports, module) {
                     } else if (index == -1 && sindex != -1) {
                         request.url = proxy + request.url.substring(sindex + 8);
                     } else {
-                        console.error("openeta-cors: Invalid URL: " + request.url);
+                        console.error("gtw-cors: Invalid URL: " + request.url);
                         callback({
                             status: 403,
                             statusText: 'Invalid URL: ' + request.url,
@@ -62,7 +62,7 @@ define(function (require, exports, module) {
                         return;
                     }
                 } else {
-                    console.error("openeta-cors: The provided CORS Proxy server is invalid! Please check if the server URL in the settings is correct!");
+                    console.error("gtw-cors: The provided CORS Proxy server is invalid! Please check if the server URL in the settings is correct!");
                     callback({
                         status: 403,
                         statusText: 'The provided CORS Proxy server is invalid! Please check if the server URL in the settings is correct!.',
@@ -71,7 +71,7 @@ define(function (require, exports, module) {
                     return;
                 }
             } else if (!config.allowCors) {
-                console.error("openeta-cors: The request was dropped because there are no proxy available to handle CORS requests.");
+                console.error("gtw-cors: The request was dropped because there are no proxy available to handle CORS requests.");
                 callback({
                     status: 403,
                     statusText: 'The request was dropped because there are no proxy available to handle CORS requests.',

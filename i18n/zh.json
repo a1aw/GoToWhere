@@ -64,6 +64,7 @@
     "transit-eta-no-schedules-pending-short": "未有下一班",
     "transit-eta-live": "實時",
     "transit-eta-scheduled": "預定",
+    "transit-eta-error-fetching-eta": "無法獲取預計到達時間數據。",
     "transit-eta-requesting-data": "正在存取 $1/$2 的數據...",
     "transit-eta-transit-notice": "公交通告",
     "transit-eta-arrived-left": "已到達/離開",

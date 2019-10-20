@@ -593,7 +593,7 @@ define(function (require, exports, module) {
                 node.html(content);
             }).catch(function (options, err) {
                 var node = $(".timeline-entry[stop-id='" + options.stopId + "'] p table tbody");
-                node.html("<tr class=\"table-danger\"><td colspan=\"2\">" + $.i18n("transit-eta-scheduled") + "</td></tr>");
+                node.html("<tr class=\"table-danger\"><td colspan=\"2\">" + $.i18n("transit-eta-error-fetching-eta") + "</td></tr>");
             });
         }
 

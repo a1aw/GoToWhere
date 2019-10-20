@@ -16,6 +16,19 @@ body {
     font-weight: bold;
 }
 
+/* Toast */
+
+.toast-stack-container {
+    position: static;
+    min-height: 200px;
+}
+
+#gtw-toast-stack {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+}
+
 /* Startup DIV CSS */
 
 .startup {
@@ -115,7 +128,7 @@ body {
 .half-map-container {
     display: none;
     width: 100%;
-    position: relative;
+    position: absolute;
     overflow-x: hidden;
     overflow-y: scroll;
     z-index: 2;
