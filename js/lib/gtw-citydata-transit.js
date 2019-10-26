@@ -1,4 +1,4 @@
-//OpenETA ETA Manager
+//GTW ETA Manager
 
 const TransitType = {
 	TRANSIT_BUS: "TRANSIT_BUS",
@@ -9,6 +9,7 @@ const TransitType = {
 
 define(function (require, exports, module) {
     var Misc = require("gtw-misc");
+    var Database = require("gtw-db");
 
     exports.timer = 0;
 
@@ -29,9 +30,10 @@ define(function (require, exports, module) {
     exports.registerProvider = function (transit, name, provider) {
         provider.transit = transit;
         provider.name = name;
-        provider.dbKey = "transit-db-" + name;
+        //provider.dbKey = "transit-db-" + name;
         provider.db = false;
 
+        /*
         if (localStorage) {
             var dbJson = localStorage.getItem(provider.dbKey);
             if (dbJson) {
@@ -39,6 +41,7 @@ define(function (require, exports, module) {
             }
             delete dbJson;
         }
+        */
 
         provider.getRoute = function (routeId) {
             if (!this.db) {
@@ -122,56 +125,71 @@ define(function (require, exports, module) {
 
     exports.fetchAllDatabase = function (pc) {
         return new Promise((resolve, reject) => {
-            var needs = {};
             var proms = [];
-            var p;
             for (var provider of exports.providers) {
-                if (provider.db) {
-                    p = new Promise((resolve, reject) => {
-                        provider.isDatabaseUpdateNeeded(resolve, reject, provider.db.version);
-                    });
-                    p.then(function (needed) {
-                        needs[provider.name] = needed;
-                    }).catch(function () {
-                        console.error("Error: Database check update for " + provider.name + " failed!")
-                        needs[provider.name] = false;
-                    });
-                    proms.push(p);
-                } else {
-                    needs[provider.name] = true;
-                }
+                proms.push(Database.getTransitDatabaseByProvider(provider.name).then(function (db) {
+                    var Transit = require("gtw-citydata-transit");
+                    var provider = Transit.getProvider(db.provider);
+                    if (provider) {
+                        provider.db = db;
+                    }
+                }).catch(reject));
             }
             Promise.all(proms).then(function () {
-                console.log(needs);
+                var needs = {};
                 var proms = [];
                 var p;
-                for (const provider of exports.providers) {
-                    if (needs[provider.name]) {
+                for (var provider of exports.providers) {
+                    if (provider.db) {
                         p = new Promise((resolve, reject) => {
-                            provider.fetchDatabase(resolve, reject);
+                            provider.isDatabaseUpdateNeeded(resolve, reject, provider.db.version);
                         });
-                        p.then(function (data) {
-                            console.log(data);
-                            const { routes, stops, version } = data;
-
-                            if (!routes || !stops || !version) {
-                                console.error("Error: Returned database is in wrong structure for " + provider.name);
-                                return;
-                            }
-
-                            var db = {
-                                routes: routes,
-                                stops: stops,
-                                version: version
-                            };
-                            localStorage.setItem(provider.dbKey, JSON.stringify(db));
-                            provider.db = db;
+                        p.then(function (needed) {
+                            needs[provider.name] = needed;
+                        }).catch(function () {
+                            console.error("Error: Database check update for " + provider.name + " failed!");
+                            needs[provider.name] = false;
                         });
                         proms.push(p);
+                    } else {
+                        needs[provider.name] = true;
                     }
                 }
-                Misc.allProgress(proms, pc).then(resolve).catch(reject);
-            });
+                Promise.all(proms).then(function () {
+                    console.log(needs);
+                    var proms = [];
+                    var p;
+                    for (const provider of exports.providers) {
+                        if (needs[provider.name]) {
+                            p = new Promise((resolve, reject) => {
+                                provider.fetchDatabase(resolve, reject);
+                            });
+                            p.then(function (data) {
+                                console.log(data);
+                                const { routes, stops, version } = data;
+
+                                if (!routes || !stops || !version) {
+                                    console.error("Error: Returned database is in wrong structure for " + provider.name);
+                                    return;
+                                }
+
+                                var db = {
+                                    transit: "TRANSIT_BUS",
+                                    provider: provider.name,
+                                    routes: routes,
+                                    stops: stops,
+                                    version: version
+                                };
+                                //localStorage.setItem(provider.dbKey, JSON.stringify(db));
+                                provider.db = db;
+                                return Database.putTransitDatabase(db);
+                            });
+                            proms.push(p);
+                        }
+                    }
+                    Misc.allProgress(proms, pc).then(resolve).catch(reject);
+                });
+            }).catch(reject);
         });
     }
 
