@@ -107,18 +107,27 @@ define(function (require, exports, module) {
                         exports.plugins[pkg].status = -4;
                         exports.plugins[pkg].msg = msg;
                     } else {
-                        var status = mod.onload();
-                        if (status) {
-                            exports.plugins[pkg].status = 0;
-                            delete exports.plugins[pkg].msg;
-                        } else {
-                            var msg = $.i18n("plugin-error-onload-function-error", pkg);
-                            console.error(msg);
-                            exports.plugins[pkg].status = -5;
-                            exports.plugins[pkg].msg = msg;
-                        }
+                        var promise = new Promise((resolve, reject) => {
+                            var status = mod.onload();
+                            if (status instanceof Promise) {
+                                status.then(resolve).catch(reject);
+                            } else {
+                                resolve(status);
+                            }
+                        });
+                        promise.then(function (status) {
+                            if (status) {
+                                exports.plugins[pkg].status = 0;
+                                delete exports.plugins[pkg].msg;
+                            } else {
+                                var msg = $.i18n("plugin-error-onload-function-error", pkg);
+                                console.error(msg);
+                                exports.plugins[pkg].status = -5;
+                                exports.plugins[pkg].msg = msg;
+                            }
+                            resolve();
+                        }).catch(reject);
                     }
-                    resolve();
                 }, function (err) {
                     exports.plugins[pkg].status = -2;
                     exports.plugins[pkg].msg = err;
@@ -170,11 +179,13 @@ define(function (require, exports, module) {
                     $.ajax({
                         url: url,
                         dataType: "json",
+                        cache: false,
                         success: function (_infoJson) {
                             const infoJson = _infoJson;
                             $.ajax({
                                 url: "https://plugins.gotowhere.ga/repos/" + infoJson.package + "/plugin.js",
                                 dataType: "text",
+                                cache: false,
                                 success: function (script) {
                                     var sha1 = CryptoJS.SHA1(script);
 

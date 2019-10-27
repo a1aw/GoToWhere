@@ -19,14 +19,18 @@ body {
 /* Toast */
 
 .toast-stack-container {
-    position: static;
-    min-height: 200px;
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100%;
 }
 
 #gtw-toast-stack {
     position: absolute;
-    top: 1.5rem;
-    right: 1.5rem;
+    top: 0;
+    right: 0;
+    margin: 1rem;
+    z-index: 3;
 }
 
 /* Startup DIV CSS */
@@ -134,8 +138,12 @@ body {
     z-index: 2;
 }
 
+.container {
+    padding: 0px;
+}
+
 .content-panel-container {
-    display: inline-block;
+
 }
 
 .item-list {
@@ -202,7 +210,7 @@ body {
 
 /* Header, footer CSS */
 
-.header {
+.gtw-container {
     position: fixed;
     top: 0;
     width: 100%;
@@ -303,12 +311,12 @@ body {
     }
 
     .half-map-container {
-        width: 25%;
+        /*width: 25%;*/
         margin-left: 0;
     }
 
     .content-panel-container {
-        width: 25%;
+        /*width: 25%;*/
         margin-left: 0;
     }
 
@@ -322,7 +330,7 @@ body {
         margin-left: 25%;*/
     }
 
-    .header {
+    .gtw-container {
         width: 25%;
     }
 
@@ -353,9 +361,14 @@ body {
 }
 
 @media only screen and (max-width: 768px) {
-    .header nav {
+    .container nav {
         margin-top: env(safe-area-inset-top);
         background-color: unset;
+    }
+
+    .toast-stack-container {
+        margin-top: env(safe-area-inset-top);
+        margin-bottom: env(safe-area-inset-bottom);
     }
 
     .getting-started-panel {
@@ -419,11 +432,13 @@ body {
     }
 }
 
+/*
 @media only screen and (max-height: 768px) and (orientation: landscape) {
     .landscape-notice {
         display: block;
     }
 }
+*/
 
 @media screen and (max-width: 470px) {
     .startup h1 {

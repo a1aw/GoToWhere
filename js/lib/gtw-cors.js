@@ -43,6 +43,11 @@ define(function (require, exports, module) {
                 return;
             }
 
+            if (config.allowCors) {
+                callback();
+                return;
+            }
+
             if (Settings.get("use_cors_proxy", true)) {
                 var proxy = Settings.get("cors_proxy_server", "https://cp1.gotowhere.ga/");
                 if (proxy.startsWith("https://") && proxy.endsWith("/")) {
@@ -70,7 +75,7 @@ define(function (require, exports, module) {
                     });
                     return;
                 }
-            } else if (!config.allowCors) {
+            } else {
                 console.error("gtw-cors: The request was dropped because there are no proxy available to handle CORS requests.");
                 callback({
                     status: 403,

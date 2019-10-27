@@ -51,7 +51,7 @@ define(function (require, exports, module) {
             global.currentLocationMarker = new google.maps.Marker({
                 position: global.currentPosition,
                 map: map,
-                icon: _urlPrefix + "img/human.png"
+                icon: "img/human.png"
             });
 
             map.setCenter(global.currentPosition);

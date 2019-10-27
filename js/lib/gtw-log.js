@@ -6,7 +6,7 @@ define(function (require, exports, module) {
     var global = this;
 
     var logEntries = [];
-
+    
     var jsTrace = console.trace;
     console.trace = function (msg) {
         global.log("console", msg, -1);
@@ -120,9 +120,7 @@ define(function (require, exports, module) {
         }
 
         node.prepend(html);
-
-        console.log("Showing toast: " + id);
-        console.log(html);
+        
         var key = ".toast[log-entry-id='" + id + "']";
         $(key).on('hidden.bs.toast', function () {
             $(this).remove();
