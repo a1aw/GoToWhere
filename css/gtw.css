@@ -167,7 +167,7 @@ body {
 }
 
 .stop-eta tr.active {
-    font-size: 24px;
+    font-size: 18px;
     font-weight: bold;
 }
 
@@ -361,7 +361,7 @@ body {
 }
 
 @media only screen and (max-width: 768px) {
-    .container nav {
+    .gtw-container nav {
         margin-top: env(safe-area-inset-top);
         background-color: unset;
     }
