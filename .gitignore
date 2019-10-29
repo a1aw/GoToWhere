@@ -1,3 +1,6 @@
 pluginsdev/*
 .vs/*
 nwst_db.json
+node_modules
+dist
+package-lock.json
