@@ -2,7 +2,7 @@
 
 import * as Settings from './gtw-settings';
 
-export const locales = {
+export const languages = {
     "en": "English",
     "zh": "\u7e41\u9ad4\u4e2d\u6587"
 };
@@ -44,7 +44,7 @@ export function getLocale() {
 
 export function changeLanguage(locale) {
     var found = false;
-    for (var x in locales) {
+    for (var x in languages) {
         if (locale === x) {
             found = true;
             break;

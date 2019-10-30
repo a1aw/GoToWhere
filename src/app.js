@@ -4,7 +4,7 @@ import $ from 'jquery';
 window.jQuery = $;
 window.$ = $;
 
-var req = require.context("jquery-i18n/src");
+var req = require.context("@wikimedia/jquery.i18n/src");
 
 var files = ["js", "messagestore", "fallbacks", "parser", "emitter", "language"];
 files.forEach(function (module) {
@@ -15,6 +15,14 @@ import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './style.css';
 import './timeline.css';
+
+import 'smartwizard';
+import 'smartwizard/dist/css/smart_wizard.css';
+
+import '@fortawesome/fontawesome-free/js/fontawesome';
+import '@fortawesome/fontawesome-free/js/solid';
+import '@fortawesome/fontawesome-free/js/regular';
+import '@fortawesome/fontawesome-free/js/brands';
 
 //Strict mode
 'use strict';
@@ -70,12 +78,12 @@ $(window).resize(function () {
     adjustMargin();
 });
 
-function adjustMargin() {
+window.adjustMargin = function () {
     var hh = $(".header").height();
     var dh = $(window).height();
     $(".desktop.half-map-container").css("height", dh - hh);
     $(".content-panel-container").css("height", dh - hh);
-}
+};
 
 /*
 requirejs.config({

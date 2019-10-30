@@ -41,7 +41,7 @@ export function dispatch() {
 
     if (running) {
         setTimeout(function () {
-            global.dispatch();
+            dispatch();
         }, duration);
     }
 }

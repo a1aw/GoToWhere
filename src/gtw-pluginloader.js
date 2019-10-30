@@ -187,7 +187,7 @@ export function download(pc) {
                             dataType: "text",
                             cache: false,
                             success: function (script) {
-                                var sha1 = CryptoJS.SHA1(script);
+                                var sha1 = CryptoJS.SHA1(script).toString();
 
                                 if (sha1 !== infoJson.checksum) {
                                     var msg = $.i18n("plugin-error-download-online-checksum-mismatch", json.package, infoJson.checksum, sha1);

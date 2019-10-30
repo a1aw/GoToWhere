@@ -7,7 +7,7 @@ var providers = [];
 var cache = {};
 
 export function clearCache() {
-    exports.cache = {};
+    cache = {};
 }
 
 export function timeDifference(a, b) {
@@ -213,7 +213,7 @@ export function fetchEta(opt) {
 
                 if (cached && (now - cached.lastFetched) > 30000) {
                     cached = false;
-                    delete exports.cache[key];
+                    delete cache[key];
                 }
 
                 if (!cached) {

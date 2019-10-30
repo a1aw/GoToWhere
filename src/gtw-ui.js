@@ -58,12 +58,14 @@ var timers = {};
  
 var modalTimers = [];
 
+var installCount = 0;
+
 export function init() {
     showTab("transitEta");
     adjustMargin();
     showPanel();
 
-    if (Object.keys(PluginLoader.plugins).length == 0) {
+    if (Object.keys(PluginLoader.plugins).length === 0) {
         gettingStarted();
     }
 }
@@ -81,8 +83,8 @@ export function gettingStarted() {
     $(".getting-started-panel").css("display", "block");
 
     var html = "";
-    for (var lang in Lang.locales) {
-        html += "<option value=\"" + lang + "\">" + Lang.locales[lang] + " (" + lang + ")</option>";
+    for (var lang in Lang.languages) {
+        html += "<option value=\"" + lang + "\">" + Lang.languages[lang] + " (" + lang + ")</option>";
     }
     $("#langSelect").html(html);
     $("#langSelect").on("change", function () {
@@ -108,12 +110,13 @@ export function gettingStarted() {
             for (var region in byRegion) {
                 regionOptionsHtml += "<option value=\"" + region + "\"> " + region + "</option>";
             }
-            $("#regionSelect").removeAttr("disabled")
+            $("#regionSelect").removeAttr("disabled");
             $("#regionSelect").html(regionOptionsHtml);
             gettingStarted_reposJson = reposJson;
         },
         error: function (err) {
-
+            $("#regionSelect").html("<option>Error</option>");
+            console.error("Error: Could not fetch repository JSON for plugins!");
         }
     });
 
@@ -149,7 +152,7 @@ export function gettingStarted() {
         var val = $(this).val();
         var node = $("#pluginsToInstallAccordion");
         var installCountNode = $("#pluginsToInstallCount");
-        if (val == "notselected") {
+        if (val === "notselected") {
             node.html("");
             installCountNode.html("");
             calcInstallCount();
@@ -259,7 +262,7 @@ export function gettingStarted() {
                 var i;
                 for (i = 0; i < errors.length; i++) {
                     html += errors[i];
-                    if (i != errors.length - 1) {
+                    if (i !== errors.length - 1) {
                         html += ", ";
                     }
                 }

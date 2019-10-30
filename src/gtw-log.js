@@ -2,33 +2,31 @@
 
 var maxEntries = 1000;
 
-var global = this;
-
 var logEntries = [];
 
 var jsTrace = console.trace;
 console.trace = function (msg) {
-    global.log("console", msg, -1);
+    log("console", msg, -1);
 };
 
 var jsDebug = console.debug;
 console.debug = function (msg) {
-    global.log("console", msg, -2);
+    log("console", msg, -2);
 };
 
 var jsInfo = console.log;
 console.log = function (msg) {
-    global.log("console", msg, 0);
+    log("console", msg, 0);
 };
 
 var jsWarn = console.warn;
 console.warn = function (msg) {
-    global.log("console", msg, 1);
+    log("console", msg, 1);
 };
 
 var jsError = console.error;
 console.error = function (msg) {
-    global.log("console", msg, 2);
+    log("console", msg, 2);
 };
 
 export var printObject = true;

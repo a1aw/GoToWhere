@@ -6,7 +6,7 @@ export var map = false;
 
 export function init() {
     return new Promise((resolve, reject) => {
-        require(["gtw-map-" + config.mapApi], function (m) {
+        import("./gtw-map-" + config.mapApi).then(function (m) {
             map = m;
             map.init().then(function () {
                 resolve();

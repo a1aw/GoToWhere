@@ -116,7 +116,7 @@ export function fetchAllDatabase(pc) {
             Promise.all(proms).then(function () {
                 var proms = [];
                 var p;
-                for (var provider of exports.providers) {
+                for (var provider of providers) {
                     if (needs[provider.id]) {
                         p = new Promise((resolve, reject) => {
                             provider.fetchDatabase(resolve, reject);

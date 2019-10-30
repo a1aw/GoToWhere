@@ -40,31 +40,24 @@ export function requestLocationAccess(successFunc = function () { }, errorFunc =
     var global = this;
 
     navigator.geolocation.getCurrentPosition(function (position) {
-        global.currentPosition = {
+        currentPosition = {
             lat: position.coords.latitude,
             lng: position.coords.longitude
         };
 
-        global.currentLocationMarker = new google.maps.Marker({
-            position: global.currentPosition,
-            map: map,
-            icon: "img/human.png"
-        });
+        Map.setCenter(currentPosition);
+        Map.setZoom(16);
 
-        map.setCenter(global.currentPosition);
-        map.setZoom(16);
-
-        global.watchId = navigator.geolocation.watchPosition(
-            function (p) { global.onPositionChangeSuccess(p) },
-            function (e) { global.onPositionChangeError(e) },
+        watchId = navigator.geolocation.watchPosition(
+            onPositionChangeSuccess,
+            onPositionChangeError,
             {
                 enableHighAccuracy: false,
                 timeout: 5000,
                 maximumAge: 0
             }
         );
-
-        successFunc(global.currentPosition);
+        successFunc(currentPosition);
     }, function () {
         errorFunc(ERROR_NO_ACCESS);
     }, { timeout: 5000 });
@@ -79,7 +72,6 @@ export function onPositionChangeSuccess(position) {
         lat: position.coords.latitude,
         lng: position.coords.longitude
     };
-    //currentLocationMarker.setPosition(exports.currentPosition);
 }
 
 export function onPositionChangeError(error) {

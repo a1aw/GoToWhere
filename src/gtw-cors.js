@@ -109,10 +109,10 @@ export function isCors(url) {
         return true;
     }
 
-    var host = exports.extractHost(url);
+    var host = extractHost(url);
 
-    if (this.domains[host]) {
-        var config = this.domains[host];
+    if (domains[host]) {
+        var config = domains[host];
         if (config.allowCors) {
             return false;
         }
