@@ -59,7 +59,9 @@ module.exports = {
     plugins: [
         new CleanWebpackPlugin(),
         new CopyWebpackPlugin([
-            { from: "src/i18n", to: "i18n" }
+            { from: "src/i18n", to: "i18n" },
+            { from: "src/img", to: "img" },
+            { from: "src/CNAME", to: "./" }
         ]),
         new HtmlWebpackPlugin({
             title: 'GoToWhere',

@@ -18,11 +18,14 @@ export function install(pkg, autoSave) {
     return true;
 }
 
-export function uninstall(pkg){
+export function uninstall(pkg, autoSave){
     var i;
     for (i = 0; i < installedPlugins.length; i++){
         if (installedPlugins[i] === pkg){
             installedPlugins.splice(i, 1);
+            if (autoSave !== false) {
+                save();
+            }
             return true;
         }
     }
@@ -64,13 +67,12 @@ export function load(pc) {
         console.warn("Warning: Installed plugins JSON string is invalid. Resetting as empty.");
         save();
     }
-
-    var info;
+    
     var p;
     var proms = [];
     for (var installedPlugin of installedPlugins) {
-        info = {
-            pkg: installedPlugin,
+        const info = {
+            "package": installedPlugin,
             status: 1,
             msg: "Not Enabled"
         };

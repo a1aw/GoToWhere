@@ -632,12 +632,10 @@ export var scripts = {
         var html = "";
         var errSummary;
         for (var plugin of errorPlugins) {
-            if (plugin.status >= -2 && plugin.status <= -1) {
-                errSummary = $.i18n("error-plugins-summary-network-error") + " (" + plugin.status + ")";
-            } else if (plugin.status >= -7 && plugin.status <= -3) {
-                errSummary = $.i18n("error-plugins-summary-plugin-load") + " Error (" + plugin.status + ")";
-            } else if (plugin.status >= -9 && plugin.status <= -8) {
-                errSummary = $.i18n("error-plugins-summary-checksum-mismatch") + " (" + plugin.status + ")";
+            if (plugin.status === -1) {
+                errSummary = $.i18n("error-plugins-summary-plugin-not-available") + " (" + plugin.status + ")";
+            } else if (plugin.status >= -2 && plugin.status <= -4) {
+                errSummary = $.i18n("error-plugins-summary-plugin-load") + " (" + plugin.status + ")";
             } else {
                 errSummary = $.i18n("error-plugins-summary-unknown-status-code") + " (" + plugin.status + ")";
             }
@@ -655,12 +653,10 @@ export var scripts = {
             html += "<p><b>" + $.i18n("error-plugins-message") + "</b><br/>" + plugin.msg + "</p>";
             html += "<p><b>" + $.i18n("error-plugins-solutions") + "</b><br/>";
 
-            if (plugin.status >= -2 && plugin.status <= -1) {
-                html += $.i18n("error-plugins-solution-network-error");
-            } else if (plugin.status >= -7 && plugin.status <= -3) {
+            if (plugin.status === -1) {
+                html += $.i18n("error-plugins-solution-plugin-not-available");
+            } else if (plugin.status >= -4 && plugin.status <= -2) {
                 html += $.i18n("error-plugins-solution-plugin-load", plugin.status);
-            } else if (plugin.status >= -9 && plugin.status <= -8) {
-                html += $.i18n("error-plugins-solution-checksum-mismatch") + "<br/><button class=\"btn btn-warning error-plugin-accept-checksum-btn\" type=\"button\" package=\"" + plugin.package + "\">" + $.i18n("error-plugins-solution-checksum-mismatch-accept-btn") + "</button>";
             } else {
                 html += $.i18n("error-plugins-solution-unknown-status-code", plugin.status);
             }
@@ -688,27 +684,18 @@ export var scripts = {
             window.location.reload();
         });
     },
-    "viewplugin": function (reposJson, pkg) {
+    "viewplugin": function (pkg) {
         $(".modal .close").on("click", function () {
             showModal("pluginmanager");
         });
 
         var packageJson = 0;
-        for (var category of reposJson) {
-            for (var pjson of category.plugins) {
-                if (pjson.package === pkg) {
-                    packageJson = pjson;
-                    break;
-                }
-            }
-
-            if (packageJson) {
+        for (var pkey in repos) {
+            if (pkey === pkg) {
+                packageJson = repos[pkey];
                 break;
             }
         }
-
-        modalVars["reposJson"] = reposJson;
-        modalVars["packageJson"] = packageJson;
 
         if (!packageJson) {
             $(".modal-body").html($.i18n("view-plugin-repos-cannot-find-package"));
@@ -731,8 +718,6 @@ export var scripts = {
         html += $.i18n("view-plugin-details-package") + ": " + packageJson.package + "<br />";
         html += $.i18n("view-plugin-details-description") + ": " + packageJson.desc + "</p>";
 
-        var localChecksum = 0;
-
         html += "<h3>" + $.i18n("view-plugin-installation") + "</h3>";
         html += "<hr />";
 
@@ -742,15 +727,13 @@ export var scripts = {
         if (!json) {
             statusMsg += "text-info\">" + $.i18n("view-plugin-installation-not-installed");
         } else if (json.status === -1) {
-            statusMsg += "text-danger\">" + $.i18n("view-plugin-installation-installed-but-could-not-start-up-correctly");
+            statusMsg += "text-danger\">" + $.i18n("view-plugin-installation-plugin-not-available");
         } else if (json.status === 0) {
             statusMsg += "text-success\">" + $.i18n("view-plugin-installation-installed-running");
         } else if (json.status === 1) {
             statusMsg += "text-secondary\">" + $.i18n("view-plugin-installation-not-enabled");
-        } else if (json.status <= -2 && json.status >= -7) {
+        } else if (json.status <= -2 && json.status >= -4) {
             statusMsg += "text-danger\">" + $.i18n("view-plugin-installation-plugin-load-errors", json.status);
-        } else if (json.status <= -8 && json.status >= -9) {
-            statusMsg += "text-danger\">" + $.i18n("view-plugin-installation-checksum-mismatch", json.status);
         } else {
             statusMsg += "text-secondary\">" + $.i18n("view-plugin-installation-unknown-status-code", json.status);
         }
@@ -760,14 +743,6 @@ export var scripts = {
 
         if (json && json.msg) {
             html += $.i18n("view-plugin-installation-message") + ": " + json.msg + "</p>";
-        }
-
-        if (json) {
-            html += $.i18n("view-plugin-installation-local-version") + ": " + json.local.version + "<br />";
-            html += $.i18n("view-plugin-installation-local-checksum") + ": " + json.local.checksum + "<br />";
-            html += $.i18n("view-plugin-installation-online-checksum") + ": " + packageJson.checksum + "<br />";
-            html += $.i18n("view-plugin-installation-checksum-validity") + ": <span class=\"font-weight-bold " +
-                (packageJson.checksum === json.local.checksum ? "text-success\">" + $.i18n("view-plugin-installation-checksum-validity-valid") : "text-danger\">" + $.i18n("view-plugin-installation-checksum-validity-invalid")) + "</span></p>";
         }
 
         html += "<hr />";
@@ -800,55 +775,51 @@ export var scripts = {
         $("#nav-libraries").html(html);
         $("#nav-others").html(html);
 
-        $.ajax({
-            url: "https://plugins.gotowhere.ga/repository.json",
-            dataType: "json",
-            success: function (reposJson) {
-                modalVars["reposJson"] = reposJson;
-
-                if (!reposJson || !reposJson.length) {
-                    alert("TODO: Handle invalid repos JSON error");
-                    return;
-                }
-
-                var allHtml = "<div class=\"list-group\">";
-                var tabNode = $("#nav-tab");
-                var tabContentNode = $("#nav-tabContent");
-                var pluginHtml;
-                var categoryTabHtml;
-                var categoryTabContentHtml;
-                var total = 0;
-                for (var category of reposJson) {
-                    total += category.plugins.length;
-                    categoryTabHtml = "<a class=\"nav-item nav-link\" id=\"nav-" + category.id + "-tab\" data-toggle=\"tab\" href=\"#nav-" + category.id + "\" role=\"tab\" aria-controls=\"nav-" + category.id + "\" aria-selected=\"true\">" + category.name + " (" + category.plugins.length + ")</a>";
-                    categoryTabContentHtml = "<div class=\"tab-pane fade\" id=\"nav-" + category.id + "\" role=\"tabpanel\" aria-labelledby=\"nav-" + category.id + "-tab\"><div class=\"list-group\">";
-                    for (var pluginJson of category.plugins) {
-                        pluginHtml = "<a href=\"#\" class=\"list-group-item list-group-item-action ui-pluginmanager-view-plugin\" package=\"" + pluginJson.package + "\">";
-                        pluginHtml += "    <div class=\"d-flex w-100 justify-content-between\">";
-                        pluginHtml += "        <h5 class=\"mb-1\">" + pluginJson.fullName + "</h5>";
-                        pluginHtml += "        <small>" + pluginJson.version + "</small>";
-                        pluginHtml += "    </div>";
-                        pluginHtml += "    <p class=\"mb-1\">" + pluginJson.desc + "</p>";
-                        pluginHtml += "    <small>By " + pluginJson.author + "</small>";
-                        pluginHtml += "</a>";
-                        categoryTabContentHtml += pluginHtml;
-                        allHtml += pluginHtml;
-                    }
-                    categoryTabContentHtml += "</div></div>";
-                    tabNode.append(categoryTabHtml);
-                    tabContentNode.append(categoryTabContentHtml);
-                }
-
-                $("#nav-all-tab").html($.i18n("plugin-manager-tab-all") + " (" + total + ")");
-                $("#nav-all").html(allHtml);
-
-                $(".ui-pluginmanager-view-plugin").on("click", function () {
-                    showModal("viewplugin", modalVars["reposJson"], $(this).attr("package"));
-                });
-            },
-            error: function () {
-
+        var byCategory = {};
+        for (var pluginKey in repos) {
+            if (!byCategory[repos[pluginKey].category]) {
+                byCategory[repos[pluginKey].category] = [];
             }
+            byCategory[repos[pluginKey].category].push(repos[pluginKey]);
+        }
+
+        var allHtml = "<div class=\"list-group\">";
+        var tabNode = $("#nav-tab");
+        var tabContentNode = $("#nav-tabContent");
+        var pluginHtml;
+        var categoryTabHtml;
+        var categoryTabContentHtml;
+        var category;
+        var total = 0;
+        for (var categoryKey in byCategory) {
+            category = cates[categoryKey];
+
+            total += byCategory[categoryKey].length;
+            categoryTabHtml = "<a class=\"nav-item nav-link\" id=\"nav-" + category.id + "-tab\" data-toggle=\"tab\" href=\"#nav-" + category.id + "\" role=\"tab\" aria-controls=\"nav-" + category.id + "\" aria-selected=\"true\">" + category.name + " (" + byCategory[categoryKey].length + ")</a>";
+            categoryTabContentHtml = "<div class=\"tab-pane fade\" id=\"nav-" + category.id + "\" role=\"tabpanel\" aria-labelledby=\"nav-" + category.id + "-tab\"><div class=\"list-group\">";
+
+            for (var pluginJson of byCategory[categoryKey]) {
+                pluginHtml = "<a href=\"#\" class=\"list-group-item list-group-item-action ui-pluginmanager-view-plugin\" package=\"" + pluginJson.package + "\">";
+                pluginHtml += "    <div class=\"d-flex w-100 justify-content-between\">";
+                pluginHtml += "        <h5 class=\"mb-1\">" + pluginJson.fullName + "</h5>";
+                pluginHtml += "        <small>" + pluginJson.version + "</small>";
+                pluginHtml += "    </div>";
+                pluginHtml += "    <p class=\"mb-1\">" + pluginJson.desc + "</p>";
+                pluginHtml += "    <small>By " + pluginJson.author + "</small>";
+                pluginHtml += "</a>";
+                categoryTabContentHtml += pluginHtml;
+                allHtml += pluginHtml;
+            }
+            categoryTabContentHtml += "</div></div>";
+            tabNode.append(categoryTabHtml);
+            tabContentNode.append(categoryTabContentHtml);
+        }
+
+        $("#nav-all-tab").html($.i18n("plugin-manager-tab-all") + " (" + total + ")");
+        $("#nav-all").html(allHtml);
+
+        $(".ui-pluginmanager-view-plugin").on("click", function () {
+            showModal("viewplugin", $(this).attr("package"));
         });
     },
 

@@ -275,15 +275,10 @@ export function fetchEta(opt) {
                     }
                 }
                 schedules.sort(function (a, b) {
-                    /*
                     if (!a.time) {
                         return 1;
                     } else if (!b.time) {
                         return -1;
-                    }
-                    */
-                    if (!a.time || !b.time) {
-                        return 0;
                     }
                     return a.time - b.time;
                 });
