@@ -29,6 +29,10 @@ export function uninstall(pkg){
     return false;
 }
 
+export function getPlugin(pkg) {
+    return plugins[pkg];
+}
+
 export function isInstalled(pkg) {
     for (var plugin of installedPlugins){
         if (plugin === pkg){
@@ -40,7 +44,7 @@ export function isInstalled(pkg) {
 
 export function save() {
     var localStorage = window.localStorage;
-    localStorage.setItem("gtw-plugins", installedPlugins);
+    localStorage.setItem("gtw-plugins", JSON.stringify(installedPlugins));
     return true;
 }
 
@@ -113,7 +117,7 @@ export function load(pc) {
             info.status = -1;
             info.msg = "This plugin is not available in this version of GoToWhere.";
         }
-        plugins.push(info);
+        plugins[installedPlugin] = info;
     }
     return Misc.allProgress(proms, pc);
 }

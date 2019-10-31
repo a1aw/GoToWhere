@@ -11,6 +11,8 @@ import * as PluginLoader from './gtw-pluginloader';
 import * as Loc from './gtw-location';
 import * as Misc from './gtw-misc';
 import * as Lang from './gtw-lang';
+import repos from './plugins/repository.json';
+import cates from './plugins/categories.json';
 
 $(document).ready(function () {
     $(".header-links-plugins").on("click", function () {
@@ -58,6 +60,8 @@ var timers = {};
  
 var modalTimers = [];
 
+var searchTimeout;
+
 var installCount = 0;
 
 export function init() {
@@ -91,42 +95,40 @@ export function gettingStarted() {
         Lang.changeLanguage($(this).val());
     });
 
-    $.ajax({
-        url: "https://plugins.gotowhere.ga/repository.json",
-        cache: false,
-        dataType: "json",
-        success: function (reposJson) {
-            var byRegion = {};
-            for (var category of reposJson) {
-                for (var plugin of category.plugins) {
-                    if (!byRegion[plugin.region]) {
-                        byRegion[plugin.region] = [];
-                    }
-                    byRegion[plugin.region].push(plugin);
-                }
-            }
-            $("#regionSelect").html("");
-            var regionOptionsHtml = "<option value=\"notselected\">-- " + $.i18n("getting-started-wizard-step-plugins-select") + " --</option>";
-            for (var region in byRegion) {
-                regionOptionsHtml += "<option value=\"" + region + "\"> " + region + "</option>";
-            }
-            $("#regionSelect").removeAttr("disabled");
-            $("#regionSelect").html(regionOptionsHtml);
-            gettingStarted_reposJson = reposJson;
-        },
-        error: function (err) {
-            $("#regionSelect").html("<option>Error</option>");
-            console.error("Error: Could not fetch repository JSON for plugins!");
+    var byRegion = {};
+    for (var key in repos) {
+        if (!byRegion[repos[key].region]) {
+            byRegion[repos[key].region] = [];
         }
-    });
+        byRegion[repos[key].region].push(repos[key]);
+    }
+
+    $("#regionSelect").html("");
+    var regionOptionsHtml = "<option value=\"notselected\">-- " + $.i18n("getting-started-wizard-step-plugins-select") + " --</option>";
+    for (var region in byRegion) {
+        regionOptionsHtml += "<option value=\"" + region + "\"> " + region + "</option>";
+    }
+    $("#regionSelect").removeAttr("disabled");
+    $("#regionSelect").html(regionOptionsHtml);
+
+    var byCategory = {};
+    for (var pluginKey in repos) {
+        if (!byCategory[repos[pluginKey].category]) {
+            byCategory[repos[pluginKey].category] = [];
+        }
+        byCategory[repos[pluginKey].category].push(repos[pluginKey]);
+    }
 
     var calcInstallCount = function () {
-        var reposJson = gettingStarted_reposJson;
         var totalCount = 0;
         var categoryCount;
         var node;
         var allCount = 0;
-        for (var category of reposJson) {
+        var category;
+
+        for (var categoryKey in byCategory) {
+            category = cates[categoryKey];
+
             categoryCount = 0;
             $(".plugin-switch[category-id='" + category.id + "']").each(function () {
                 if ($(this).prop("checked")) {
@@ -134,10 +136,11 @@ export function gettingStarted() {
                 }
             });
             node = $(".category-btn[category-id='" + category.id + "']");
-            node.html(node.attr("category-name") + " (" + categoryCount + "/" + category.plugins.length + ")");
+            node.html(node.attr("category-name") + " (" + categoryCount + "/" + byCategory[categoryKey].length + ")");
             totalCount += categoryCount;
-            allCount += category.plugins.length;
+            allCount += byCategory[categoryKey].length;
         }
+
         $("#pluginsToInstallCount").html($.i18n("getting-started-wizard-step-plugins-install-count", totalCount, allCount));
         $("#installCount").html($.i18n("getting-started-wizard-step-finish-press-button", totalCount));
         $(".need-to-install").css("display", totalCount > 0 ? "none" : "block");
@@ -159,14 +162,15 @@ export function gettingStarted() {
             return;
         }
 
-        var reposJson = gettingStarted_reposJson;
-
         var html = "";
         var pluginHtml;
-        for (var category of reposJson) {
+        var category;
+        for (var categoryKey in byCategory) {
+            category = cates[categoryKey];
+
             installCount = 0;
             pluginHtml = "";
-            for (var plugin of category.plugins) {
+            for (var plugin of byCategory[categoryKey]) {
                 pluginHtml +=
                     "            <div class=\"custom-control custom-switch\">" +
                     "                <input type=\"checkbox\" class=\"custom-control-input plugin-switch" + (plugin.closedApi ? " plugin-closed-api" : "") + "\" category-id=\"" + category.id + "\" package=\"" + plugin.package + "\" id=\"switch-" + plugin.package + "\"" + (plugin.closedApi ? "" : "checked") + ">" +
@@ -248,7 +252,7 @@ export function gettingStarted() {
             Misc.allProgress(proms, function (p) {
                 $("#gs-plugin-progress").css("width", p + "%");
             }).then(function () {
-                if (errors.length == 0) {
+                if (errors.length === 0) {
                     setTimeout(function () {
                         window.location.reload();
                     }, 500);
@@ -287,14 +291,14 @@ export function clearUp() {
     timers = [];
     $(".tab-panel").html("");
     $(".content-panel-container").html("");
-};
+}
 
 export function modalClearUp() {
     modalVars = {};
     for (var timer of modalTimers) {
         clearInterval(timer);
     }
-};
+}
 
 export function showModal(layout, ...args) {
     //nowUi = layout;
@@ -305,10 +309,10 @@ export function showModal(layout, ...args) {
     loadModalLayout(layout, true).then(function () {
         $(".modal").i18n();
         if (typeof scripts[layout] === "function") {
-            (scripts[layout]).apply(this, args);
+            scripts[layout].apply(this, args);
         }
     });
-};
+}
 
 export function loadModalLayout(layout, options = {}) {
     var key = "modal-" + layout;
@@ -335,11 +339,11 @@ export function loadModalLayout(layout, options = {}) {
         $(".modal").modal(options);
     });
     return p;
-};
+}
 
 export function hideModal() {
     $(".modal").modal("hide");
-};
+}
 
 export function isModalShown() {
     return ($(".modal").data('bs.modal') || {})._isShown;
@@ -349,7 +353,7 @@ export function showTab(tab) {
     clearUp();
     currentTab = tab;
     scripts[tab]();
-};
+}
 
 export function showPanel() {
     $(".content-panel-container").css("display", "inline-block");
@@ -368,7 +372,7 @@ export function showPanel() {
     //$(".half-map-container").css("display", "none");
     //$(".map-overlay").fadeIn(500);
     adjustMargin();
-};
+}
 
 export function hidePanel() {
     $(".top-panel").css("display", "none");
@@ -386,7 +390,7 @@ export function hidePanel() {
     //$(".header nav").removeClass("bg-dark");
     //$(".map-overlay").fadeOut(500);
     adjustMargin();
-};
+}
 
 export function drawRouteOnMap(route, bound) {
     var path = route.paths[bound];
@@ -403,7 +407,7 @@ export function drawRouteOnMap(route, bound) {
     }
 
     Map.addPolyline(coords, "#FF0000", 2);
-};
+}
 
 export function showRouteList(route, bound, stop = false, scroll = false) {
     var html = "<div class=\"row\" style=\"padding: 2%;\"><div class=\"timeline-centered\">";
@@ -455,7 +459,7 @@ export function showRouteList(route, bound, stop = false, scroll = false) {
 
         var node = $(parent + " .timeline-entry[stop-id='" + stop.stopId + "']");
 
-        var icon = node.children().children(".timeline-icon")
+        var icon = node.children().children(".timeline-icon");
         icon.removeClass("bg-light");
         icon.addClass("bg-primary");
 
@@ -475,7 +479,7 @@ export function showRouteList(route, bound, stop = false, scroll = false) {
         func();
         timers["stopEtaUpdate"] = setInterval(func, 30000);
     }
-};
+}
 
 export function showStopEta(route, bound, stop) {
     var node = $(".timeline-entry[stop-id='" + stop.stopId + "'] p");
@@ -508,21 +512,21 @@ export function showStopEta(route, bound, stop) {
             var h = data.options;
             var content = "";
             var node = $(".timeline-entry[stop-id='" + h.stopId + "'] p table tbody");
-            if (data.code && data.code == -2) {
+            if (data.code && data.code === -2) {
                 content +=
                     "<tr class=\"table-dark\">" +
                     "    <td colspan=\"3\">" + $.i18n("transit-eta-no-eta-providers") + "</td>" +
                     //"    <td>---</td>" +
                     "</tr>"
                     ;
-            } else if (!data.schedules || data.code && data.code == -1) {
+            } else if (!data.schedules || data.code && data.code === -1) {
                 content +=
                     "<tr class=\"table-dark\">" +
                     "    <td colspan=\"3\">" + $.i18n("transit-eta-no-data-received") + "</td>" +
                     //"    <td>---</td>" +
                     "</tr>"
                     ;
-            } else if (data.schedules.length == 0) {
+            } else if (data.schedules.length === 0) {
                 content +=
                     "<tr class=\"table-dark\">" +
                     "    <td colspan=\"3\">" + $.i18n("transit-eta-no-schedules-pending") + "</td>" +
@@ -545,7 +549,7 @@ export function showStopEta(route, bound, stop) {
                     } else if (eta >= 5) {
                         html += "warning";
                     } else if (eta >= 1) {
-                        html += "danger"
+                        html += "danger";
                     } else {
                         html += "dark";
                     }
@@ -613,7 +617,7 @@ export function showStopEta(route, bound, stop) {
 
                     //TODO: Features
 
-                    html += "</tr>"
+                    html += "</tr>";
                     content += html;
                 }
             }
@@ -627,7 +631,7 @@ export function showStopEta(route, bound, stop) {
     content += "</table>";
 
     node.html(content);
-};
+}
 
 export var scripts = {
     "pluginclosedapi": function (node, func) {
@@ -678,7 +682,7 @@ export var scripts = {
             } else {
                 html += $.i18n("error-plugins-solution-unknown-status-code", plugin.status);
             }
-            html += "</p>"
+            html += "</p>";
 
             html +=
                 "        </div>" +
@@ -709,9 +713,9 @@ export var scripts = {
 
         var packageJson = 0;
         for (var category of reposJson) {
-            for (var json of category.plugins) {
-                if (json.package === pkg) {
-                    packageJson = json;
+            for (var pjson of category.plugins) {
+                if (pjson.package === pkg) {
+                    packageJson = pjson;
                     break;
                 }
             }
@@ -755,11 +759,11 @@ export var scripts = {
         var statusMsg = "<span class=\"font-weight-bold ";
         if (!json) {
             statusMsg += "text-info\">" + $.i18n("view-plugin-installation-not-installed");
-        } else if (json.status == -1) {
+        } else if (json.status === -1) {
             statusMsg += "text-danger\">" + $.i18n("view-plugin-installation-installed-but-could-not-start-up-correctly");
-        } else if (json.status == 0) {
+        } else if (json.status === 0) {
             statusMsg += "text-success\">" + $.i18n("view-plugin-installation-installed-running");
-        } else if (json.status == 1) {
+        } else if (json.status === 1) {
             statusMsg += "text-secondary\">" + $.i18n("view-plugin-installation-not-enabled");
         } else if (json.status <= -2 && json.status >= -7) {
             statusMsg += "text-danger\">" + $.i18n("view-plugin-installation-plugin-load-errors", json.status);
@@ -795,7 +799,7 @@ export var scripts = {
         $(".modal-body").html(html);
 
         $(".ui-btn-viewplugin-install").on("click", function () {
-            PluginLoader.install(packageJson.package, packageJson.checksum, packageJson.version);
+            PluginLoader.install(packageJson.package);
             window.location.reload();
         });
 
@@ -875,7 +879,7 @@ export var scripts = {
             html +=
                 "<div class=\"form-group\">" +
                 "    <label><b>" + setting.name + ":</b><p>" + setting.desc + "</p></label>";
-            if (setting.type == "boolean") {
+            if (setting.type === "boolean") {
                 html += "    <select class=\"form-control\" id=\"gtw-settings-" + setting.key + "\">";
                 if (val) {
                     html +=
@@ -889,7 +893,7 @@ export var scripts = {
                 html += "    </select>";
             } else {
                 html += "    <input class=\"form-control\" id=\"gtw-settings-" + setting.key + "\" type=\"";
-                if (setting.type == "number") {
+                if (setting.type === "number") {
                     html += "number";
                 } else {
                     html += "text";
@@ -911,9 +915,9 @@ export var scripts = {
             var out;
             for (var setting of Settings.getDefaultSettings()) {
                 val = $("#gtw-settings-" + setting.key).val();
-                if (setting.type == "boolean") {
-                    out = val == "yes";
-                } else if (setting.type == "number") {
+                if (setting.type === "boolean") {
+                    out = val === "yes";
+                } else if (setting.type === "number") {
                     out = parseInt(val);
                 } else {
                     out = val;
@@ -942,7 +946,7 @@ export var scripts = {
                 max = vars["maxRequest"] = requestLen;
             }
 
-            $(".request-progress-panel .progress-bar").html($.i18n("transit-eta-requesting-data", (max - requestLen), max));
+            $(".request-progress-panel .progress-bar").html($.i18n("transit-eta-requesting-data", max - requestLen, max));
             //$(".request-progress-panel .progress-bar").html(Math.floor((max - requestLen) / max * 100) + "%");
             $(".request-progress-panel .progress-bar").css("width", Math.floor((max - requestLen) / max * 100) + "%");
         } else {
@@ -981,26 +985,26 @@ export var scripts = {
                 if (!eta || !eta.schedules || eta.code && eta.code < 0) {
                     text = $.i18n("transit-eta-route-not-available-short");
                     node.addClass("list-group-item-light");
-                } else if (eta.schedules.length == 0) {
+                } else if (eta.schedules.length === 0) {
                     text = $.i18n("transit-eta-no-schedules-pending-short");
                     node.addClass("list-group-item-light");
                 } else {
                     var schedule = eta.schedules[0];
 
-                    var eta = Math.floor((schedule.time - schedule.serverTime) / 1000 / 60);
+                    var calcEta = Math.floor((schedule.time - schedule.serverTime) / 1000 / 60);
 
                     var css = "";
 
-                    if (eta >= 20) {
+                    if (calcEta >= 20) {
                         css = "secondary";
-                    } else if (eta >= 15) {
+                    } else if (calcEta >= 15) {
                         css = "info";
-                    } else if (eta >= 10) {
+                    } else if (calcEta >= 10) {
                         css = "success";
-                    } else if (eta >= 5) {
+                    } else if (calcEta >= 5) {
                         css = "warning";
-                    } else if (eta >= 1) {
-                        css = "danger"
+                    } else if (calcEta >= 1) {
+                        css = "danger";
                     } else {
                         css = "dark";
                     }
@@ -1030,7 +1034,7 @@ export var scripts = {
                         }
 
                         if (schedule.isLive !== undefined) {
-                            text += "<br /><span style=\"font-size: 10px; position: absolute; top: 16px; right: 16px; "
+                            text += "<br /><span style=\"font-size: 10px; position: absolute; top: 16px; right: 16px; ";
                             if (schedule.isLive) {
                                 text += "color: red;\"><i class=\"fa fa-circle\"></i> " + $.i18n("transit-eta-live") + "</span>";
                             } else {
@@ -1096,16 +1100,16 @@ export var scripts = {
                 "<div class=\"hori-scroll btn-group\">" +
                 "    <button type=\"button\" class=\"btn btn-primary gtw-providersort gtw-providersort-all\"><i class=\"fa fa-reply-all\"></i><br />" + $.i18n("transit-eta-sort-all") + "</button>";
 
-            for (var provider of providers) {
+            for (var iprovider of providers) {
                 var image = "";
-                if (provider.type == TransitType.BUS) {
+                if (iprovider.type === TransitType.BUS) {
                     image = "fa-bus";
-                } else if (provider.type == TransitType.TRAIN) {
+                } else if (iprovider.type === TransitType.TRAIN) {
                     image = "fa-train";
                 } else {
                     image = "fa-question";
                 }
-                buttonScroll += " <button type=\"button\" class=\"btn btn-default gtw-providersort gtw-providersort-provider\" gtw-provider=\"" + provider.id + "\"><i class=\"fa " + image + "\"></i><br />" + Lang.localizedKey(provider, "name") + "</button>";
+                buttonScroll += " <button type=\"button\" class=\"btn btn-default gtw-providersort gtw-providersort-provider\" gtw-provider=\"" + iprovider.id + "\"><i class=\"fa " + image + "\"></i><br />" + Lang.localizedKey(iprovider, "name") + "</button>";
             }
 
             buttonScroll += "</div>";
@@ -1162,12 +1166,12 @@ export var scripts = {
 
             var allNearbyStops = TransitStops.getAllStopsNearby(lat, lng, range, true, true);
 
-            if (allNearbyStops.length == 0) {
+            if (allNearbyStops.length === 0) {
                 var testRange = range;
                 do {
                     testRange += 0.05;
                     allNearbyStops = TransitStops.getAllStopsNearby(lat, lng, testRange, true, true);
-                } while (allNearbyStops.length == 0 && testRange < 10);
+                } while (allNearbyStops.length === 0 && testRange < 10);
 
                 if (testRange >= 10) {
                     $(".tab-panel").append(
@@ -1200,7 +1204,7 @@ export var scripts = {
                         route: routeResult.route,
                         bound: routeResult.bound,
                         stop: stopResult.stop,
-                        distance: stopResult.distance,
+                        distance: stopResult.distance
                     });
                 }
             }
@@ -1210,7 +1214,7 @@ export var scripts = {
             var paths;
             var stopId;
             var provider;
-            html = "<div class=\"row item-list nearby-route-list\"><ul class=\"list-group\">"
+            html = "<div class=\"row item-list nearby-route-list\"><ul class=\"list-group\">";
             for (var result of allNearbyRoutes) {
                 paths = result.route.paths[result.bound];
                 stopId = paths[paths.length - 1];
@@ -1265,12 +1269,12 @@ export var scripts = {
                 Map.removeAllPolylines();
                 var provider = TransitRoutes.getProvider($(this).attr("gtw-provider"));
                 var route = provider.getRouteById($(this).attr("gtw-route-id"));
-                var stop = TransitStops.getStopById($(this).attr("gtw-stop-id"));
+                var sstop = TransitStops.getStopById($(this).attr("gtw-stop-id"));
                 var bound = $(this).attr("gtw-bound");
                 drawRouteOnMap(route, bound);
 
-                if (stop) {
-                    var targetPos = { lat: stop.lat, lng: stop.lng };
+                if (sstop) {
+                    var targetPos = { lat: sstop.lat, lng: sstop.lng };
                     Map.setCenter(targetPos);
                     Map.setZoom(18);
                 } else {
@@ -1316,7 +1320,7 @@ export var scripts = {
                     $("#button-cancel-search").removeClass("btn-danger");
                     $("#button-cancel-search").html("<i class=\"fas fa-search\"></i>");
 
-                    $(".nearby-route-list").css("display", "flex")
+                    $(".nearby-route-list").css("display", "flex");
                     $(".all-route-list").css("display", "none");
                     Map.setCenter(Loc.getCurrentPosition());
                     Map.setZoom(16);
@@ -1326,60 +1330,63 @@ export var scripts = {
             });
 
             $("#search-transit-text").on("input", function () {
-                var val = $(this).val();
-                if (val && val != "") {
-                    $("#button-cancel-search").removeClass("btn-light");
-                    $("#button-cancel-search").removeClass("disabled");
-                    $("#button-cancel-search").addClass("btn-danger");
-                    $("#button-cancel-search").html("<i class=\"fas fa-times\"></i>");
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(function () {
+                    var val = $("#search-transit-text").val();
+                    if (val && val !== "") {
+                        $("#button-cancel-search").removeClass("btn-light");
+                        $("#button-cancel-search").removeClass("disabled");
+                        $("#button-cancel-search").addClass("btn-danger");
+                        $("#button-cancel-search").html("<i class=\"fas fa-times\"></i>");
 
-                    $(".nearby-route-list").css("display", "none")
-                    $(".all-route-list").css("display", "flex");
-                    Map.setCenter(Loc.getCurrentPosition());
-                    Map.setZoom(16);
-                    Map.removeAllMarkers();
-                    Map.removeAllPolylines();
-                } else {
-                    $("#button-cancel-search").addClass("btn-light");
-                    $("#button-cancel-search").addClass("disabled");
-                    $("#button-cancel-search").removeClass("btn-danger");
-                    $("#button-cancel-search").html("<i class=\"fas fa-search\"></i>");
-
-                    $(".nearby-route-list").css("display", "flex")
-                    $(".all-route-list").css("display", "none");
-                }
-
-                $(".all-route-list .route-selection").each(function () {
-                    var routeId = $(this).attr("gtw-route-id");
-                    var providerName = $(this).attr("gtw-provider");
-                    var bound = $(this).attr("gtw-bound");
-
-                    var provider = TransitRoutes.getProvider(providerName);
-                    var route = provider.getRouteById(routeId);
-                    var paths = route.paths[bound];
-                    var lastStop = TransitStops.getStopById(paths[paths.length - 1]);
-
-                    var rp = Misc.similarity(Lang.localizedKey(route, "routeName"), val);
-                    var pp = Misc.similarity(providerName, val);
-                    var sp = Misc.similarity(lastStop.stopName, val);
-
-                    if (rp < 0.3 && pp < 0.3 && sp < 0.3) {
-                        $(this).attr("style", "display: none!important");
-                        $(this).attr("sim", "0.0");
+                        $(".nearby-route-list").css("display", "none");
+                        $(".all-route-list").css("display", "flex");
+                        Map.setCenter(Loc.getCurrentPosition());
+                        Map.setZoom(16);
+                        Map.removeAllMarkers();
+                        Map.removeAllPolylines();
                     } else {
-                        $(this).attr("style", "display: block");
-                        $(this).attr("sim", Math.round(Math.max(rp, pp, sp) * 1000) / 1000);
-                    }
-                });
+                        $("#button-cancel-search").addClass("btn-light");
+                        $("#button-cancel-search").addClass("disabled");
+                        $("#button-cancel-search").removeClass("btn-danger");
+                        $("#button-cancel-search").html("<i class=\"fas fa-search\"></i>");
 
-                var list = $(".all-route-list .route-selection").get();
-                list.sort(function (a, b) {
-                    return $(b).attr("sim") - $(a).attr("sim");
-                });
-                for (var i = 0; i < list.length; i++) {
-                    list[i].parentNode.appendChild(list[i]);
-                }
-                $(".all-route-list .route-selection:nth-child(1)").mouseenter();
+                        $(".nearby-route-list").css("display", "flex");
+                        $(".all-route-list").css("display", "none");
+                    }
+
+                    $(".all-route-list .route-selection").each(function () {
+                        var routeId = $(this).attr("gtw-route-id");
+                        var providerName = $(this).attr("gtw-provider");
+                        var bound = $(this).attr("gtw-bound");
+
+                        var provider = TransitRoutes.getProvider(providerName);
+                        var route = provider.getRouteById(routeId);
+                        var paths = route.paths[bound];
+                        var lastStop = TransitStops.getStopById(paths[paths.length - 1]);
+
+                        var rp = Misc.similarity(Lang.localizedKey(route, "routeName"), val);
+                        var pp = Misc.similarity(providerName, val);
+                        var sp = Misc.similarity(lastStop.stopName, val);
+
+                        if (rp < 0.3 && pp < 0.3 && sp < 0.3) {
+                            $(this).attr("style", "display: none!important");
+                            $(this).attr("sim", "0.0");
+                        } else {
+                            $(this).attr("style", "display: block");
+                            $(this).attr("sim", Math.round(Math.max(rp, pp, sp) * 1000) / 1000);
+                        }
+                    });
+
+                    var list = $(".all-route-list .route-selection").get();
+                    list.sort(function (a, b) {
+                        return $(b).attr("sim") - $(a).attr("sim");
+                    });
+                    for (var i = 0; i < list.length; i++) {
+                        list[i].parentNode.appendChild(list[i]);
+                    }
+                    $(".all-route-list .route-selection:nth-child(1)").mouseenter();
+                }, 500);
             });
 
             vars["allNearbyRoutes"] = allNearbyRoutes;
@@ -1389,7 +1396,7 @@ export var scripts = {
             }, 30000));
         } else {
             //TODO: better message or auto add plugins according to region
-            $(".tab-panel").html("<br /><div class=\"alert alert-danger\" role=\"alert\"><i class=\"fas fa-exclamation-triangle\"></i> " + $.i18n("transit-eta-no-plugins-providing-transit-data") + "</div>")
+            $(".tab-panel").html("<br /><div class=\"alert alert-danger\" role=\"alert\"><i class=\"fas fa-exclamation-triangle\"></i> " + $.i18n("transit-eta-no-plugins-providing-transit-data") + "</div>");
         }
     }
 };

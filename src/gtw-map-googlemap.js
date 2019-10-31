@@ -54,7 +54,7 @@ export function addMarker(position, title, label, onClickFunc) {
         position: position,
         label: label,
         title: title,
-        map: exports.map
+        map: map
     });
     markers[markerInc] = marker;
 
@@ -102,11 +102,11 @@ export function addInfoWindow(markerId, content, open = false) {
     });
 
     marker.addListener("click", function () {
-        infowindow.open(exports.map, marker);
+        infowindow.open(map, marker);
     });
 
     if (open) {
-        infowindow.open(exports.map, marker);
+        infowindow.open(map, marker);
     }
 
     infoWindows[infoWindowInc] = infowindow;
@@ -122,7 +122,7 @@ export function addPolyline(coords, strokeColor, strokeWeight, strokeOpacity = 1
         strokeWeight: strokeWeight
     });
 
-    polyline.setMap(exports.map);
+    polyline.setMap(map);
 
     polylines[polylineInc] = polyline;
     return polylineInc++;

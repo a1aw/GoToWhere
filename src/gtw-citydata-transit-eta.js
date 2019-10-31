@@ -249,7 +249,7 @@ export function fetchEta(opt) {
                             options: options
                         };
 
-                        global.cache[key] = {
+                        cache[key] = {
                             lastFetched: time.getTime(),
                             data: out
                         };

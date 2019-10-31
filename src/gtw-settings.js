@@ -17,7 +17,7 @@ export function getDefaultSettings() {
             desc: $.i18n("settings-key-preferred-language-desc"),
             def: "en",
             checkfunc: function (val) {
-                var locales = require("./gtw-lang").locales;
+                var locales = require("./gtw-lang").languages;
                 var found = false;
                 for (var locale in locales) {
                     if (locale === val) {

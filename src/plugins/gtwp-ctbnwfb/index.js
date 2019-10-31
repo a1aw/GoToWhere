@@ -1,10 +1,10 @@
 ﻿//GTWP NWST Plugin
-import * as Cors from './gtw-cors';
-import * as Lang from './gtw-lang';
-import * as Transit from './gtw-citydata-transit';
-import * as TransitRoutes from './gtw-citydata-transitroutes';
-import * as TransitStops from './gtw-citydata-transitstops';
-import * as TransitEta from './gtw-citydata-transiteta';
+import * as Cors from '../../gtw-cors';
+import * as Lang from '../../gtw-lang';
+import * as Transit from '../../gtw-citydata-transit';
+import * as TransitRoutes from '../../gtw-citydata-transit-routes';
+import * as TransitStops from '../../gtw-citydata-transit-stops';
+import * as TransitEta from '../../gtw-citydata-transit-eta';
 
 function parseIsoDatetime(dtstr) {
     var dt = dtstr.split(/[: T-]/).map(parseFloat);
@@ -55,6 +55,8 @@ var shared_getEta = function (data, company, opt) {
     if (data) {
         srvTime = parseIsoDatetime(data["generated_timestamp "]);
 
+        var i;
+        var sche;
         var sches = data.data;
         for (i = 0; i < sches.length; i++) {
             sche = sches[i];

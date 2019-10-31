@@ -3,7 +3,7 @@ import * as TransitRoutes from './gtw-citydata-transit-routes';
 import * as TransitStops from './gtw-citydata-transit-stops';
 import * as TransitEta from './gtw-citydata-transit-eta';
 
-export const TransitType = {
+window.TransitType = {
     BUS: "bus",
     MINIBUS: "minibus",
     TRAM: "tram",
