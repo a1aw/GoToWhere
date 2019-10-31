@@ -1,0 +1,12 @@
+[
+    {
+        "id": "transit",
+        "name": "Transit",
+        "desc": "Plugins that provide transit data to the platform."
+    },
+    {
+        "id": "transitEta",
+        "name": "Transit ETA",
+        "desc": "Plugins that additionally provide transit ETA to routes."
+    }
+]

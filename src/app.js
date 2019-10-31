@@ -124,81 +124,75 @@ Cors.register("plugins.gotowhere.ga", true);
 
 $("#startup-status").html($.i18n("startup-status-downloading-plugins"));
 
-var promise = PluginLoader.download(function (progress) {
-    $("#startup-progress").css("width", (progress / 8) + "%");
-});
+
+$("#startup-progress").css("width", "12.5%");
+$("#startup-status").html($.i18n("startup-status-open-db"));
+var promise = Database.open();
 
 if (!promise) {
     $("#startup-status").attr("style", "color: red");
     $("#startup-status").html($.i18n("startup-status-not-supported"));
 } else {
     promise.then(function () {
-        $("#startup-progress").css("width", "12.5%");
-        //$("#startup-status").html($.i18n("startup-status-taking-a-rest"));
-
-        $("#startup-status").html($.i18n("startup-status-open-db"));
-        promise = Database.open();
+        $("#startup-progress").css("width", "25%");
+        $("#startup-status").html($.i18n("startup-status-loading-plugins"));
+        promise = PluginLoader.load(function (progress) {
+            $("#startup-progress").css("width", 25 + (progress / 8) + "%");
+        });
         promise.then(function () {
-            $("#startup-progress").css("width", "25%");
-            $("#startup-status").html($.i18n("startup-status-loading-plugins"));
-            promise = PluginLoader.load(function (progress) {
-                $("#startup-progress").css("width", 25 + (progress / 8) + "%");
+            $("#startup-status").html($.i18n("startup-status-init-db"));
+            promise = Transit.fetchAllDatabase(function (progress) {
+                $("#startup-progress").css("width", (25 + progress / 4 * 3) + "%");
             });
             promise.then(function () {
-                $("#startup-status").html($.i18n("startup-status-init-db"));
-                promise = Transit.fetchAllDatabase(function (progress) {
-                    $("#startup-progress").css("width", (25 + progress / 4 * 3) + "%");
-                });
+                $("#startup-progress").css("width", "100%");
+                $("#startup-status").html($.i18n("startup-status-init-map"));
+                promise = Map.init();
                 promise.then(function () {
-                    $("#startup-progress").css("width", "100%");
-                    $("#startup-status").html($.i18n("startup-status-init-map"));
-                    promise = Map.init();
-                    promise.then(function () {
-                        $("#startup-status").html($.i18n("startup-status-finish"));
+                    $("#startup-status").html($.i18n("startup-status-finish"));
 
+                    ui.init();
+                    //TransitManager.start();
+                    //TransitManager.forceUpdate();
+
+                    var errPlugins = [];
+                    var plugin;
+                    for (var pluginKey in PluginLoader.plugins) {
+                        plugin = PluginLoader.plugins[pluginKey];
+                        if (plugin.status < 0) {
+                            errPlugins.push(plugin);
+                        }
+                    }
+                    console.log(errPlugins);
+
+                    if (errPlugins.length) {
+                        ui.showModal("errorplugins", errPlugins);
+                    }
+
+                    loc.requestLocationAccess(function () {
                         ui.init();
-                        //TransitManager.start();
                         //TransitManager.forceUpdate();
-
-                        var errPlugins = [];
-                        var plugin;
-                        for (var pluginKey in PluginLoader.plugins) {
-                            plugin = PluginLoader.plugins[pluginKey];
-                            if (plugin.status < 0) {
-                                errPlugins.push(plugin);
-                            }
-                        }
-                        console.log(errPlugins);
-
-                        if (errPlugins.length) {
-                            ui.showModal("errorplugins", errPlugins);
-                        }
-
-                        loc.requestLocationAccess(function () {
-                            ui.init();
-                            //TransitManager.forceUpdate();
-                            $("#loc-status-btn").addClass("btn-success");
-                            $("#loc-status-btn").removeClass("btn-warning");
-                            setTimeout(function () {
-                                $("#loc-status-btn").fadeOut(500);
-                            }, 2000);
-                        }, function () {
-                            $("#loc-status-btn").addClass("btn-danger");
-                            $("#loc-status-btn").removeClass("btn-warning");
-                            $("#loc-status-btn").append(" <span>Failed!</span>");
-                            setTimeout(function () {
-                                $("#loc-status-btn span").fadeOut(500);
-                            }, 5000);
-                        });
-
+                        $("#loc-status-btn").addClass("btn-success");
+                        $("#loc-status-btn").removeClass("btn-warning");
                         setTimeout(function () {
-                            $(".footer").animate({ height: 0, opacity: 0 }, 1000, function () {
-                                $(".footer").css("display", "none");
-                            });
+                            $("#loc-status-btn").fadeOut(500);
                         }, 2000);
-                        $(".startup").fadeOut(1000, function () {
-                            __stopHeaderAnimation = true;
+                    }, function () {
+                        $("#loc-status-btn").addClass("btn-danger");
+                        $("#loc-status-btn").removeClass("btn-warning");
+                        $("#loc-status-btn").append(" <span>Failed!</span>");
+                        setTimeout(function () {
+                            $("#loc-status-btn span").fadeOut(500);
+                        }, 5000);
+                    });
+
+                    setTimeout(function () {
+                        $(".footer").animate({ height: 0, opacity: 0 }, 1000, function () {
+                            $(".footer").css("display", "none");
                         });
+                    }, 2000);
+                    $(".startup").fadeOut(1000, function () {
+                        __stopHeaderAnimation = true;
                     });
                 });
             });
