@@ -229,51 +229,33 @@ export function gettingStarted() {
                 }
             });
             var errors = [];
-            var proms = [];
             var p;
             for (var pkg of pkgs) {
-                p = new Promise((resolve, reject) => {
-                    $.ajax({
-                        url: "https://plugins.gotowhere.ga/repos/" + pkg + "/info.json",
-                        cache: false,
-                        dataType: "json",
-                        success: function (info) {
-                            PluginLoader.install(info.package, info.checksum, info.version);
-                            resolve();
-                        },
-                        error: function (err) {
-                            errors.push(pkg);
-                            resolve();
-                        }
-                    });
-                });
-                proms.push(p);
+                PluginLoader.install(pkg);
             }
-            Misc.allProgress(proms, function (p) {
-                $("#gs-plugin-progress").css("width", p + "%");
-            }).then(function () {
-                if (errors.length === 0) {
-                    setTimeout(function () {
-                        window.location.reload();
-                    }, 500);
-                    return;
+            $("#gs-plugin-progress").css("width", "100%");
+
+            if (errors.length === 0) {
+                setTimeout(function () {
+                    window.location.reload();
+                }, 500);
+                return;
+            }
+
+            $(".getting-started-progress-panel").css("display", "none");
+            $(".getting-started-plugin-error-panel").css("display", "block");
+
+            var html = "<p>" + $.i18n("getting-started-error-plugin-network-error") + "</p><button class=\"btn btn-block btn-warning\" onclick=\"window.location.reload()\" type=\"button\">" + $.i18n("getting-started-error-refresh-btn") + "</button><hr /><p><b>" + $.i18n("getting-started-error-affected-plugins") + "</b><br />";
+            var i;
+            for (i = 0; i < errors.length; i++) {
+                html += errors[i];
+                if (i !== errors.length - 1) {
+                    html += ", ";
                 }
+            }
+            html += "</p>";
 
-                $(".getting-started-progress-panel").css("display", "none");
-                $(".getting-started-plugin-error-panel").css("display", "block");
-
-                var html = "<p>" + $.i18n("getting-started-error-plugin-network-error") + "</p><button class=\"btn btn-block btn-warning\" onclick=\"window.location.reload()\" type=\"button\">" + $.i18n("getting-started-error-refresh-btn") + "</button><hr /><p><b>" + $.i18n("getting-started-error-affected-plugins") + "</b><br />";
-                var i;
-                for (i = 0; i < errors.length; i++) {
-                    html += errors[i];
-                    if (i !== errors.length - 1) {
-                        html += ", ";
-                    }
-                }
-                html += "</p>";
-
-                $(".getting-started-plugin-error-panel .desc").html(html);
-            });
+            $(".getting-started-plugin-error-panel .desc").html(html);
         });
     });
 }
@@ -315,23 +297,23 @@ export function showModal(layout, ...args) {
 }
 
 export function loadModalLayout(layout, options = {}) {
-    var key = "modal-" + layout;
+    const key = "modal-" + layout;
 
     if (options === true) {
         options = {};
         options.backdrop = "static";
         options.keyboard = false;
     }
-
+    
     var proms = [];
-    proms.push(new Promise((resolve, reject) => {
-        $(".modal-header").load("ui/" + key + "-header.html", resolve);
+    proms.push(import(`./ui/${key}-header.html`).then(function (mod) {
+        $(".modal-header").html(mod.default);
     }));
-    proms.push(new Promise((resolve, reject) => {
-        $(".modal-body").load("ui/" + key + "-body.html", resolve);
+    proms.push(import(`./ui/${key}-body.html`).then(function (mod) {
+        $(".modal-body").html(mod.default);
     }));
-    proms.push(new Promise((resolve, reject) => {
-        $(".modal-footer").load("ui/" + key + "-footer.html", resolve);
+    proms.push(import(`./ui/${key}-footer.html`).then(function (mod) {
+        $(".modal-footer").html(mod.default);
     }));
 
     var p = Promise.all(proms);

@@ -14,9 +14,21 @@ module.exports = {
         contentBase: './dist'
     },
     output: {
-        filename: '[name].bundle.js',
+        filename: '[name].[contenthash].js',
         path: path.resolve(__dirname, 'dist'),
-        chunkFilename: '[name].bundle.js'
+        chunkFilename: '[name].[contenthash].js'
+    },
+    optimization: {
+        runtimeChunk: 'single',
+        splitChunks: {
+            cacheGroups: {
+                vendor: {
+                    test: /[\\/]node_modules[\\/]/,
+                    name: 'vendors',
+                    chunks: 'all'
+                }
+            }
+        }
     },
     module: {
         rules: [
@@ -32,6 +44,15 @@ module.exports = {
                 use: [
                     'file-loader'
                 ]
+            },
+            {
+                test: /\.html$/,
+                use: [{
+                    loader: 'html-loader',
+                    options: {
+                        minimize: true
+                    }
+                }]
             }
         ]
     },
@@ -43,7 +64,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             title: 'GoToWhere',
             filename: 'index.html',
-            template: './src/index.ejs'
+            template: './src/index.html'
         }),
         new webpack.ProvidePlugin({
             $: 'jquery',
