@@ -551,7 +551,7 @@ export function showStopEta(route, bound, stop) {
                         return;
                     }
 
-                    var colspan = 3;
+                    var colspan = 4;
 
                     if (h.etaProviders.length > 1) {
                         html += "<td>" + Lang.localizedKey(provider, "name") + "</td>";
