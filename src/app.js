@@ -24,26 +24,15 @@ import '@fortawesome/fontawesome-free/js/solid';
 import '@fortawesome/fontawesome-free/js/regular';
 import '@fortawesome/fontawesome-free/js/brands';
 
-//Strict mode
-'use strict';
-
-/*
-const _allModules = [
-	"gtw-app",
-	"gtw-settings",
-	"gtw-cors",
-	"gtw-misc",
-	"gtw-map",
-	"gtw-event",
-	"gtw-eta",
-	"gtw-ui",
-	"gtw-func",
-	"gtw-location",
-	"gtw-requestlimiter",
-	"gtw-plugin",
-	"gtw-pluginloader"
-];
-*/
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js').then(registration => {
+            console.log('SW registered: ', registration);
+        }).catch(registrationError => {
+            console.log('SW registration failed: ', registrationError);
+        });
+    });
+}
 
 var __headerTexts = ["<i class=\"fas fa-map-marked-alt\"></i> \u53bb\u908a\u35ce GoToWhere", "<i class=\"fas fa-map-marked-alt\"></i> GoToWhere<small>.ga</small>", "<i class=\"fas fa-map-marked-alt\"></i> HeuiBin<small>.ga</small>"];
 var __stopHeaderAnimation = false;
@@ -150,6 +139,13 @@ if (!promise) {
                 promise = Map.init();
                 promise.then(function () {
                     $("#startup-status").html($.i18n("startup-status-finish"));
+
+                    var lastVer = localStorage.getItem("gtw-lastversion");
+                    if (lastVer && lastVer !== VERSION) {
+                        console.log("Application updated to " + VERSION + ". Showing change-log.");
+                        ui.showModal("updated", VERSION);
+                    }
+                    localStorage.setItem("gtw-lastversion", VERSION);
 
                     ui.init();
                     //TransitManager.start();

@@ -110,7 +110,7 @@ var KmbProvider = function () {
         var locale = Lang.getLocale();
 
         var lang;
-        if (locale == "zh") {
+        if (locale === "zh") {
             lang = "tc";
         } else {
             lang = "en";
@@ -147,14 +147,19 @@ var KmbProvider = function () {
                             var resp = data.response[i];
                             var sche = {};
 
+                            var text = resp.t.toLowerCase();
+                            if (text.includes("城巴") || text.includes("新巴") || text.includes("kmb") || text.includes("ctb")) {
+                                continue;
+                            }
+
                             sche.type = TransitType.BUS;
                             sche.provider = "KMB";
 
-                            sche.isLive = resp.t.toLowerCase().indexOf("scheduled") === -1;
+                            sche.isLive = !text.includes("scheduled") && !text.includes("預定班次");
                             sche.isOutdated = false;
 
-                            var hr = parseInt(resp.t.substring(0, 2));
-                            var min = parseInt(resp.t.substring(3, 5));
+                            var hr = parseInt(text.substring(0, 2));
+                            var min = parseInt(text.substring(3, 5));
 
                             var time = new Date(data.updated);
                             time.setHours(hr);

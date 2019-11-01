@@ -481,14 +481,14 @@ export function showStopEta(route, bound, stop) {
     if (!p) {
         content +=
             "<tr class=\"table-dark\">" +
-            "    <td colspan=\"3\">" + $.i18n("transit-eta-route-not-available") + "</td>" +
+            "    <td colspan=\"4\">" + $.i18n("transit-eta-route-not-available") + "</td>" +
             //"    <td>---</td>" +
             "</tr>"
             ;
     } else {
         content +=
             "<tr class=\"table-dark\">" +
-            "    <td colspan=\"3\"><div class=\"spinner-border spinner-border-sm\" role=\"status\"></div> " + $.i18n("transit-eta-retrieving-data") + "</td>" +
+            "    <td colspan=\"4\"><div class=\"spinner-border spinner-border-sm\" role=\"status\"></div> " + $.i18n("transit-eta-retrieving-data") + "</td>" +
             "</tr>";
         p.then(function (data) {
             var h = data.options;
@@ -497,21 +497,21 @@ export function showStopEta(route, bound, stop) {
             if (data.code && data.code === -2) {
                 content +=
                     "<tr class=\"table-dark\">" +
-                    "    <td colspan=\"3\">" + $.i18n("transit-eta-no-eta-providers") + "</td>" +
+                    "    <td colspan=\"4\">" + $.i18n("transit-eta-no-eta-providers") + "</td>" +
                     //"    <td>---</td>" +
                     "</tr>"
                     ;
             } else if (!data.schedules || data.code && data.code === -1) {
                 content +=
                     "<tr class=\"table-dark\">" +
-                    "    <td colspan=\"3\">" + $.i18n("transit-eta-no-data-received") + "</td>" +
+                    "    <td colspan=\"4\">" + $.i18n("transit-eta-no-data-received") + "</td>" +
                     //"    <td>---</td>" +
                     "</tr>"
                     ;
             } else if (data.schedules.length === 0) {
                 content +=
                     "<tr class=\"table-dark\">" +
-                    "    <td colspan=\"3\">" + $.i18n("transit-eta-no-schedules-pending") + "</td>" +
+                    "    <td colspan=\"4\">" + $.i18n("transit-eta-no-schedules-pending") + "</td>" +
                     //"    <td>---</td>" +
                     "</tr>"
                     ;
@@ -574,17 +574,15 @@ export function showStopEta(route, bound, stop) {
                             } else {
                                 html += $.i18n("transit-eta-arrived-left");
                             }
-
-                            if (schedule.isLive !== undefined) {
-                                if (schedule.isLive) {
-                                    html += " <span style=\"color: red; float: right; font-size: 10px;\"><i class=\"fa fa-circle\"></i> " + $.i18n("transit-eta-live") + "</span>";
-                                } else {
-                                    html += " <span style=\"font-size: 10px; float: right; font-style: italic;\">" + $.i18n("transit-eta-scheduled") + "</span>";
-                                }
-                            }
                         }
 
-                        html += "</td><td>";
+                        html += "</td><td";
+
+                        if (schedule.isLive === undefined) {
+                            html += " colspan=\"2\"";
+                        }
+
+                        html += ">";
 
                         var time = new Date(schedule.time);
 
@@ -595,6 +593,14 @@ export function showStopEta(route, bound, stop) {
                         }
 
                         html += "</td>";
+
+                        if (schedule.isLive !== undefined) {
+                            if (schedule.isLive) {
+                                html += "<td><span style=\"color: red; float: right; font-size: 10px;\"><i class=\"fa fa-circle\"></i> " + $.i18n("transit-eta-live") + "</span></td>";
+                            } else {
+                                html += "<td><span style=\"font-size: 10px; float: right; font-style: italic;\">" + $.i18n("transit-eta-scheduled") + "</span></td>";
+                            }
+                        }
                     }
 
                     //TODO: Features
@@ -606,7 +612,7 @@ export function showStopEta(route, bound, stop) {
             node.html(content);
         }).catch(function (options, err) {
             var node = $(".timeline-entry[stop-id='" + options.stopId + "'] p table tbody");
-            node.html("<tr class=\"table-danger\"><td colspan=\"3\">" + $.i18n("transit-eta-error-fetching-eta") + "</td></tr>");
+            node.html("<tr class=\"table-danger\"><td colspan=\"4\">" + $.i18n("transit-eta-error-fetching-eta") + "</td></tr>");
         });
     }
 
@@ -616,6 +622,13 @@ export function showStopEta(route, bound, stop) {
 }
 
 export var scripts = {
+    "updated": function (ver) {
+        $("#updated-header").html($.i18n("updated-header", ver));
+        $("#updated-desc").html($.i18n("updated-desc", ver));
+        import("./changelogs/changelog.txt").then(function (mod) {
+            $("#updated-changelog").html(mod.default);
+        });
+    },
     "pluginclosedapi": function (node, func) {
         $("#plugin-closed-api-confirm-yes").on("click", function () {
             func();
@@ -979,10 +992,10 @@ export var scripts = {
                         }
 
                         badgeClass = "badge-primary";
-                        if (eta > 0) {
-                            text += $.i18n("transit-eta-minutes", eta);
+                        if (calcEta > 0) {
+                            text += $.i18n("transit-eta-minutes", calcEta);
                         } else {
-                            text += $.i18n("transit-eta-arrived-left", eta);
+                            text += $.i18n("transit-eta-arrived-left", calcEta);
                             badgeClass = "badge-dark";
                         }
 

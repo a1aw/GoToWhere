@@ -1,2 +1,0 @@
-(window.webpackJsonp=window.webpackJsonp||[]).push([[8],{90:function(e,n){e.exports="<p style=text-align:center data-i18n=app-license-message></p>"}}]);
-//# sourceMappingURL=8.1d593d2cb9517f8c5f50.js.map

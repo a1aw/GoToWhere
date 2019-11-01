@@ -1,2 +1,0 @@
-(window.webpackJsonp=window.webpackJsonp||[]).push([[24],{83:function(t,n){t.exports="<h5 class=modal-title data-i18n=view-plugin-title></h5> <button type=button class=close><span aria-hidden=true>&times;</span></button>"}}]);
-//# sourceMappingURL=24.405e3fd66d558ddb7a45.js.map

@@ -29,6 +29,13 @@ export function getDefaultSettings() {
             }
         },
         {
+            key: "show_debug_msg",
+            type: "boolean",
+            name: $.i18n("settings-key-show-debug-msg"),
+            desc: $.i18n("settings-key-show-debug-msg-desc"),
+            def: false
+        },
+        {
             key: "min_nearby_transit_range",
             type: "number",
             name: $.i18n("settings-key-min-nearby-transit-search-range"),

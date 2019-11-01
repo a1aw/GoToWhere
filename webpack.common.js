@@ -2,7 +2,9 @@ const webpack = require("webpack");
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const WorkboxPlugin = require('workbox-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const pkg = require('./package.json');
 
 module.exports = {
     entry: {
@@ -27,6 +29,10 @@ module.exports = {
     },
     module: {
         rules: [
+            {
+                test: /\.txt$/i,
+                use: 'raw-loader'
+            },
             {
                 test: /\.css$/,
                 use: [
@@ -67,6 +73,13 @@ module.exports = {
             $: 'jquery',
             jQuery: 'jquery',
             i18n: 'jquery-i18n'
+        }),
+        new webpack.DefinePlugin({
+            VERSION: JSON.stringify(pkg.version)
+        }),
+        new WorkboxPlugin.GenerateSW({
+            clientsClaim: true,
+            skipWaiting: true
         })
     ]
 };

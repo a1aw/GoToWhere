@@ -256,9 +256,6 @@ export function fetchEta(opt) {
 
                         resolve(out);
                     }).catch(function (err) {
-                        if (err) {
-                            console.error(err);
-                        }
                         reject(opt, err);
                     });
                 } else {

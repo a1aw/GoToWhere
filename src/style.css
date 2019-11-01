@@ -16,6 +16,11 @@ body {
     font-weight: bold;
 }
 
+/* Update Change-log */
+#updated-changelog {
+    white-space: normal;
+}
+
 /* Toast */
 
 .toast-stack-container {

@@ -1,5 +1,7 @@
 //GTW Logging
 
+import * as Settings from './gtw-settings';
+
 var maxEntries = 1000;
 
 var logEntries = [];
@@ -55,7 +57,9 @@ export function toLogger(tag, msg, time, level) {
         level: level
     });
 
-    showToast(logEntries.length, tag, msg, time, level);
+    if (Settings.get("show_debug_msg", false)) {
+        showToast(logEntries.length, tag, msg, time, level);
+    }
 }
 
 var lastMsg = 0;

@@ -16,6 +16,10 @@
     "startup-status-init-map": "初始化地圖...",
     "startup-status-finish": "完成！",
 
+    "updated-title": "已更新",
+    "updated-header": "已更新到 $1",
+    "updated-desc": "您剛剛已更新到版本 $1。 這些更新主要修復錯誤和提供新功能, 以下是更新所做的變更：",
+
     "nav-plugins": "插件",
     "nav-settings": "設定",
     "nav-about": "關於",
@@ -49,6 +53,8 @@
     "settings-key-cors-proxy-server-desc": "它必須是一個以\"https://\"開頭並以\"/\"結尾的網址。",
     "settings-key-cors-check-bypass": "繞過應用程式的內部CORS檢查",
     "settings-key-cors-check-bypass-desc": "僅供開發使用。 這將繞過應用程式的內部CORS檢查，和停止使用CORS代理伺服器。 只有禁用了瀏覽器CORS設定的情況下，才能存取非開放數據。",
+    "settings-key-show-debug-msg": "顯示除錯訊息",
+    "settings-key-show-debug-msg-desc": "在屏幕上顯示所有除錯訊息。 （警告，錯誤訊息）",
 
     "home-tab-transit": "公交",
     "home-tab-alerts": "事故",

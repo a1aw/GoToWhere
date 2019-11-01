@@ -16,6 +16,10 @@
     "startup-status-init-map": "Initializing map...",
     "startup-status-finish": "Finish!",
 
+    "updated-title": "Updated",
+    "updated-header": "Updated to $1",
+    "updated-desc": "You have just updated to version $1. These updates provide bug fixes and new features to the application. These are the changes made to the application:",
+
     "nav-plugins": "Plugins",
     "nav-settings": "Settings",
     "nav-about": "About",
@@ -49,6 +53,8 @@
     "settings-key-cors-proxy-server-desc": "It must be a secure URL starting with \"https://\" and ending with a slash \"/\".",
     "settings-key-cors-check-bypass": "Bypass app's CORS Check",
     "settings-key-cors-check-bypass-desc": "For development use only. This will bypass the app's internal CORS check, disable CORS proxy. Requests will only work if the web browser's CORS policy is disabled.",
+    "settings-key-show-debug-msg": "Show Debug Messages",
+    "settings-key-show-debug-msg-desc": "Enable to show all debug messages on screen. (Warning, Error Messages)",
 
     "home-tab-transit": "Transit",
     "home-tab-alerts": "Alerts",
