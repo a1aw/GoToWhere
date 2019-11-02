@@ -19,6 +19,7 @@
     "updated-title": "已更新",
     "updated-header": "已更新到 $1",
     "updated-desc": "您剛剛已更新到版本 $1。 這些更新主要修復錯誤和提供新功能, 以下是更新所做的變更：",
+    "updated-okay-btn": "明白",
 
     "nav-plugins": "插件",
     "nav-settings": "設定",

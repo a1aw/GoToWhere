@@ -19,6 +19,7 @@
     "updated-title": "Updated",
     "updated-header": "Updated to $1",
     "updated-desc": "You have just updated to version $1. These updates provide bug fixes and new features to the application. These are the changes made to the application:",
+    "updated-okay-btn": "OK",
 
     "nav-plugins": "Plugins",
     "nav-settings": "Settings",

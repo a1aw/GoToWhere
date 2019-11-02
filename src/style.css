@@ -19,13 +19,12 @@ body {
 /* Update Change-log */
 
 .build-version {
-    margin-top: env(safe-area-inset-top);
-    margin-bottom: env(safe-area-inset-bottom);
     position: absolute;
     top: 0;
     right: 0;
     margin: 1rem;
     z-index: 5;
+    margin-top: env(safe-area-inset-top);
 }
 
 #updated-changelog {
@@ -297,6 +296,7 @@ body {
     z-index: 2;
     background: white;
     display: none;
+    margin-bottom: env(safe-area-inset-bottom);
 }
 
 .touch-keypad .numeric-keypad {
