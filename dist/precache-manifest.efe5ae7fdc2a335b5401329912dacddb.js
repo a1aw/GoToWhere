@@ -64,8 +64,8 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "22.0ba7aba92ef5096456e5.js"
   },
   {
-    "revision": "6053559ede08a080dcff",
-    "url": "23.a4db3e092ed8ae7f38b1.js"
+    "revision": "80332bf15ce48c7b3c57",
+    "url": "23.6e3499d0e1b3bb222fa2.js"
   },
   {
     "revision": "3694e22ff8b8d304f7cb",
@@ -120,15 +120,15 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "CNAME"
   },
   {
-    "revision": "eb4646f8065b55b6db75",
-    "url": "app.7ddbb563d18d40cddc6d.js"
+    "revision": "7a8fd224e4424d872592",
+    "url": "app.51b0e088ce9aa69a0e41.js"
   },
   {
-    "revision": "07075b9a0be10bf8680c3950ac826dea",
+    "revision": "2705664510e8ebe4b9c8794db717daf1",
     "url": "i18n/en.json"
   },
   {
-    "revision": "b9da5c1fabdcc2c186e282f3111404d1",
+    "revision": "eb019c53c3d5d84d7a8af17f71594e31",
     "url": "i18n/zh.json"
   },
   {
@@ -188,12 +188,12 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "img/map-marked-alt-solid.svg"
   },
   {
-    "revision": "c71be04927209ac12feaeaee8fa4fb76",
+    "revision": "a1b7a43f8ebbcfdc80cd7a39561f72ba",
     "url": "index.html"
   },
   {
-    "revision": "caa8f51fd0f6085bc975",
-    "url": "runtime.1d37868c8b38d83d5c5b.js"
+    "revision": "7e78f6d3a2684c214c7f",
+    "url": "runtime.cf82e7c8cd411fafab00.js"
   },
   {
     "revision": "3c27baeeb2084eb70b5b",
