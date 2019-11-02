@@ -48,6 +48,10 @@ $(".ui-half-map-back-btn").on("click", function () {
     Map.removeAllMarkers();
     Map.removeAllPolylines();
     showPanel();
+    
+    if (fromSearch) {
+        showTouchKeypad();
+    }
 });
 
 var currentTab = "transitEta";
@@ -64,6 +68,8 @@ var searchTimeout;
 
 var installCount = 0;
 
+var fromSearch = false;
+
 export function init() {
     showTab("transitEta");
     adjustMargin();
@@ -75,6 +81,189 @@ export function init() {
 }
 
 var gettingStarted_reposJson = {};
+
+export function showTouchKeypad() {
+    $("#search-transit-text").removeAttr("readonly");
+    $(".touch-keypad").css("display", "flex");
+    adjustMargin();
+}
+
+export function hideTouchKeypad() {
+    $("#search-transit-text").attr("readonly", "");
+    $(".touch-keypad").css("display", "");
+    adjustMargin();
+}
+
+export function showSearchRoutes() {
+    $("#button-cancel-search").removeClass("btn-light");
+    $("#button-cancel-search").removeClass("disabled");
+    $("#button-cancel-search").addClass("btn-danger");
+    $("#button-cancel-search").html("<i class=\"fas fa-times\"></i>");
+
+    $(".nearby-route-list").css("display", "none");
+    $(".all-route-list").css("display", "flex");
+    Map.setCenter(Loc.getCurrentPosition());
+    Map.setZoom(16);
+    Map.removeAllMarkers();
+    Map.removeAllPolylines();
+}
+
+export function hideSearchRoutes() {
+    $("#button-cancel-search").addClass("btn-light");
+    $("#button-cancel-search").addClass("disabled");
+    $("#button-cancel-search").removeClass("btn-danger");
+    $("#button-cancel-search").html("<i class=\"fas fa-search\"></i>");
+
+    $(".nearby-route-list").css("display", "flex");
+    $(".all-route-list").css("display", "none");
+}
+
+export function searchRoutes() {
+    var val = $("#search-transit-text").val();
+    if (val && val !== "") {
+        showSearchRoutes();
+    } else {
+        clearSearch();
+        return;
+    }
+
+    var routes = TransitRoutes.getAllRoutes();
+    var lastStop;
+    var stopId;
+    var provider;
+    var path;
+    var rp;
+    var pp;
+    var sp;
+    var i;
+    var sim;
+    var routeName;
+    var providerName;
+    var stopName;
+    var routeNameIncludes;
+
+    var searchList = [];
+
+    for (var route of routes) {
+        for (i = 0; i < route.paths.length; i++) {
+            path = route.paths[i];
+            stopId = path[path.length - 1];
+            provider = TransitRoutes.getProvider(route.provider);
+            lastStop = TransitStops.getStopById(stopId);
+
+            routeName = Lang.localizedKey(route, "routeName");
+            providerName = Lang.localizedKey(provider, "name");
+            stopName = Lang.localizedKey(lastStop, "stopName");
+
+            rp = Misc.similarity(routeName, val);
+            pp = Misc.similarity(providerName, val);
+            sp = Misc.similarity(stopName, val);
+            routeNameIncludes = routeName.includes(val);
+
+            if (!routeNameIncludes && rp < 0.3 && pp < 0.3 && sp < 0.3) {
+                continue;
+            }
+
+            sim = Math.max(rp, pp, sp);
+
+            searchList.push({
+                provider: provider,
+                route: route,
+                bound: i,
+                lastStop: lastStop,
+                sim: sim,
+                routeNameIncludes: routeNameIncludes
+            });
+        }
+    }
+
+    searchList.sort(function (a, b) {
+        return b.sim - a.sim;
+    });
+
+    var html = "<ul class=\"list-group\">";
+
+    var search;
+    var j;
+    var availableKeypads = {};
+    for (i = 0; i < searchList.length; i++) {
+        search = searchList[i];
+        routeName = Lang.localizedKey(search.route, "routeName");
+
+        if (search.routeNameIncludes && val.length < routeName.length) {
+            var letter = routeName.charAt(val.length);
+            availableKeypads[letter] = true;
+        }
+
+        if (i <= 20) {
+            html +=
+                "<li class=\"list-group-item list-group-item-action d-flex align-items-center route-selection\" gtw-provider=\"" + search.provider.id + "\" gtw-route-id=\"" + search.route.routeId + "\" gtw-bound=\"" + search.bound + "\">" +
+                "    <div class=\"d-flex flex-column route-id\">" +
+                "        <div>" + Lang.localizedKey(search.provider, "name") + "</div>" +
+                "        <div>" + routeName + "</div>" +
+                "    </div>" +
+                "    <div><b>" + $.i18n("transit-eta-to") + "</b> " + Lang.localizedKey(search.lastStop, "stopName") + "</div>" +
+                "</li>";
+        }
+    }
+
+    html += "</ul>";
+    $(".all-route-list").html(html);
+
+    $(".numeric-keypad .touch-keypad-value").each(function () {
+        var val = $(this).html();
+        if (!availableKeypads[val]) {
+            $(this).addClass("disabled");
+            $(this).addClass("btn-light");
+            $(this).removeClass("btn-outline-secondary");
+        } else {
+            $(this).removeClass("disabled");
+            $(this).removeClass("btn-light");
+            $(this).addClass("btn-outline-secondary");
+            delete availableKeypads[val];
+        }
+    });
+
+    var keys = Object.keys(availableKeypads);
+    keys.sort(function (a, b) {
+        return a.charCodeAt(0) - b.charCodeAt(0);
+    });
+
+    var letterKeypadHtml = "";
+    for (var key of keys) {
+        letterKeypadHtml += "<button type=\"button\" class=\"btn btn-outline-secondary py-3 touch-keypad-value\">" + key + "</button>";
+    }
+    $(".letter-keypad").html(letterKeypadHtml);
+
+    $(".letter-keypad .touch-keypad-value").on("click", mouseClickTouchKeypadValue);
+
+    $(".all-route-list .route-selection").on("mouseenter", mouseEnterPreviewRoute);
+    $(".all-route-list .route-selection").on("click", mouseClickSelectRoute);
+
+    $(".all-route-list .route-selection:nth-child(1)").mouseenter();
+}
+
+export function clearSearch() {
+    hideTouchKeypad();
+    $("#search-transit-text").val("");
+    $("#button-cancel-search").addClass("btn-light");
+    $("#button-cancel-search").addClass("disabled");
+    $("#button-cancel-search").removeClass("btn-danger");
+    $("#button-cancel-search").html("<i class=\"fas fa-search\"></i>");
+
+    $(".nearby-route-list").css("display", "flex");
+    $(".all-route-list").css("display", "none");
+    Map.setCenter(Loc.getCurrentPosition());
+    Map.setZoom(16);
+    Map.removeAllMarkers();
+    Map.removeAllPolylines();
+
+    $(".numeric-keypad .touch-keypad-value").each(function () {
+        $(this).removeClass("disabled");
+        $(this).removeClass("btn-light");
+        $(this).addClass("btn-outline-secondary");
+    });
+}
 
 export function gettingStarted() {
     $(".header nav").css("display", "none");
@@ -391,8 +580,21 @@ export function drawRouteOnMap(route, bound) {
     Map.addPolyline(coords, "#FF0000", 2);
 }
 
+function mouseClickTouchKeypadValue() {
+    if ($(this).hasClass("disabled")) {
+        return;
+    }
+    var val = $(this).html();
+    var searchText = $("#search-transit-text").val();
+    $("#search-transit-text").val(searchText + val);
+    searchRoutes();
+}
+
 function mouseClickSelectRoute() {
+    fromSearch = $(this).parent().parent().hasClass("all-route-list");
+
     hidePanel();
+    hideTouchKeypad();
 
     Map.removeAllMarkers();
     Map.removeAllPolylines();
@@ -666,7 +868,7 @@ export var scripts = {
     "updated": function (ver) {
         $("#updated-header").html($.i18n("updated-header", ver));
         $("#updated-desc").html($.i18n("updated-desc", ver));
-        import("./changelogs/changelog.txt").then(function (mod) {
+        import("./changelog.txt").then(function (mod) {
             $("#updated-changelog").html(mod.default);
         });
     },
@@ -1125,7 +1327,7 @@ export var scripts = {
 
             var searchField =
                 "<div class=\"input-group mb-3\" style=\"margin-top: 16px;\">" +
-                "    <input type=\"text\" class=\"form-control\" placeholder=\"" + $.i18n("transit-eta-placeholder-search-for-transit") + "\" aria-label=\"" + $.i18n("transit-eta-placeholder-search-for-transit") + "\" aria-describedby=\"search-transit-icon\" id=\"search-transit-text\"/>" +
+                "    <input type=\"text\" class=\"form-control\" placeholder=\"" + $.i18n("transit-eta-placeholder-search-for-transit") + "\" aria-label=\"" + $.i18n("transit-eta-placeholder-search-for-transit") + "\" aria-describedby=\"search-transit-icon\" id=\"search-transit-text\" readonly/>" +
                 "    <div class=\"input-group-append\">" +
                 //"        <span class=\"input-group-text\" id=\"search-transit-icon\"><i class=\"fas fa-search\"></i></span>" +
                 "        <button class=\"btn btn-light disabled\" type=\"button\" id=\"button-cancel-search\"><i class=\"fas fa-search\"></i></button>" +
@@ -1261,116 +1463,34 @@ export var scripts = {
 
             $("#button-cancel-search").on("click", function () {
                 if (!$(this).hasClass("disabled")) {
-                    $("#search-transit-text").val("");
-                    $("#button-cancel-search").addClass("btn-light");
-                    $("#button-cancel-search").addClass("disabled");
-                    $("#button-cancel-search").removeClass("btn-danger");
-                    $("#button-cancel-search").html("<i class=\"fas fa-search\"></i>");
-
-                    $(".nearby-route-list").css("display", "flex");
-                    $(".all-route-list").css("display", "none");
-                    Map.setCenter(Loc.getCurrentPosition());
-                    Map.setZoom(16);
-                    Map.removeAllMarkers();
-                    Map.removeAllPolylines();
+                    clearSearch();
                 }
             });
+
+            $(".touch-keypad-function-clear").on("click", function () {
+                clearSearch();
+            });
+
+            $(".touch-keypad-function-backspace").on("click", function () {
+                var searchText = $("#search-transit-text").val();
+                $("#search-transit-text").val(searchText.slice(0, -1));
+                searchRoutes();
+            });
+
+            $(".touch-keypad-value").on("click", mouseClickTouchKeypadValue);
+
+            var useKeypad = true;
+            if (useKeypad) {
+                $("#search-transit-text").on("click", function () {
+                    showTouchKeypad();
+                    showSearchRoutes();
+                });
+            }
 
             $("#search-transit-text").on("input", function () {
                 clearTimeout(searchTimeout);
                 searchTimeout = setTimeout(function () {
-                    var val = $("#search-transit-text").val();
-                    if (val && val !== "") {
-                        $("#button-cancel-search").removeClass("btn-light");
-                        $("#button-cancel-search").removeClass("disabled");
-                        $("#button-cancel-search").addClass("btn-danger");
-                        $("#button-cancel-search").html("<i class=\"fas fa-times\"></i>");
-
-                        $(".nearby-route-list").css("display", "none");
-                        $(".all-route-list").css("display", "flex");
-                        Map.setCenter(Loc.getCurrentPosition());
-                        Map.setZoom(16);
-                        Map.removeAllMarkers();
-                        Map.removeAllPolylines();
-                    } else {
-                        $("#button-cancel-search").addClass("btn-light");
-                        $("#button-cancel-search").addClass("disabled");
-                        $("#button-cancel-search").removeClass("btn-danger");
-                        $("#button-cancel-search").html("<i class=\"fas fa-search\"></i>");
-
-                        $(".nearby-route-list").css("display", "flex");
-                        $(".all-route-list").css("display", "none");
-                        return;
-                    }
-
-                    var routes = TransitRoutes.getAllRoutes();
-                    var lastStop;
-                    var path;
-                    var rp;
-                    var pp;
-                    var sp;
-                    var i;
-                    var sim;
-
-                    var searchList = [];
-
-                    for (var route of routes) {
-                        for (i = 0; i < route.paths.length; i++) {
-                            path = route.paths[i];
-                            stopId = path[path.length - 1];
-                            provider = TransitRoutes.getProvider(route.provider);
-                            lastStop = TransitStops.getStopById(stopId);
-
-                            rp = Misc.similarity(Lang.localizedKey(route, "routeName"), val);
-                            pp = Misc.similarity(Lang.localizedKey(provider, "name"), val);
-                            sp = Misc.similarity(Lang.localizedKey(lastStop, "stopName"), val);
-
-                            if (rp < 0.3 && pp < 0.3 && sp < 0.3) {
-                                continue;
-                            }
-
-                            sim = Math.max(rp, pp, sp);
-
-                            searchList.push({
-                                provider: provider,
-                                route: route,
-                                bound: i,
-                                lastStop: lastStop,
-                                sim: sim
-                            });
-                        }
-                    }
-
-                    searchList.sort(function (a, b) {
-                        return b.sim - a.sim;
-                    });
-
-                    var html = "<ul class=\"list-group\">";
-
-                    var search;
-                    for (i = 0; i < searchList.length; i++) {
-                        if (i >= 20) {
-                            break;
-                        }
-
-                        search = searchList[i];
-                        html +=
-                            "<li class=\"list-group-item list-group-item-action d-flex align-items-center route-selection\" gtw-provider=\"" + search.provider.id + "\" gtw-route-id=\"" + search.route.routeId + "\" gtw-bound=\"" + search.bound + "\">" +
-                            "    <div class=\"d-flex flex-column route-id\">" +
-                            "        <div>" + Lang.localizedKey(search.provider, "name") + "</div>" +
-                            "        <div>" + Lang.localizedKey(search.route, "routeName") + "</div>" +
-                            "    </div>" +
-                            "    <div><b>" + $.i18n("transit-eta-to") + "</b> " + Lang.localizedKey(search.lastStop, "stopName") + "</div>" +
-                            "</li>";
-                    }
-
-                    html += "</ul>";
-                    $(".all-route-list").html(html);
-
-                    $(".all-route-list .route-selection").on("mouseenter", mouseEnterPreviewRoute);
-                    $(".all-route-list .route-selection").on("click", mouseClickSelectRoute);
-
-                    $(".all-route-list .route-selection:nth-child(1)").mouseenter();
+                    searchRoutes();
                 }, 500);
             });
 

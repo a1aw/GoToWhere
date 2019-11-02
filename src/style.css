@@ -19,6 +19,8 @@ body {
 /* Update Change-log */
 
 .build-version {
+    margin-top: env(safe-area-inset-top);
+    margin-bottom: env(safe-area-inset-bottom);
     position: absolute;
     top: 0;
     right: 0;
@@ -216,6 +218,8 @@ body {
 }
 
 #loc-status-btn {
+    margin-top: env(safe-area-inset-top);
+    margin-bottom: env(safe-area-inset-bottom);
     position: fixed;
     z-index: 3;
     right: 4px;
@@ -281,6 +285,32 @@ body {
     height: 3rem;
 }
 
+/* Touch Keypad */
+
+.touch-keypad {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+    z-index: 2;
+    background: white;
+    display: none;
+}
+
+.touch-keypad .numeric-keypad {
+    width: 75%;
+}
+
+.touch-keypad .letter-keypad {
+    width: 25%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    white-space: nowrap;
+    justify-content: flex-start;
+}
+
 /* Route selection */
 
 .route-selection .route-id {
@@ -302,6 +332,12 @@ body {
     overflow: hidden;
     text-overflow: ellipsis; 
     width: inherit;
+}
+
+/* Search Transit Field */
+
+#search-transit-text {
+    background-color: #fff;
 }
 
 /* Half-map Panel */
@@ -351,6 +387,10 @@ body {
     .map-overlay {
         width: 25%;
         /*display: none;*/
+    }
+    
+    .touch-keypad {
+        width: 25%;
     }
 
     .getting-started-panel {

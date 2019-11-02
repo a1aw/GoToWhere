@@ -68,10 +68,16 @@ $(window).resize(function () {
 });
 
 window.adjustMargin = function () {
+    var nph = 0;
+    $(".numeric-keypad .btn-group").each(function () {
+        nph += $(this).height();
+    });
+    $(".letter-keypad").css("height", nph);
+
     var hh = $(".header").height();
     var dh = $(window).height();
     $(".desktop.half-map-container").css("height", dh - hh);
-    $(".content-panel-container").css("height", dh - hh);
+    $(".content-panel-container").css("height", dh - hh - nph);
 };
 
 /*
@@ -148,8 +154,7 @@ if (!promise) {
                         ui.showModal("updated", VERSION);
                     }
                     localStorage.setItem("gtw-lastversion", VERSION);
-
-                    ui.init();
+                    
                     //TransitManager.start();
                     //TransitManager.forceUpdate();
 

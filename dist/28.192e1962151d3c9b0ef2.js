@@ -1,2 +1,0 @@
-(window.webpackJsonp=window.webpackJsonp||[]).push([[28],{78:function(n,t,i){"use strict";i.r(t),t.default="The application is still in beta testing. All patches and updates do not include with a change-log."}}]);
-//# sourceMappingURL=28.192e1962151d3c9b0ef2.js.map
