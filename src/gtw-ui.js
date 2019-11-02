@@ -106,6 +106,7 @@ export function showSearchRoutes() {
     Map.setZoom(16);
     Map.removeAllMarkers();
     Map.removeAllPolylines();
+    searchRoutes(true);
 }
 
 export function hideSearchRoutes() {
@@ -118,11 +119,9 @@ export function hideSearchRoutes() {
     $(".all-route-list").css("display", "none");
 }
 
-export function searchRoutes() {
+export function searchRoutes(skipCheck) {
     var val = $("#search-transit-text").val();
-    if (val && val !== "") {
-        showSearchRoutes();
-    } else {
+    if (!skipCheck && (!val || val === "")) {
         clearSearch();
         return;
     }
