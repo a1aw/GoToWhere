@@ -230,7 +230,7 @@ export function searchRoutes(skipCheck) {
 
     var letterKeypadHtml = "";
     for (var key of keys) {
-        letterKeypadHtml += "<button type=\"button\" class=\"btn btn-outline-secondary py-3 touch-keypad-value\">" + key + "</button>";
+        letterKeypadHtml += "<button type=\"button\" class=\"btn btn-outline-secondary py-3 touch-keypad-key touch-keypad-value\">" + key + "</button>";
     }
     $(".letter-keypad").html(letterKeypadHtml);
 
@@ -239,7 +239,7 @@ export function searchRoutes(skipCheck) {
     $(".all-route-list .route-selection").on("mouseenter", mouseEnterPreviewRoute);
     $(".all-route-list .route-selection").on("click", mouseClickSelectRoute);
 
-    $(".all-route-list .route-selection:nth-child(1)").mouseenter();
+    //$(".all-route-list .route-selection:nth-child(1)").mouseenter();
 }
 
 export function clearSearch() {

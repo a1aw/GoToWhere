@@ -311,6 +311,10 @@ body {
     justify-content: flex-start;
 }
 
+.touch-keypad-key {
+    min-height: 58px;
+}
+
 /* Route selection */
 
 .route-selection .route-id {
