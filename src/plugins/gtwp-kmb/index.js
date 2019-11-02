@@ -53,6 +53,8 @@ var KmbProvider = function () {
                     console.error("Error: Could not parse kmbeta_db last updated time or cached version! Forcing to be no update");
                     resolve(false);
                 }
+                console.log("lu: " + lastUpdated + " v: " + version);
+                console.log("r: " + lastUpdated > version);
                 resolve(lastUpdated > version);
             },
             error: function (err) {

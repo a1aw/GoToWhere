@@ -135,12 +135,14 @@ export function fetchAllDatabase(pc) {
             var needs = {};
             var proms = [];
             var p;
-            for (var provider of providers) {
+            for (const provider of providers) {
                 if (provider.db) {
+                    console.log("has db " + provider.id);
                     p = new Promise((resolve, reject) => {
                         provider.isDatabaseUpdateNeeded(resolve, reject, provider.db.version);
                     });
                     p.then(function (needed) {
+                        console.log("update: " + provider.id + " " + needed);
                         needs[provider.id] = needed;
                     }).catch(function () {
                         console.error("Error: Database check update for " + provider.id + " failed!");
@@ -148,6 +150,7 @@ export function fetchAllDatabase(pc) {
                     });
                     proms.push(p);
                 } else {
+                    console.log("No db found for " + provider.id);
                     needs[provider.id] = true;
                 }
             }
@@ -155,7 +158,7 @@ export function fetchAllDatabase(pc) {
                 var proms = [];
                 var p;
                 console.log(needs);
-                for (var provider of providers) {
+                for (const provider of providers) {
                     if (needs[provider.id]) {
                         p = new Promise((resolve, reject) => {
                             provider.fetchDatabase(resolve, reject);
