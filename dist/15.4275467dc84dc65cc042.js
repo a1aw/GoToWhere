@@ -1,0 +1,2 @@
+(window.webpackJsonp=window.webpackJsonp||[]).push([[15],{81:function(a,i){a.exports='<h5 class=modal-title><i class="fas fa-exclamation-triangle"></i> <span data-i18n=plugin-closed-api-title></span></h5>'}}]);
+//# sourceMappingURL=15.4275467dc84dc65cc042.js.map
