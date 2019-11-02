@@ -107,6 +107,8 @@ export function showSearchRoutes() {
     Map.removeAllMarkers();
     Map.removeAllPolylines();
     searchRoutes(true);
+    resetProviderSort();
+    filterProviderSort(".all-route-list");
 }
 
 export function hideSearchRoutes() {
@@ -117,6 +119,26 @@ export function hideSearchRoutes() {
 
     $(".nearby-route-list").css("display", "flex");
     $(".all-route-list").css("display", "none");
+
+    Map.setCenter(Loc.getCurrentPosition());
+    Map.setZoom(16);
+    Map.removeAllMarkers();
+    Map.removeAllPolylines();
+
+    resetProviderSort();
+    filterProviderSort(".nearby-route-list");
+}
+
+export function filterProviderSort(listNodeCss) {
+    $(".gtw-providersort-provider").each(function () {
+        var provider = $(this).attr("gtw-provider");
+        var contain = $(listNodeCss + " .route-selection[gtw-provider='" + provider + "']").length > 0;
+        if (contain) {
+            $(this).css("display", "");
+        } else {
+            $(this).css("display", "none");
+        }
+    });
 }
 
 export function searchRoutes(skipCheck) {
@@ -139,7 +161,7 @@ export function searchRoutes(skipCheck) {
     var routeName;
     var providerName;
     var stopName;
-    var routeNameIncludes;
+    //var routeNameIncludes;
 
     var searchList = [];
 
@@ -155,6 +177,7 @@ export function searchRoutes(skipCheck) {
             stopName = Lang.localizedKey(lastStop, "stopName");
 
             rp = Misc.similarity(routeName, val);
+            /*
             pp = Misc.similarity(providerName, val);
             sp = Misc.similarity(stopName, val);
             routeNameIncludes = routeName.includes(val);
@@ -162,20 +185,24 @@ export function searchRoutes(skipCheck) {
             if (!routeNameIncludes && rp < 0.3 && pp < 0.3 && sp < 0.3) {
                 continue;
             }
+            */
+            if (!routeName.startsWith(val)) {
+                continue;
+            }
 
-            sim = Math.max(rp, pp, sp);
+            //sim = Math.max(rp, pp, sp);
 
             searchList.push({
                 provider: provider,
                 route: route,
                 bound: i,
                 lastStop: lastStop,
-                sim: sim,
-                routeNameIncludes: routeNameIncludes
+                sim: rp
+                //routeNameIncludes: routeNameIncludes
             });
         }
     }
-
+    
     searchList.sort(function (a, b) {
         return b.sim - a.sim;
     });
@@ -183,13 +210,12 @@ export function searchRoutes(skipCheck) {
     var html = "<ul class=\"list-group\">";
 
     var search;
-    var j;
     var availableKeypads = {};
     for (i = 0; i < searchList.length; i++) {
         search = searchList[i];
         routeName = Lang.localizedKey(search.route, "routeName");
 
-        if (search.routeNameIncludes && val.length < routeName.length) {
+        if (val.length < routeName.length) {
             var letter = routeName.charAt(val.length);
             availableKeypads[letter] = true;
         }
@@ -201,7 +227,7 @@ export function searchRoutes(skipCheck) {
                 "        <div>" + Lang.localizedKey(search.provider, "name") + "</div>" +
                 "        <div>" + routeName + "</div>" +
                 "    </div>" +
-                "    <div><b>" + $.i18n("transit-eta-to") + "</b> " + Lang.localizedKey(search.lastStop, "stopName") + "</div>" +
+                "    <div><b>" + $.i18n("transit-eta-to") + ":</b> " + Lang.localizedKey(search.lastStop, "stopName") + "</div>" +
                 "</li>";
         }
     }
@@ -240,22 +266,22 @@ export function searchRoutes(skipCheck) {
     $(".all-route-list .route-selection").on("click", mouseClickSelectRoute);
 
     //$(".all-route-list .route-selection:nth-child(1)").mouseenter();
+
+    filterProviderSort(".all-route-list");
+}
+
+export function resetProviderSort() {
+    $(".gtw-providersort").removeClass("btn-primary");
+    $(".gtw-providersort-all").addClass("btn-primary");
+
+    //$(".gtw-providersort-provider").addClass("btn-default");
+    $(".route-selection").attr("style", "");
 }
 
 export function clearSearch() {
     hideTouchKeypad();
     $("#search-transit-text").val("");
-    $("#button-cancel-search").addClass("btn-light");
-    $("#button-cancel-search").addClass("disabled");
-    $("#button-cancel-search").removeClass("btn-danger");
-    $("#button-cancel-search").html("<i class=\"fas fa-search\"></i>");
-
-    $(".nearby-route-list").css("display", "flex");
-    $(".all-route-list").css("display", "none");
-    Map.setCenter(Loc.getCurrentPosition());
-    Map.setZoom(16);
-    Map.removeAllMarkers();
-    Map.removeAllPolylines();
+    hideSearchRoutes();
 
     $(".numeric-keypad .touch-keypad-value").each(function () {
         $(this).removeClass("disabled");
@@ -1353,15 +1379,13 @@ export var scripts = {
                 if ($(this).hasClass("btn-primary")) {
                     return;
                 }
-                $(".gtw-providersort").removeClass("btn-primary");
                 //$(".gtw-providersort").removeClass("btn-default");
 
                 if ($(this).hasClass("gtw-providersort-all")) {
-                    $(this).addClass("btn-primary");
-
-                    //$(".gtw-providersort-provider").addClass("btn-default");
-                    $(".route-selection").attr("style", "");
+                    resetProviderSort();
                 } else {
+                    $(".gtw-providersort").removeClass("btn-primary");
+
                     var provider = $(this).attr("gtw-provider");
                     $(this).addClass("btn-primary");
 
@@ -1495,6 +1519,8 @@ export var scripts = {
                     searchRoutes();
                 }, 500);
             });
+
+            filterProviderSort(".nearby-route-list");
 
             vars["allNearbyRoutes"] = allNearbyRoutes;
             scripts["transitEtaUpdateUi"]();
