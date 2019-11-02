@@ -17,6 +17,15 @@ body {
 }
 
 /* Update Change-log */
+
+.build-version {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 1rem;
+    z-index: 5;
+}
+
 #updated-changelog {
     white-space: normal;
 }

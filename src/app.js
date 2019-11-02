@@ -99,6 +99,8 @@ import * as lang from './gtw-lang';
 import * as Database from './gtw-db';
 import proj4 from 'proj4';
 
+$(".build-version").html(VERSION);
+
 proj4.defs("EPSG:2326", "+proj=tmerc +lat_0=22.31213333333334 +lon_0=114.1785555555556 +k=1 +x_0=836694.05 +y_0=819069.8 +ellps=intl +towgs84=-162.619,-276.959,-161.764,0.067753,-2.24365,-1.15883,-1.09425 +units=m +no_defs");
 proj4.defs("EPSG:4326", "+proj=longlat +datum=WGS84 +no_defs");
 
@@ -112,7 +114,6 @@ Cors.register("www.gotowhere.ga", true);
 Cors.register("plugins.gotowhere.ga", true);
 
 $("#startup-status").html($.i18n("startup-status-downloading-plugins"));
-
 
 $("#startup-progress").css("width", "12.5%");
 $("#startup-status").html($.i18n("startup-status-open-db"));
@@ -139,6 +140,7 @@ if (!promise) {
                 promise = Map.init();
                 promise.then(function () {
                     $("#startup-status").html($.i18n("startup-status-finish"));
+                    $(".build-version").fadeOut(2000);
 
                     var lastVer = localStorage.getItem("gtw-lastversion");
                     if (lastVer && lastVer !== VERSION) {

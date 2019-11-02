@@ -391,6 +391,47 @@ export function drawRouteOnMap(route, bound) {
     Map.addPolyline(coords, "#FF0000", 2);
 }
 
+function mouseClickSelectRoute() {
+    hidePanel();
+
+    Map.removeAllMarkers();
+    Map.removeAllPolylines();
+
+    var provider = TransitRoutes.getProvider($(this).attr("gtw-provider"));
+    var route = provider.getRouteById($(this).attr("gtw-route-id"));
+    var stop = TransitStops.getStopById($(this).attr("gtw-stop-id"));
+    var bound = $(this).attr("gtw-bound");
+
+    showRouteList(route, bound, stop, true);
+    drawRouteOnMap(route, bound);
+}
+
+function mouseEnterPreviewRoute() {
+    Map.removeAllMarkers();
+    Map.removeAllPolylines();
+    var provider = TransitRoutes.getProvider($(this).attr("gtw-provider"));
+    var route = provider.getRouteById($(this).attr("gtw-route-id"));
+    var sstop = TransitStops.getStopById($(this).attr("gtw-stop-id"));
+    var bound = $(this).attr("gtw-bound");
+    drawRouteOnMap(route, bound);
+
+    if (sstop) {
+        var targetPos = { lat: sstop.lat, lng: sstop.lng };
+        Map.setCenter(targetPos);
+        Map.setZoom(18);
+    } else {
+        var path = route.paths[bound];
+
+        var latlngs = [];
+        var stop;
+        for (var stopId of path) {
+            stop = TransitStops.getStopById(stopId);
+            latlngs.push({ lat: parseFloat(stop.lat), lng: parseFloat(stop.lng) });
+        }
+        Map.fitBounds(latlngs);
+    }
+}
+
 export function showRouteList(route, bound, stop = false, scroll = false) {
     var html = "<div class=\"row\" style=\"padding: 2%;\"><div class=\"timeline-centered\">";
     var path = route.paths[bound];
@@ -1203,58 +1244,11 @@ export var scripts = {
                     "        <span class=\"badge badge-primary badge-pill transit-eta\">" + $.i18n("transit-eta-retrieving") + "</span>" +
                     "    </li>";
             }
-            html += "</ul></div>";
-
-            var routes = TransitRoutes.getAllRoutes();
-            var path;
-            var i;
-
-            html += "<div class=\"row item-list all-route-list\"><ul class=\"list-group\">";
-
-            for (var route of routes) {
-                for (i = 0; i < route.paths.length; i++) {
-                    path = route.paths[i];
-                    stopId = path[path.length - 1];
-                    provider = TransitRoutes.getProvider(route.provider);
-                    html +=
-                        "<li class=\"list-group-item list-group-item-action d-flex align-items-center route-selection\" gtw-provider=\"" + route.provider + "\" gtw-route-id=\"" + route.routeId + "\" gtw-bound=\"" + i + "\">" +
-                        "    <div class=\"d-flex flex-column route-id\">" +
-                        "        <div>" + Lang.localizedKey(provider, "name") + "</div>" +
-                        "        <div>" + Lang.localizedKey(route, "routeName") + "</div>" +
-                        "    </div>" +
-                        "    <div><b>" + $.i18n("transit-eta-to") + "</b> " + Lang.localizedKey(TransitStops.getStopById(stopId), "stopName") + "</div>" +
-                        "</li>";
-                }
-            }
-            html += "</ul></div>";
+            html += "</ul></div><div class=\"row item-list all-route-list\"></div>";
 
             $(".content-panel-container").html(html);
 
-            $(".route-selection").on("mouseenter", function () {
-                Map.removeAllMarkers();
-                Map.removeAllPolylines();
-                var provider = TransitRoutes.getProvider($(this).attr("gtw-provider"));
-                var route = provider.getRouteById($(this).attr("gtw-route-id"));
-                var sstop = TransitStops.getStopById($(this).attr("gtw-stop-id"));
-                var bound = $(this).attr("gtw-bound");
-                drawRouteOnMap(route, bound);
-
-                if (sstop) {
-                    var targetPos = { lat: sstop.lat, lng: sstop.lng };
-                    Map.setCenter(targetPos);
-                    Map.setZoom(18);
-                } else {
-                    var path = route.paths[bound];
-
-                    var latlngs = [];
-                    var stop;
-                    for (var stopId of path) {
-                        stop = TransitStops.getStopById(stopId);
-                        latlngs.push({ lat: parseFloat(stop.lat), lng: parseFloat(stop.lng) });
-                    }
-                    Map.fitBounds(latlngs);
-                }
-            });
+            $(".route-selection").on("mouseenter", mouseEnterPreviewRoute);
 
             $(".route-selection").on("mouseleave", function () {
                 //Map.setCenter(Loc.getCurrentPosition());
@@ -1263,20 +1257,7 @@ export var scripts = {
                 //Map.removeAllPolylines();
             });
 
-            $(".route-selection").on("click", function () {
-                hidePanel();
-
-                Map.removeAllMarkers();
-                Map.removeAllPolylines();
-
-                var provider = TransitRoutes.getProvider($(this).attr("gtw-provider"));
-                var route = provider.getRouteById($(this).attr("gtw-route-id"));
-                var stop = TransitStops.getStopById($(this).attr("gtw-stop-id"));
-                var bound = $(this).attr("gtw-bound");
-
-                showRouteList(route, bound, stop, true);
-                drawRouteOnMap(route, bound);
-            });
+            $(".route-selection").on("click", mouseClickSelectRoute);
 
             $("#button-cancel-search").on("click", function () {
                 if (!$(this).hasClass("disabled")) {
@@ -1319,47 +1300,85 @@ export var scripts = {
 
                         $(".nearby-route-list").css("display", "flex");
                         $(".all-route-list").css("display", "none");
+                        return;
                     }
 
-                    $(".all-route-list .route-selection").each(function () {
-                        var routeId = $(this).attr("gtw-route-id");
-                        var providerName = $(this).attr("gtw-provider");
-                        var bound = $(this).attr("gtw-bound");
+                    var routes = TransitRoutes.getAllRoutes();
+                    var lastStop;
+                    var path;
+                    var rp;
+                    var pp;
+                    var sp;
+                    var i;
+                    var sim;
 
-                        var provider = TransitRoutes.getProvider(providerName);
-                        var route = provider.getRouteById(routeId);
-                        var paths = route.paths[bound];
-                        var lastStop = TransitStops.getStopById(paths[paths.length - 1]);
+                    var searchList = [];
 
-                        var rp = Misc.similarity(Lang.localizedKey(route, "routeName"), val);
-                        var pp = Misc.similarity(providerName, val);
-                        var sp = Misc.similarity(lastStop.stopName, val);
+                    for (var route of routes) {
+                        for (i = 0; i < route.paths.length; i++) {
+                            path = route.paths[i];
+                            stopId = path[path.length - 1];
+                            provider = TransitRoutes.getProvider(route.provider);
+                            lastStop = TransitStops.getStopById(stopId);
 
-                        if (rp < 0.3 && pp < 0.3 && sp < 0.3) {
-                            $(this).attr("style", "display: none!important");
-                            $(this).attr("sim", "0.0");
-                        } else {
-                            $(this).attr("style", "display: block");
-                            $(this).attr("sim", Math.round(Math.max(rp, pp, sp) * 1000) / 1000);
+                            rp = Misc.similarity(Lang.localizedKey(route, "routeName"), val);
+                            pp = Misc.similarity(Lang.localizedKey(provider, "name"), val);
+                            sp = Misc.similarity(Lang.localizedKey(lastStop, "stopName"), val);
+
+                            if (rp < 0.3 && pp < 0.3 && sp < 0.3) {
+                                continue;
+                            }
+
+                            sim = Math.max(rp, pp, sp);
+
+                            searchList.push({
+                                provider: provider,
+                                route: route,
+                                bound: i,
+                                lastStop: lastStop,
+                                sim: sim
+                            });
                         }
+                    }
+
+                    searchList.sort(function (a, b) {
+                        return b.sim - a.sim;
                     });
 
-                    var list = $(".all-route-list .route-selection").get();
-                    list.sort(function (a, b) {
-                        return $(b).attr("sim") - $(a).attr("sim");
-                    });
-                    for (var i = 0; i < list.length; i++) {
-                        list[i].parentNode.appendChild(list[i]);
+                    var html = "<ul class=\"list-group\">";
+
+                    var search;
+                    for (i = 0; i < searchList.length; i++) {
+                        if (i >= 20) {
+                            break;
+                        }
+
+                        search = searchList[i];
+                        html +=
+                            "<li class=\"list-group-item list-group-item-action d-flex align-items-center route-selection\" gtw-provider=\"" + search.provider.id + "\" gtw-route-id=\"" + search.route.routeId + "\" gtw-bound=\"" + search.bound + "\">" +
+                            "    <div class=\"d-flex flex-column route-id\">" +
+                            "        <div>" + Lang.localizedKey(search.provider, "name") + "</div>" +
+                            "        <div>" + Lang.localizedKey(search.route, "routeName") + "</div>" +
+                            "    </div>" +
+                            "    <div><b>" + $.i18n("transit-eta-to") + "</b> " + Lang.localizedKey(search.lastStop, "stopName") + "</div>" +
+                            "</li>";
                     }
+
+                    html += "</ul>";
+                    $(".all-route-list").html(html);
+
+                    $(".all-route-list .route-selection").on("mouseenter", mouseEnterPreviewRoute);
+                    $(".all-route-list .route-selection").on("click", mouseClickSelectRoute);
+
                     $(".all-route-list .route-selection:nth-child(1)").mouseenter();
                 }, 500);
             });
 
             vars["allNearbyRoutes"] = allNearbyRoutes;
             scripts["transitEtaUpdateUi"]();
-            timers["nearbyRoutesUpdate"] = (setInterval(function () {
+            timers["nearbyRoutesUpdate"] = setInterval(function () {
                 scripts["transitEtaUpdateUi"]();
-            }, 30000));
+            }, 30000);
         } else {
             //TODO: better message or auto add plugins according to region
             $(".tab-panel").html("<br /><div class=\"alert alert-danger\" role=\"alert\"><i class=\"fas fa-exclamation-triangle\"></i> " + $.i18n("transit-eta-no-plugins-providing-transit-data") + "</div>");
