@@ -4,8 +4,8 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "0.adf229efe6fddd1ae32e.js"
   },
   {
-    "revision": "819ce905bd8781aa8abf",
-    "url": "1.3ff65a4ddab642f83c06.js"
+    "revision": "197511188be2f8038de3",
+    "url": "1.338bd66a597b2ccf82dd.js"
   },
   {
     "revision": "a6f188b2983f668b2a35",
@@ -40,8 +40,8 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "19.724509c37e0091132ad1.js"
   },
   {
-    "revision": "d9b4868d17df4cb0da19",
-    "url": "2.a5818e9c3a52e5cd5c61.js"
+    "revision": "6403d2d21c4580441078",
+    "url": "2.6fec8ca471c60e44eafd.js"
   },
   {
     "revision": "39ebe9102e72c80508c0",
@@ -112,8 +112,8 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "35.b33f38fb842369d8efe4.js"
   },
   {
-    "revision": "c48ec61233a45b1ac97f",
-    "url": "36.c086e7db51bee1af8e71.js"
+    "revision": "2b539072fd735e5788f0",
+    "url": "36.9f5e8a8a5dc98a462549.js"
   },
   {
     "revision": "38e273ab70dd7d8e58a1",
@@ -128,8 +128,8 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "5.f7bb9e150c1f9d0468b0.js"
   },
   {
-    "revision": "374f38d5c231ea794d6d",
-    "url": "6.94f0e100f29cf6114f2b.js"
+    "revision": "ba9f8fab76b4279750b3",
+    "url": "6.e9dc82d994e80bb6eaef.js"
   },
   {
     "revision": "8583cb1593c4007667db",
@@ -144,8 +144,8 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "CNAME"
   },
   {
-    "revision": "08ed182b905f2c983366",
-    "url": "app.9d62428da472d6428713.js"
+    "revision": "feb0246d2e132c9b767a",
+    "url": "app.08fc988c47226dcec18b.js"
   },
   {
     "revision": "ac4fd68d3dcc8f07ca41102e1e4befdb",
@@ -212,12 +212,16 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "img/map-marked-alt-solid.svg"
   },
   {
-    "revision": "e61beeeb6b4eb224c23227ba98b8b845",
+    "revision": "bb86e1e000dc31f30f355d3a09f24076",
+    "url": "img/star.png"
+  },
+  {
+    "revision": "94536300f98c609b0f0b2778a00215d5",
     "url": "index.html"
   },
   {
-    "revision": "c057c128d87663debff5",
-    "url": "runtime.4d721b852f5b3f62e135.js"
+    "revision": "feacfb15377df615f706",
+    "url": "runtime.e482f24b41316e443c1a.js"
   },
   {
     "revision": "cbedd1527c81bbaf7d89",
