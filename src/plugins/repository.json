@@ -1,0 +1,47 @@
+{
+  "gtwp-hktransit": {
+    "package": "gtwp-hktransit",
+    "name": "HKTransit",
+    "fullName": "Hong Kong Transit Data",
+    "desc": "Official transit data from data.gov.hk",
+    "author": "mob41",
+    "license": "https://github.com/mob41/GoToWhere/tree/master/src/plugins/gtwp-hktransit/LICENSE",
+    "closedApi": false,
+    "github": "https://github.com/mob41/GoToWhere/tree/master/src/plugins/gtwp-hktransit",
+    "version": "0.0.1",
+    "targetApi": "0.0.1",
+    "region": "HK",
+    "category": "transit",
+    "dependencies": { }
+  },
+  "gtwp-kmb": {
+    "package": "gtwp-kmb",
+    "name": "KMB",
+    "fullName": "Kowloon Motor Bus Transit ETA",
+    "desc": "Providing closed transit data from KMB.",
+    "author": "mob41",
+    "license": "https://github.com/mob41/GoToWhere/tree/master/src/plugins/gtwp-kmb/LICENSE",
+    "closedApi": true,
+    "github": "https://github.com/mob41/GoToWhere/tree/master/src/plugins/gtwp-kmb",
+    "version": "0.0.1",
+    "targetApi": "0.0.1",
+    "region": "HK",
+    "category": "transitEta",
+    "dependencies": { }
+  },
+  "gtwp-ctbnwfb": {
+    "package": "gtwp-ctbnwfb",
+    "name": "CTBNWFB",
+    "fullName": "Citybus and New World First Bus Transit ETA",
+    "desc": "Providing publicized transit data from Citybus and New World First Bus.",
+    "author": "mob41",
+    "license": "https://github.com/mob41/GoToWhere/tree/master/src/plugins/gtwp-ctbnwfb/LICENSE",
+    "closedApi": false,
+    "github": "https://github.com/mob41/GoToWhere/tree/master/src/plugins/gtwp-ctbnwfb",
+    "version": "0.0.1",
+    "targetApi": "0.0.1",
+    "region": "HK",
+    "category": "transitEta",
+    "dependencies": { }
+  }
+}
