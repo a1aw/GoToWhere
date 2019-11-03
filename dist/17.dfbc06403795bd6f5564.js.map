@@ -1,0 +1,1 @@
+{"version":3,"sources":["webpack:///./src/ui/modal-errorplugins-footer.html"],"names":["module","exports"],"mappings":"4EAAAA,EAAOC,QAAU","file":"17.dfbc06403795bd6f5564.js","sourcesContent":["module.exports = \"<p style=text-align:center data-i18n=app-license-message></p>\";"],"sourceRoot":""}

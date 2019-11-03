@@ -1,0 +1,2 @@
+(window.webpackJsonp=window.webpackJsonp||[]).push([[19],{95:function(p,n){p.exports="<p data-i18n=plugin-closed-api-warning></p> <p data-i18n=plugin-closed-api-confirm-message></p>"}}]);
+//# sourceMappingURL=19.724509c37e0091132ad1.js.map
