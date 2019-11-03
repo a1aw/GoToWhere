@@ -1,9 +1,7 @@
 //GTW Event Manager
 
 export const EVENTS = {
-    EVENT_UI_SHOW: "EVENT_UI_SHOW",
-    EVENT_UI_HIDE: "EVENT_UI_HIDE",
-    EVENT_UI_HOME: "EVENT_UI_HOME"
+    EVENT_UI_BACK: "EVENT_UI_BACK"
 };
 
 var eventListeners = {};

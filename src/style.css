@@ -296,7 +296,7 @@ body {
     z-index: 2;
     background: white;
     display: none;
-    margin-bottom: env(safe-area-inset-bottom);
+    padding-bottom: env(safe-area-inset-bottom);
 }
 
 .touch-keypad .numeric-keypad {

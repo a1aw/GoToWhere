@@ -154,7 +154,9 @@ if (!promise) {
                         ui.showModal("updated", VERSION);
                     }
                     localStorage.setItem("gtw-lastversion", VERSION);
-                    
+
+                    //ui.init();
+
                     //TransitManager.start();
                     //TransitManager.forceUpdate();
 
