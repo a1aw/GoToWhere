@@ -1,5 +1,5 @@
 {
-    "app-name": "GoToWhere",
+    "app-name": "GoToWhere Beta",
     "app-desc": "Open city data map",
     "app-license-message": "Licensed under MIT License. This application is intented for educational researches, but NOT for commericial uses.",
 
@@ -24,6 +24,7 @@
     "nav-plugins": "Plugins",
     "nav-settings": "Settings",
     "nav-about": "About",
+    "nav-feedback": "Feedback/Report",
 
     "about-title": "About",
     "about-desc": "GoToWhere is a platform and an interface for displaying open city data. It does not have any implementation of fetching city data itself. It requires plugins to tell GoToWhere how to get the city data and displaying it correctly.",

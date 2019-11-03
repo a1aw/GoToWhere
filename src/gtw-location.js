@@ -1,6 +1,7 @@
 //GTW Location Manager
 
 import * as Map from './gtw-map';
+import * as Event from './gtw-event';
 
 const LOCATION_MANAGER_CONVENTION_KEY = "openeta-location-convention";
 
@@ -72,8 +73,9 @@ export function onPositionChangeSuccess(position) {
         lat: position.coords.latitude,
         lng: position.coords.longitude
     };
+    Event.dispatchEvent(Event.EVENTS.EVENT_LOCATION_CHANGE, currentPosition);
 }
 
 export function onPositionChangeError(error) {
-    alert("TODO: Handle Position error!")
+    alert("TODO: Handle Position error!");
 }

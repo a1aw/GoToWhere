@@ -1,18 +1,19 @@
 //GTW Event Manager
 
 export const EVENTS = {
-    EVENT_UI_BACK: "EVENT_UI_BACK"
+    EVENT_UI_BACK: "EVENT_UI_BACK",
+    EVENT_LOCATION_CHANGE: "EVENT_LOCATION_CHANGE"
 };
 
 var eventListeners = {};
 
-export function dispatchEvent(event) {
+export function dispatchEvent(event, ...args) {
     if (!eventListeners[event]) {
         return;
     }
     for (var listener of eventListeners[event]) {
         if (listener) {
-            listener();
+            listener.apply(args);
         } else {
             removeListener(listener);
         }

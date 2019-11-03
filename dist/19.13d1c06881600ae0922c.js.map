@@ -1,1 +1,0 @@
-{"version":3,"sources":["webpack:///./src/ui/modal-errorplugins-body.html"],"names":["module","exports"],"mappings":"2EAAAA,EAAOC,QAAU","file":"19.13d1c06881600ae0922c.js","sourcesContent":["module.exports = \"<p data-i18n=error-plugins-desc></p> <div class=accordion id=errorPluginsAccordion> </div>\";"],"sourceRoot":""}

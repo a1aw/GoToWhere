@@ -18,6 +18,9 @@ $(document).ready(function () {
     $(".header-links-about").on("click", function () {
         showModal("about");
     });
+    $(".feedback-btn").on("click", function () {
+        window.open("https://forms.gle/tPT6LTKLNzFZwiPy8");
+    });
 });
 
 $(".ui-tab").on("click", function () {

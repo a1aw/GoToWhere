@@ -1,4 +1,10 @@
-export function gettingStarted() {
+import * as PluginLoader from './gtw-pluginloader';
+import * as Lang from './gtw-lang';
+import * as UI from './gtw-ui';
+import repos from './plugins/repository.json';
+import cates from './plugins/categories.json';
+
+export function enable() {
     $(".header nav").css("display", "none");
     $("#gettingStartedWizard").smartWizard({
         useURLhash: false,
@@ -89,8 +95,7 @@ export function gettingStarted() {
         var category;
         for (var categoryKey in byCategory) {
             category = cates[categoryKey];
-
-            installCount = 0;
+            
             pluginHtml = "";
             for (var plugin of byCategory[categoryKey]) {
                 pluginHtml +=
@@ -126,7 +131,7 @@ export function gettingStarted() {
 
         $(".plugin-closed-api").change(function () {
             if (this.checked) {
-                showModal("pluginclosedapi", $(this), calcInstallCount);
+                UI.showModal("pluginclosedapi", $(this), calcInstallCount);
                 //$(this).prop("checked", returnVal);
             }
         });

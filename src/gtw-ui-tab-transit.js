@@ -10,7 +10,6 @@ import * as Loc from './gtw-location';
 import * as TouchKeypad from './gtw-ui-touchkeypad';
 import * as Event from './gtw-event';
 import * as UI from './gtw-ui';
-
 import * as Map from './gtw-map';
 
 var searchTimeout;
@@ -19,7 +18,10 @@ var updateEtaTimer;
 var allNearbyRoutes;
 var maxRequest;
 var touchKeypadListener;
-var eventListener;
+var eventUiBackListener;
+var eventLocChgListener;
+var lastLat = false;
+var lastLng = false;
 var fromSearch = false;
 
 function showTouchKeypad() {
@@ -642,6 +644,113 @@ function updateEta() {
     }
 }
 
+function findNearbyRoutes() {
+    clearInterval(updateEtaTimer);
+
+    var pos = Loc.getCurrentPosition();
+
+    var lat = pos.lat;
+    var lng = pos.lng;
+
+    lastLat = lat;
+    lastLng = lng;
+
+    var range = Settings.get("min_nearby_transit_range", 200) / 1000.0;
+
+    var allNearbyStops = TransitStops.getAllStopsNearby(lat, lng, range, true, true);
+
+    if (allNearbyStops.length === 0) {
+        var testRange = range;
+        do {
+            testRange += 0.05;
+            allNearbyStops = TransitStops.getAllStopsNearby(lat, lng, testRange, true, true);
+        } while (allNearbyStops.length === 0 && testRange < 10);
+
+        if (testRange >= 10) {
+            $(".tab-panel").append(
+                "<div class=\"alert alert-danger alert-dismissable\">" +
+                "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\" >&#215;</button>" +
+                "No routes are found in 10 km range." +
+                "</div>"
+            );
+        } else {
+            $(".tab-panel").append(
+                "<div class=\"alert alert-warning alert-dismissable\">" +
+                "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\" >&#215;</button>" +
+                $.i18n("transit-eta-no-routes-found-nearby-extended-range", range * 1000, Math.ceil(testRange * 1000)) +
+                "</div>"
+            );
+        }
+    }
+
+    var maxNearbyBusDisplay = Settings.get("max_nearby_transit_to_display", 20);
+    allNearbyRoutes = [];
+    for (var stopResult of allNearbyStops) {
+        if (allNearbyRoutes.length >= maxNearbyBusDisplay) {
+            break;
+        }
+
+        var routeResults = Transit.searchRoutesOfStop(stopResult.stop);
+
+        for (var routeResult of routeResults) {
+            allNearbyRoutes.push({
+                route: routeResult.route,
+                bound: routeResult.bound,
+                stop: stopResult.stop,
+                distance: stopResult.distance
+            });
+        }
+    }
+
+    var html;
+    var distance;
+    var paths;
+    var stopId;
+    var provider;
+    html = "<div class=\"row item-list nearby-route-list\"><ul class=\"list-group\">";
+    for (var result of allNearbyRoutes) {
+        paths = result.route.paths[result.bound];
+        stopId = paths[paths.length - 1];
+        distance = Math.round(result.distance * 1000);
+        provider = TransitRoutes.getProvider(result.route.provider);
+        html +=
+            "    <li class=\"list-group-item list-group-item-action d-flex justify-content-between align-items-center route-selection\" gtw-provider=\"" + result.route.provider + "\" gtw-route-id=\"" + result.route.routeId + "\" gtw-stop-id=\"" + result.stop.stopId + "\" gtw-bound=\"" + result.bound + "\">" +
+            "        <div class=\"d-flex flex-column route-id\">" +
+            "            <div>" + Lang.localizedKey(provider, "name") + "</div>" +
+            "            <div>" + Lang.localizedKey(result.route, "routeName") + "</div>" +
+            "        </div>" +
+            "        <div class=\"d-flex flex-column stop-info mr-auto\">" +
+            "            <div>" +
+            "                <b>" + $.i18n("transit-eta-to") + ":</b> <small>" + Lang.localizedKey(TransitStops.getStopById(stopId), "stopName") +
+            "</small></div>" +
+            "            <div>" +
+            "                " + Lang.localizedKey(result.stop, "stopName") + " (" + distance + $.i18n("transit-eta-metres") + ")" +
+            "            </div>" +
+            "        </div>" +
+            "        <span class=\"badge badge-primary badge-pill transit-eta\">" + $.i18n("transit-eta-retrieving") + "</span>" +
+            "    </li>";
+    }
+    html += "</ul></div><div class=\"row item-list all-route-list\"></div>";
+
+    $(".content-panel-container").html(html);
+
+    $(".nearby-route-list .route-selection").on("mouseenter", mouseEnterPreviewRoute);
+
+    $(".nearby-route-list .route-selection").on("mouseleave", function () {
+        //Map.setCenter(Loc.getCurrentPosition());
+        //Map.setZoom(16);
+        //Map.removeAllMarkers();
+        //Map.removeAllPolylines();
+    });
+
+    $(".nearby-route-list .route-selection").on("click", mouseClickSelectRoute);
+
+    filterProviderSort(".nearby-route-list");
+
+    updateEta();
+    updateEtaTimer = setInterval(updateEta, 30000);
+}
+
 export function enable() {
     RequestLimiter.clear();
     TransitEta.clearCache();
@@ -662,14 +771,25 @@ export function enable() {
         }
     });
 
-    Event.addListener(Event.EVENTS.EVENT_UI_BACK, function (){
+    Event.addListener(Event.EVENTS.EVENT_UI_BACK, eventUiBackListener = function (){
         if (fromSearch) {
             TouchKeypad.showTouchKeypad();
         }
         clearInterval(updateStopEtaTimer);
     });
 
-    var pos = Loc.getCurrentPosition();
+    Event.addListener(Event.EVENTS.EVENT_LOCATION_CHANGE, eventLocChgListener = function () {
+        if (lastLat && lastLng) {
+            var newLoc = Loc.getCurrentPosition();
+            var dst = Misc.geoDistance(newLoc.lat, newLoc.lng, lastLat, lastLng);
+            console.log("DIST:" + dst);
+            if (dst > 25) {
+                console.log("Location moved 25 m away. Finding new nearby routes.");
+                findNearbyRoutes();
+            }
+        }
+    });
+
     var providers = TransitRoutes.getProviders();
 
     if (providers.length > 0) {
@@ -735,98 +855,6 @@ export function enable() {
             }
         });
 
-        var lat = pos.lat;
-        var lng = pos.lng;
-        var range = Settings.get("min_nearby_transit_range", 200) / 1000.0;
-
-        var allNearbyStops = TransitStops.getAllStopsNearby(lat, lng, range, true, true);
-
-        if (allNearbyStops.length === 0) {
-            var testRange = range;
-            do {
-                testRange += 0.05;
-                allNearbyStops = TransitStops.getAllStopsNearby(lat, lng, testRange, true, true);
-            } while (allNearbyStops.length === 0 && testRange < 10);
-
-            if (testRange >= 10) {
-                $(".tab-panel").append(
-                    "<div class=\"alert alert-danger alert-dismissable\">" +
-                    "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\" >&#215;</button>" +
-                    "No routes are found in 10 km range." +
-                    "</div>"
-                );
-            } else {
-                $(".tab-panel").append(
-                    "<div class=\"alert alert-warning alert-dismissable\">" +
-                    "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\" >&#215;</button>" +
-                    $.i18n("transit-eta-no-routes-found-nearby-extended-range", range * 1000, Math.ceil(testRange * 1000)) +
-                    "</div>"
-                );
-            }
-        }
-
-        var maxNearbyBusDisplay = Settings.get("max_nearby_transit_to_display", 20);
-        allNearbyRoutes = [];
-        for (var stopResult of allNearbyStops) {
-            if (allNearbyRoutes.length >= maxNearbyBusDisplay) {
-                break;
-            }
-
-            var routeResults = Transit.searchRoutesOfStop(stopResult.stop);
-
-            for (var routeResult of routeResults) {
-                allNearbyRoutes.push({
-                    route: routeResult.route,
-                    bound: routeResult.bound,
-                    stop: stopResult.stop,
-                    distance: stopResult.distance
-                });
-            }
-        }
-
-        var html;
-        var distance;
-        var paths;
-        var stopId;
-        var provider;
-        html = "<div class=\"row item-list nearby-route-list\"><ul class=\"list-group\">";
-        for (var result of allNearbyRoutes) {
-            paths = result.route.paths[result.bound];
-            stopId = paths[paths.length - 1];
-            distance = Math.round(result.distance * 1000);
-            provider = TransitRoutes.getProvider(result.route.provider);
-            html +=
-                "    <li class=\"list-group-item list-group-item-action d-flex justify-content-between align-items-center route-selection\" gtw-provider=\"" + result.route.provider + "\" gtw-route-id=\"" + result.route.routeId + "\" gtw-stop-id=\"" + result.stop.stopId + "\" gtw-bound=\"" + result.bound + "\">" +
-                "        <div class=\"d-flex flex-column route-id\">" +
-                "            <div>" + Lang.localizedKey(provider, "name") + "</div>" +
-                "            <div>" + Lang.localizedKey(result.route, "routeName") + "</div>" +
-                "        </div>" +
-                "        <div class=\"d-flex flex-column stop-info mr-auto\">" +
-                "            <div>" +
-                "                <b>" + $.i18n("transit-eta-to") + ":</b> <small>" + Lang.localizedKey(TransitStops.getStopById(stopId), "stopName") +
-                "</small></div>" +
-                "            <div>" +
-                "                " + Lang.localizedKey(result.stop, "stopName") + " (" + distance + $.i18n("transit-eta-metres") + ")" +
-                "            </div>" +
-                "        </div>" +
-                "        <span class=\"badge badge-primary badge-pill transit-eta\">" + $.i18n("transit-eta-retrieving") + "</span>" +
-                "    </li>";
-        }
-        html += "</ul></div><div class=\"row item-list all-route-list\"></div>";
-
-        $(".content-panel-container").html(html);
-
-        $(".route-selection").on("mouseenter", mouseEnterPreviewRoute);
-
-        $(".route-selection").on("mouseleave", function () {
-            //Map.setCenter(Loc.getCurrentPosition());
-            //Map.setZoom(16);
-            //Map.removeAllMarkers();
-            //Map.removeAllPolylines();
-        });
-
-        $(".route-selection").on("click", mouseClickSelectRoute);
-
         $("#button-cancel-search").on("click", function () {
             if (!$(this).hasClass("disabled")) {
                 clearSearch();
@@ -848,10 +876,7 @@ export function enable() {
             }, 500);
         });
 
-        filterProviderSort(".nearby-route-list");
-
-        updateEta();
-        updateEtaTimer = setInterval(updateEta, 30000);
+        findNearbyRoutes();
     } else {
         //TODO: better message or auto add plugins according to region
         $(".tab-panel").html("<br /><div class=\"alert alert-danger\" role=\"alert\"><i class=\"fas fa-exclamation-triangle\"></i> " + $.i18n("transit-eta-no-plugins-providing-transit-data") + "</div>");
@@ -860,7 +885,8 @@ export function enable() {
 
 export function disable() {
     TouchKeypad.removeListener(touchKeypadListener);
-    Event.removeListener(Event.EVENTS.EVENT_UI_BACK, eventListener);
+    Event.removeListener(Event.EVENTS.EVENT_UI_BACK, eventUiBackListener);
+    Event.removeListener(Event.EVENTS.EVENT_LOCATION_CHANGE, eventLocChgListener);
     clearTimeout(searchTimeout);
     clearInterval(updateEtaTimer);
     clearInterval(updateStopEtaTimer);

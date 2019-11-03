@@ -79,7 +79,7 @@ export function load(pc) {
 
         if (repos[installedPlugin]){
             proms.push(new Promise((resolve, reject) => {
-                import("./plugins/" + installedPlugin).then(function(mod) {
+                import(`./plugins/${installedPlugin}/index.js`).then(function(mod) {
                     var msg;
                     if (!mod) {
                         msg = $.i18n("plugin-error-no-module-returned", pkg);
