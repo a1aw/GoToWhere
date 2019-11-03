@@ -212,7 +212,10 @@ function drawRouteOnMap(route, bound) {
         dbStop = TransitStops.getStopById(path[i]);
         pos = { lat: dbStop.lat, lng: dbStop.lng };
         coords.push(pos);
-        Map.addMarker(pos, dbStop.stopName, "" + (i + 1));
+        Map.addMarker(pos, {
+            title: dbStop.stopName,
+            label: "" + (i + 1)
+        });
     }
 
     Map.addPolyline(coords, "#FF0000", 2);
@@ -231,6 +234,28 @@ function mouseClickSelectRoute() {
     var route = provider.getRouteById($(this).attr("gtw-route-id"));
     var stop = TransitStops.getStopById($(this).attr("gtw-stop-id"));
     var bound = $(this).attr("gtw-bound");
+
+    if (!stop) {
+        var pos = Loc.getCurrentPosition();
+        var path = route.paths[bound];
+        var pathStop;
+        var distance;
+        var nearestDistance = false;
+        var nearestStop = false;
+        for (var stopId of path) {
+            pathStop = TransitStops.getStopById(stopId);
+            distance = Misc.geoDistance(pathStop.lat, pathStop.lng, pos.lat, pos.lng);
+            if (!nearestDistance || !nearestStop || distance < nearestDistance) {
+                nearestDistance = distance;
+                nearestStop = pathStop;
+            }
+        }
+
+        console.log(nearestDistance);
+        if (nearestDistance <= 2) {
+            stop = nearestStop;
+        }
+    }
 
     showRouteList(route, bound, stop, true);
     drawRouteOnMap(route, bound);
@@ -782,8 +807,7 @@ export function enable() {
         if (lastLat && lastLng) {
             var newLoc = Loc.getCurrentPosition();
             var dst = Misc.geoDistance(newLoc.lat, newLoc.lng, lastLat, lastLng);
-            console.log("DIST:" + dst);
-            if (dst > 25) {
+            if (dst > 0.25) {
                 console.log("Location moved 25 m away. Finding new nearby routes.");
                 findNearbyRoutes();
             }

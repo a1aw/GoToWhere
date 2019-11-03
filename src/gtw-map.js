@@ -23,8 +23,20 @@ export function setZoom(zoom) {
     return map.setZoom(zoom);
 }
 
-export function addMarker(position, title, label) {
-    return map.addMarker(position, title, label);
+export function addMarker(position, options) {
+    return map.addMarker(position, options);
+}
+
+export function setMarkerPosition(markerId, position) {
+    return map.setMarkerPosition(markerId, position);
+}
+
+export function lockMarker(markerId) {
+    return map.lockMarker(markerId);
+}
+
+export function unlockMarker(markerId) {
+    return map.unlockMarker(markerId);
 }
 
 export function removeMarker(markerId) {
@@ -41,6 +53,14 @@ export function addInfoWindow(markerId, content, open = false) {
 
 export function addPolyline(coords, strokeColor, strokeWeight, strokeOpacity = 1.0, geodesic = true) {
     return map.addPolyline(coords, strokeColor, strokeWeight, strokeOpacity, geodesic);
+}
+
+export function lockPolyline(polylineId) {
+    return map.lockPolyline(polylineId);
+}
+
+export function unlockPolyline(polylineId) {
+    return map.unlockPolyline(polylineId);
 }
 
 export function removePolyline(polylineId) {

@@ -5,12 +5,14 @@ import * as loc from './gtw-location';
 
 var markerInc = 1;
 var markers = {};
+var lockedMarkers = [];
 
 var infoWindowInc = 1;
 var infoWindows = {};
 
 var polylineInc = 1;
 var polylines = {};
+var lockedPolylines = [];
 
 export var map = false;
 
@@ -49,11 +51,12 @@ export function setZoom(zoom) {
     return map.setZoom(zoom);
 }
 
-export function addMarker(position, title, label, onClickFunc) {
+export function addMarker(position, options, onClickFunc) {
     var marker = new google.maps.Marker({
         position: position,
-        label: label,
-        title: title,
+        label: options.label,
+        title: options.title,
+        icon: options.icon,
         map: map
     });
     markers[markerInc] = marker;
@@ -67,6 +70,13 @@ export function addMarker(position, title, label, onClickFunc) {
     return markerInc++;
 }
 
+export function setMarkerPosition(markerId, position) {
+    if (!markerId || !markers[markerId]) {
+        return false;
+    }
+    markers[markerId].setPosition(position);
+}
+
 export function getMarker(markerId) {
     if (!markerId || !markers[markerId]) {
         return false;
@@ -74,8 +84,30 @@ export function getMarker(markerId) {
     return markers[markerId];
 }
 
+export function lockMarker(markerId) {
+    if (!markerId || !markers[markerId]) {
+        return false;
+    }
+    if (lockedMarkers.indexOf(markerId) === -1) {
+        lockedMarkers.push(markerId);
+    }
+    return true;
+}
+
+export function unlockMarker(markerId) {
+    var i = lockedMarkers.indexOf(markerId);
+    if (i === -1) {
+        return false;
+    }
+    lockedMarkers.splice(i, 1);
+    return true;
+}
+
 export function removeMarker(markerId) {
     if (!markerId || !markers[markerId]) {
+        return false;
+    }
+    if (lockedMarkers.includes(markerId)) {
         return false;
     }
     markers[markerId].setMap(null);
@@ -85,7 +117,9 @@ export function removeMarker(markerId) {
 
 export function removeAllMarkers() {
     for (var key in markers) {
-        markers[key].setMap(null);
+        if (!lockedMarkers.includes(parseInt(key))) {
+            markers[key].setMap(null);
+        }
     }
     markers = {};
     return true;
@@ -128,8 +162,30 @@ export function addPolyline(coords, strokeColor, strokeWeight, strokeOpacity = 1
     return polylineInc++;
 }
 
+export function lockPolyline(polylineId) {
+    if (!polyline || !polylines[polylineId]) {
+        return false;
+    }
+    if (lockedPolylines.indexOf(polylineId) === -1) {
+        lockedPolylines.push(polylineId);
+    }
+    return true;
+}
+
+export function unlockPolyline(polylineId) {
+    var i = lockedPolylines.indexOf(polylineId);
+    if (i === -1) {
+        return false;
+    }
+    lockedPolylines.splice(i, 1);
+    return true;
+}
+
 export function removePolyline(polylineId) {
     if (!polylineId || !polylines[polylineId]) {
+        return false;
+    }
+    if (lockedPolylines.includes(polylineId)) {
         return false;
     }
     polylines[polylineId].setMap(null);
@@ -139,7 +195,9 @@ export function removePolyline(polylineId) {
 
 export function removeAllPolylines() {
     for (var key in polylines) {
-        polylines[key].setMap(null);
+        if (!lockedPolylines.includes(key)) {
+            polylines[key].setMap(null);
+        }
     }
     polylines = {};
     return true;

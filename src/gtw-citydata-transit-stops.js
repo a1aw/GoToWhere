@@ -51,7 +51,7 @@ export function registerProvider(type, id, name, provider) {
     provider.getStops = function () {
         return this.db ? this.db.stops : [];
     };
-
+    console.log(provider);
     providers.push(provider);
 }
 
@@ -70,11 +70,15 @@ export function getProviders() {
 }
 
 export function getProvider(id) {
+    console.log("Finding " + id);
     for (var provider of providers) {
+        console.log("Cmoparing " + id + " vs " + provider.id);
         if (provider.id === id) {
+            console.log("Found");
             return provider;
         }
     }
+    console.log("none");
     return false;
 }
 
@@ -114,6 +118,7 @@ export function fetchAllDatabase(pc) {
                 }
             }
             Promise.all(proms).then(function () {
+                console.log(needs);
                 var proms = [];
                 var p;
                 for (var provider of providers) {

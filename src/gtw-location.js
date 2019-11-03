@@ -14,6 +14,8 @@ const ERROR_NO_ACCESS = 1;
 
 export var watchId = 0;
 
+export var markerId = 0;
+
 export var currentPosition = { lat: 22.2952296, lng: 114.1766577 };
 
 export function getConvention() {
@@ -49,6 +51,11 @@ export function requestLocationAccess(successFunc = function () { }, errorFunc =
         Map.setCenter(currentPosition);
         Map.setZoom(16);
 
+        markerId = Map.addMarker(currentPosition, {
+            icon: "img/star.png"
+        });
+        Map.lockMarker(markerId);
+
         watchId = navigator.geolocation.watchPosition(
             onPositionChangeSuccess,
             onPositionChangeError,
@@ -73,6 +80,7 @@ export function onPositionChangeSuccess(position) {
         lat: position.coords.latitude,
         lng: position.coords.longitude
     };
+    Map.setMarkerPosition(markerId, currentPosition);
     Event.dispatchEvent(Event.EVENTS.EVENT_LOCATION_CHANGE, currentPosition);
 }
 
