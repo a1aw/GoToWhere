@@ -1,1 +1,0 @@
-{"version":3,"sources":["webpack:///./src/ui/modal-about-header.html"],"names":["module","exports"],"mappings":"2EAAAA,EAAOC,QAAU","file":"15.eb684c913f8139e499d7.js","sourcesContent":["module.exports = \"<h5 class=modal-title data-i18n=about-title></h5> <button type=button class=close data-dismiss=modal><span aria-hidden=true>&times;</span></button>\";"],"sourceRoot":""}
