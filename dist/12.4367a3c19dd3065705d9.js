@@ -1,0 +1,2 @@
+(window.webpackJsonp=window.webpackJsonp||[]).push([[12],{48:function(t){t.exports=JSON.parse('{"transit":{"id":"transit","name":"Transit","desc":"Plugins that provide transit data to the platform."},"transitEta":{"id":"transitEta","name":"Transit ETA","desc":"Plugins that additionally provide transit ETA to routes."}}')}}]);
+//# sourceMappingURL=12.4367a3c19dd3065705d9.js.map

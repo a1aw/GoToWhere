@@ -1,0 +1,2 @@
+(window.webpackJsonp=window.webpackJsonp||[]).push([[8],{52:function(n,i,c){"use strict";c.r(i),function(n){function o(i,c){n("#plugin-closed-api-confirm-yes").on("click",(function(){c(),hideModal()})),n("#plugin-closed-api-confirm-no").on("click",(function(){i.prop("checked",!1),c(),hideModal()}))}function e(){}c.d(i,"enable",(function(){return o})),c.d(i,"disable",(function(){return e}))}.call(this,c(0))}}]);
+//# sourceMappingURL=8.62227db6a44fbdc49b1d.js.map
