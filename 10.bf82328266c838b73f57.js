@@ -1,2 +1,0 @@
-(window.webpackJsonp=window.webpackJsonp||[]).push([[10],{55:function(n,e,t){"use strict";t.r(e),function(n){function d(e){n("#updated-header").html(n.i18n("updated-header",e)),n("#updated-desc").html(n.i18n("updated-desc",e)),n("#updated-okay-btn").on("click",(function(){hideModal()})),t.e(37).then(t.bind(null,112)).then((function(e){n("#updated-changelog").html(e.default)}))}function u(){}t.d(e,"enable",(function(){return d})),t.d(e,"disable",(function(){return u}))}.call(this,t(0))}}]);
-//# sourceMappingURL=10.bf82328266c838b73f57.js.map

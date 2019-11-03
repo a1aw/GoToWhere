@@ -1,5 +1,5 @@
 ﻿{
-    "app-name": "去邊㗎",
+    "app-name": "去邊㗎 Beta",
     "app-desc": "開放城市數據地圖",
     "app-license-message": "於MIT授權條款下授權使用程式，此應用程式旨在用於教育研究，但不可用於商業用途。",
 
@@ -24,6 +24,7 @@
     "nav-plugins": "插件",
     "nav-settings": "設定",
     "nav-about": "關於",
+    "nav-feedback": "按這裡建議/報告問題",
 
     "about-title": "關於",
     "about-desc": "去邊㗎 (GoToWhere) 是利用地圖，用於顯示開放城市數據一個平台。 應用程式本身無法自已尋找和存取任何城市數據，用戶需要安裝不同的插件去讓應用程式存取和正確顯示城市數據。",

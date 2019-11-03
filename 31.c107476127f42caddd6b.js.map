@@ -1,1 +1,0 @@
-{"version":3,"sources":["webpack:///./src/ui/modal-updated-body.html"],"names":["module","exports"],"mappings":"4EAAAA,EAAOC,QAAU","file":"31.c107476127f42caddd6b.js","sourcesContent":["module.exports = \"<div class=text-center><h1 id=updated-header></h1></div> <hr/> <p id=updated-desc></p> <pre id=updated-changelog></pre>\";"],"sourceRoot":""}
