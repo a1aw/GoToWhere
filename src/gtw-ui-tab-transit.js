@@ -25,7 +25,7 @@ var lastLng = false;
 var fromSearch = false;
 
 function showTouchKeypad() {
-    $("#search-transit-text").attr("readonly", "");
+    $("#search-transit-text").removeAttr("readonly");
     TouchKeypad.showTouchKeypad();
 }
 
