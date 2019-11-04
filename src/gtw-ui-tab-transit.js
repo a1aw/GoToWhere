@@ -90,6 +90,7 @@ function searchRoutes() {
     }
 
     var routes = TransitRoutes.getAllRoutes();
+
     var lastStop;
     var stopId;
     var provider;
@@ -807,7 +808,7 @@ export function enable() {
         if (lastLat && lastLng) {
             var newLoc = Loc.getCurrentPosition();
             var dst = Misc.geoDistance(newLoc.lat, newLoc.lng, lastLat, lastLng);
-            if (dst > 0.25) {
+            if (dst > 0.025) {
                 console.log("Location moved 25 m away. Finding new nearby routes.");
                 findNearbyRoutes();
             }

@@ -19,7 +19,7 @@ $(document).ready(function () {
         showModal("about");
     });
     $(".feedback-btn").on("click", function () {
-        window.open("https://forms.gle/tPT6LTKLNzFZwiPy8");
+        window.open("https://forms.gle/nP9cp1V2rqhdqybv5");
     });
 });
 
