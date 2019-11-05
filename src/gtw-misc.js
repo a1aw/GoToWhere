@@ -10,6 +10,28 @@ export function geoDistance(lat1, lon1, lat2, lon2) {
     return 12742 * Math.asin(Math.sqrt(a)); // 2 * R; R = 6371 km
 }
 
+export function stringCompare(a, b) {
+    if (a.length < b.length) {
+        return -1;
+    } else if (a.length > b.length) {
+        return 1;
+    }
+    var i;
+    var ca;
+    var cb;
+    var len = a.length;
+    for (i = 0; i < len; i++) {
+        ca = a.charAt(i);
+        cb = b.charAt(i);
+        if (ca < cb) {
+            return -1;
+        } else if (ca > cb) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 export function allProgress(proms, progress_cb) {
     let d = 0;
     progress_cb(0);

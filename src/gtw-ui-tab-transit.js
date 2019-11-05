@@ -91,85 +91,119 @@ function searchRoutes() {
 
     var routes = TransitRoutes.getAllRoutes();
 
-    var lastStop;
-    var stopId;
-    var provider;
-    var path;
-    var rp;
-    var pp;
-    var sp;
+    var len = val.length;
+
+    var foundList = [];
+
     var i;
-    var sim;
-    var routeName;
-    var providerName;
-    var stopName;
-    //var routeNameIncludes;
+    var provider;
+    var route;
+    var path;
+    var lastStop;
+    var doNotShow = false;
 
-    var searchList = [];
-
-    for (var route of routes) {
-        for (i = 0; i < route.paths.length; i++) {
-            path = route.paths[i];
-            stopId = path[path.length - 1];
+    if (len === 0) {
+        doNotShow = true;
+        console.log("No query input.");
+        var stopId;
+        for (var route of routes) {
             provider = TransitRoutes.getProvider(route.provider);
-            lastStop = TransitStops.getStopById(stopId);
-
-            routeName = Lang.localizedKey(route, "routeName");
-            providerName = Lang.localizedKey(provider, "name");
-            stopName = Lang.localizedKey(lastStop, "stopName");
-
-            rp = Misc.similarity(routeName, val);
-            /*
-            pp = Misc.similarity(providerName, val);
-            sp = Misc.similarity(stopName, val);
-            routeNameIncludes = routeName.includes(val);
-
-            if (!routeNameIncludes && rp < 0.3 && pp < 0.3 && sp < 0.3) {
-                continue;
+            for (i = 0; i < route.paths.length; i++) {
+                path = route.paths[i];
+                stopId = path[path.length - 1];
+                lastStop = TransitStops.getStopById(stopId);
+                foundList.push({
+                    provider: provider,
+                    route: route,
+                    lastStop: lastStop,
+                    bound: i
+                });
             }
-            */
-            if (!routeName.startsWith(val)) {
-                continue;
+        }
+    } else {
+        var j;
+        var indexesList = [];
+        for (i = 0; i < routes.length; i++) {
+            routeName = Lang.localizedKey(routes[i], "routeName");
+            if (routeName.length >= len) {
+                for (j = 0; j < routes[i].paths.length; j++) {
+                    indexesList.push({
+                        value: routeName.substr(0, len),
+                        routeIndex: i,
+                        pathIndex: j
+                    });
+                }
             }
+        }
 
-            //sim = Math.max(rp, pp, sp);
+        indexesList.sort(function (a, b) {
+            return a.value.localeCompare(b.value);//Misc.stringCompare(a.value, b.value);
+        });
 
-            searchList.push({
-                provider: provider,
-                route: route,
-                bound: i,
-                lastStop: lastStop,
-                sim: rp
-                //routeNameIncludes: routeNameIncludes
-            });
+        var mid;
+        var midVal;
+        var compare;
+        var start = 0;
+        var end = indexesList.length - 1;
+
+        while (start < end) {
+            mid = Math.floor((start + end) / 2);
+            midVal = indexesList[mid];
+            compare = val.localeCompare(midVal.value);//Misc.stringCompare(val, midVal.value);
+
+            if (compare === 0) {
+                end = mid;
+            } else if (compare > 0) {
+                start = mid + 1;
+            } else {
+                end = mid - 1;
+            }
+        }
+
+        if (indexesList[start].value === val) {
+            var index;
+            for (i = start; i < indexesList.length; i++) {
+                index = indexesList[i];
+
+                if (index.value !== val) {
+                    break;
+                }
+
+                route = routes[index.routeIndex];
+                provider = TransitRoutes.getProvider(route.provider);
+                path = route.paths[index.pathIndex];
+                lastStop = TransitStops.getStopById(path[path.length - 1]);
+
+                foundList.push({
+                    provider: provider,
+                    route: routes[index.routeIndex],
+                    lastStop: lastStop,
+                    bound: index.pathIndex
+                });
+            }
         }
     }
 
-    searchList.sort(function (a, b) {
-        return b.sim - a.sim;
-    });
-
     var html = "<ul class=\"list-group\">";
 
-    var search;
+    var routeName;
     var availableKeypads = {};
-    for (i = 0; i < searchList.length; i++) {
-        search = searchList[i];
-        routeName = Lang.localizedKey(search.route, "routeName");
+    for (i = 0; i < foundList.length; i++) {
+        routeName = Lang.localizedKey(foundList[i].route, "routeName");
 
         if (val.length < routeName.length) {
             var letter = routeName.charAt(val.length);
             availableKeypads[letter] = true;
         }
 
-        if (i <= 20) {
+        if (!doNotShow) {
             html +=
-                "<li class=\"list-group-item list-group-item-action d-flex align-items-center route-selection\" gtw-provider=\"" + search.provider.id + "\" gtw-route-id=\"" + search.route.routeId + "\" gtw-bound=\"" + search.bound + "\">" +
+                "<li class=\"list-group-item list-group-item-action d-flex align-items-center route-selection\" gtw-provider=\"" + foundList[i].provider.id + "\" gtw-route-id=\"" + foundList[i].route.routeId + "\" gtw-bound=\"" + foundList[i].bound + "\">" +
                 "    <div class=\"d-flex flex-column route-id\">" +
-                "        <div>" + Lang.localizedKey(search.provider, "name") + "</div>" +
+                "        <div>" + Lang.localizedKey(foundList[i].provider, "name") + "</div>" +
                 "        <div>" + routeName + "</div>" +
                 "    </div>" +
-                "    <div><b>" + $.i18n("transit-eta-to") + ":</b> " + Lang.localizedKey(search.lastStop, "stopName") + "</div>" +
+                "    <div><b>" + $.i18n("transit-eta-to") + ":</b> " + Lang.localizedKey(foundList[i].lastStop, "stopName") + "</div>" +
                 "</li>";
         }
     }
