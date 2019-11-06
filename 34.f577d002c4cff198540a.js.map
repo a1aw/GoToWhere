@@ -1,1 +1,0 @@
-{"version":3,"sources":["webpack:///./src/changelog.txt"],"names":[],"mappings":"2FAAA,OAAe","file":"34.f577d002c4cff198540a.js","sourcesContent":["export default \"- Fixes showing \\\"false\\\" in routes\\r\\n- Adds functionality to close keypad\\r\\n- Sets search transit text field to be fully read-only\""],"sourceRoot":""}

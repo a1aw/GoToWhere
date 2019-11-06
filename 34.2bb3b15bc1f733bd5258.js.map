@@ -1,0 +1,1 @@
+{"version":3,"sources":["webpack:///./src/changelog.txt"],"names":[],"mappings":"2FAAA,OAAe","file":"34.2bb3b15bc1f733bd5258.js","sourcesContent":["export default \"- Fixes webpage scrolling problem\\r\\n- Fixes layout problem for mobile split container\""],"sourceRoot":""}
