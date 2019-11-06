@@ -185,7 +185,7 @@ if (!promise) {
                     }, function () {
                         $("#loc-status-btn").addClass("btn-danger");
                         $("#loc-status-btn").removeClass("btn-warning");
-                        $("#loc-status-btn").append(" <span>Failed!</span>");
+                        $("#loc-status-btn").append(" <span> No Location!</span>");
                         setTimeout(function () {
                             $("#loc-status-btn span").fadeOut(500);
                         }, 5000);
