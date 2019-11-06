@@ -7,7 +7,16 @@ export function enable(ver) {
         UI.hideModal();
     });
     import("./changelog.txt").then(function (mod) {
-        $("#updated-changelog").html(mod.default);
+        var html = "";
+        var splits = mod.default.split("\n");
+        var i;
+        for (i = 0; i < splits.length; i++) {
+            html += splits[i];
+            if (i !== splits.length - 1) {
+                html += "<br />";
+            }
+        }
+        $("#updated-changelog").html(html);
     });
 }
 

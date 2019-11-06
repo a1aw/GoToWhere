@@ -5,6 +5,7 @@ $(".touch-keypad-function-backspace").on("click", mouseClickTouchKeypadValue);
 $(".touch-keypad-value").on("click", mouseClickTouchKeypadValue);
 
 function mouseClickTouchKeypadValue() {
+    $(this).blur();
     if ($(this).hasClass("disabled")) {
         return;
     }
