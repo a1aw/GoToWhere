@@ -38,9 +38,15 @@ $(".ui-tab").on("click", function () {
     showTab(tab);
 });
 
+$(".btn").on("click", function () {
+    $(this).blur();
+});
+
+/*
 $(".btn").on("mouseup", function () {
     $(this).blur();
 });
+*/
 
 $(".ui-half-map-back-btn").on("click", function () {
     Event.dispatchEvent(Event.EVENTS.EVENT_UI_BACK);

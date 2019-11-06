@@ -233,7 +233,7 @@ function searchRoutes() {
 
     $(".all-route-list .route-selection").on("mouseenter", mouseEnterPreviewRoute);
     $(".all-route-list .route-selection").on("click", mouseClickSelectRoute);
-    $(".all-route-list .route-selection").on("mouseup", mouseUpBtn);
+    //$(".all-route-list .route-selection").on("mouseup", mouseUpBtn);
 
     //$(".all-route-list .route-selection:nth-child(1)").mouseenter();
 
@@ -283,6 +283,7 @@ function mouseUpBtn() {
 }
 
 function mouseClickSelectRoute() {
+    $(this).blur();
     //fromSearch = $(this).parent().parent().hasClass("all-route-list");
 
     UI.hidePanel();
@@ -831,7 +832,7 @@ function findNearbyRoutes() {
 
     $(".nearby-route-list .route-selection").on("click", mouseClickSelectRoute);
 
-    $(".nearby-route-list .route-selection").on("mouseup", mouseUpBtn);
+    //$(".nearby-route-list .route-selection").on("mouseup", mouseUpBtn);
 
     filterProviderSort(".nearby-route-list");
 
