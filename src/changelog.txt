@@ -1,1 +1,2 @@
 - Fixes button stuck after pressing bug
+- Fixes wrongly switched back to nearby routes screen from routes search if location chanaged.
