@@ -67,7 +67,8 @@ module.exports = {
         new HtmlWebpackPlugin({
             title: 'GoToWhere',
             filename: 'index.html',
-            template: './src/index.html'
+            template: './src/index.html',
+            hash: true
         }),
         new webpack.ProvidePlugin({
             $: 'jquery',

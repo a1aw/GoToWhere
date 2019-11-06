@@ -22,7 +22,7 @@ var eventUiBackListener;
 var eventLocChgListener;
 var lastLat = false;
 var lastLng = false;
-var fromSearch = false;
+var searchMode = false;
 
 function showTouchKeypad() {
     $("#search-transit-text").removeAttr("readonly");
@@ -35,6 +35,8 @@ function hideTouchKeypad() {
 }
 
 function showSearchRoutes() {
+    searchMode = true;
+
     $("#button-cancel-search").removeClass("btn-light");
     $("#button-cancel-search").removeClass("disabled");
     $("#button-cancel-search").addClass("btn-danger");
@@ -52,6 +54,8 @@ function showSearchRoutes() {
 }
 
 function hideSearchRoutes() {
+    searchMode = false;
+
     $("#button-cancel-search").addClass("btn-light");
     $("#button-cancel-search").addClass("disabled");
     $("#button-cancel-search").removeClass("btn-danger");
@@ -229,6 +233,7 @@ function searchRoutes() {
 
     $(".all-route-list .route-selection").on("mouseenter", mouseEnterPreviewRoute);
     $(".all-route-list .route-selection").on("click", mouseClickSelectRoute);
+    $(".all-route-list .route-selection").on("mouseup", mouseUpBtn);
 
     //$(".all-route-list .route-selection:nth-child(1)").mouseenter();
 
@@ -273,8 +278,12 @@ function drawRouteOnMap(route, bound) {
     Map.addPolyline(coords, "#FF0000", 2);
 }
 
+function mouseUpBtn() {
+    $(this).blur();
+}
+
 function mouseClickSelectRoute() {
-    fromSearch = $(this).parent().parent().hasClass("all-route-list");
+    //fromSearch = $(this).parent().parent().hasClass("all-route-list");
 
     UI.hidePanel();
     hideTouchKeypad();
@@ -784,7 +793,7 @@ function findNearbyRoutes() {
     var paths;
     var stopId;
     var provider;
-    html = "<div class=\"row item-list nearby-route-list\"><ul class=\"list-group\">";
+    html = "<div class=\"row item-list nearby-route-list\"" + (searchMode ? " style=\"display: none\"" : "") + "><ul class=\"list-group\">";
     for (var result of allNearbyRoutes) {
         paths = result.route.paths[result.bound];
         stopId = paths[paths.length - 1];
@@ -822,6 +831,8 @@ function findNearbyRoutes() {
 
     $(".nearby-route-list .route-selection").on("click", mouseClickSelectRoute);
 
+    $(".nearby-route-list .route-selection").on("mouseup", mouseUpBtn);
+
     filterProviderSort(".nearby-route-list");
 
     updateEta();
@@ -849,7 +860,7 @@ export function enable() {
     });
 
     Event.addListener(Event.EVENTS.EVENT_UI_BACK, eventUiBackListener = function (){
-        if (fromSearch) {
+        if (searchMode) {
             TouchKeypad.showTouchKeypad();
         }
         clearInterval(updateStopEtaTimer);
@@ -859,8 +870,8 @@ export function enable() {
         if (lastLat && lastLng) {
             var newLoc = Loc.getCurrentPosition();
             var dst = Misc.geoDistance(newLoc.lat, newLoc.lng, lastLat, lastLng);
-            if (dst > 0.025) {
-                console.log("Location moved 25 m away. Finding new nearby routes.");
+            if (dst > 0.125) {
+                console.log("Location moved 125 m away. Finding new nearby routes.");
                 findNearbyRoutes();
             }
         }
