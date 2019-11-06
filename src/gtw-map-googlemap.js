@@ -32,7 +32,7 @@ export function init() {
 
         var apiKey = config.googleMapApiKey;
 
-        if (!window.location.origin || window.location.origin === "" || window.location.origin === "file://" || window.location.origin.startsWith("http://localhost") || window.location.origin.startsWith("https://localhost")) {
+        if (!window.location.origin || window.location.origin === "" || window.location.origin !== "https://www.gotowhere.ga" || window.location.origin === "file://" || window.location.origin.startsWith("http://localhost") || window.location.origin.startsWith("https://localhost")) {
             apiKey = "";
             console.warn("gtw-map-googlemap: You are running the application in local/no-origin mode. The API key has been removed now.");
         }

@@ -1,7 +1,7 @@
 body {
     width: 100%;
-    height: 100vh;
-    overflow: hidden;
+    height: 100%;
+    /* overflow: hidden; */
     position: absolute;
 }
 
@@ -354,6 +354,18 @@ body {
     z-index: 1;
 }
 
+.mobile-split-container {
+    /*margin-top: 50vh;*/
+    display: none;
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 50%;
+    padding: 0px;
+    background-color: rgba(233,236,239,0.8);
+}
+
 /* Media Query */
 @media only screen and (min-width: 768px) {
     .top-panel {
@@ -392,7 +404,7 @@ body {
         width: 25%;
         /*display: none;*/
     }
-    
+
     .touch-keypad {
         width: 25%;
     }
@@ -439,9 +451,8 @@ body {
         margin-bottom: env(safe-area-inset-bottom);
     }
 
-    .mobile-split-container {
-        margin-top: 50vh;
-        padding: 0px;
+    .mobile-split-container.gtw-half-map {
+        display: block;
     }
 
     .startup .progress-panel {
@@ -459,9 +470,9 @@ body {
     */
 
     .map-overlay.gtw-half-map {
-        /*display: none;*/
-        margin-top: 50vh;
-        height: 50vh;
+        display: none;
+        /*margin-top: 50vh;
+        height: 50vh;*/
     }
 
     /*

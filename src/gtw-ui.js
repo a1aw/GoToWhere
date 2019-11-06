@@ -77,6 +77,7 @@ export function showPanel() {
     $(".map-overlay").removeClass("gtw-half-map");
     $(".half-map-panel").removeClass("gtw-half-map");
     $(".half-map-container").removeClass("gtw-half-map");
+    $(".mobile-split-container").removeClass("gtw-half-map");
 
     //$(".header nav").addClass("bg-dark");
     //$(".half-map-panel").css("display", "none");
@@ -96,6 +97,7 @@ export function hidePanel() {
     $(".map-overlay").addClass("gtw-half-map");
     $(".half-map-panel").addClass("gtw-half-map");
     $(".half-map-container").addClass("gtw-half-map");
+    $(".mobile-split-container").addClass("gtw-half-map");
 
     //$(".half-map-panel").css("display", "block");
     //$(".half-map-container").css("display", "block");

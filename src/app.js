@@ -155,7 +155,7 @@ if (!promise) {
                     }
                     localStorage.setItem("gtw-lastversion", VERSION);
 
-                    //ui.init();
+                    ui.init();
 
                     //TransitManager.start();
                     //TransitManager.forceUpdate();
@@ -175,7 +175,7 @@ if (!promise) {
                     }
 
                     loc.requestLocationAccess(function () {
-                        ui.init();
+                        //ui.init();
                         //TransitManager.forceUpdate();
                         $("#loc-status-btn").addClass("btn-success");
                         $("#loc-status-btn").removeClass("btn-warning");
