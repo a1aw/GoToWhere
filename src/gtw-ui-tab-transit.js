@@ -102,9 +102,11 @@ function searchRoutes() {
     var lastStop;
     var doNotShow = false;
 
+    var t;
     if (len === 0) {
         doNotShow = true;
         console.log("No query input.");
+        t = Date.now();
         var stopId;
         for (var route of routes) {
             provider = TransitRoutes.getProvider(route.provider);
@@ -120,7 +122,9 @@ function searchRoutes() {
                 });
             }
         }
+        console.log("AllRoutesArrayBuild used " + (Date.now() - t) + " ms");
     } else {
+        t = Date.now();
         var j;
         var indexesList = [];
         for (i = 0; i < routes.length; i++) {
@@ -135,10 +139,13 @@ function searchRoutes() {
                 }
             }
         }
+        console.log("SearchRoutesArrayBuild used " + (Date.now() - t) + " ms");
 
+        t = Date.now();
         indexesList.sort(function (a, b) {
             return a.value.localeCompare(b.value);//Misc.stringCompare(a.value, b.value);
         });
+        console.log("SortArray used " + (Date.now() - t) + " ms");
 
         var mid;
         var midVal;
@@ -146,6 +153,7 @@ function searchRoutes() {
         var start = 0;
         var end = indexesList.length - 1;
 
+        t = Date.now();
         while (start < end) {
             mid = Math.floor((start + end) / 2);
             midVal = indexesList[mid];
@@ -159,8 +167,11 @@ function searchRoutes() {
                 end = mid - 1;
             }
         }
+        console.log("Search used " + (Date.now() - t) + " ms");
 
+        var u;
         if (indexesList[start].value === val) {
+            t = Date.now();
             var index;
             for (i = start; i < indexesList.length; i++) {
                 index = indexesList[i];
@@ -173,7 +184,7 @@ function searchRoutes() {
                 provider = TransitRoutes.getProvider(route.provider);
                 path = route.paths[index.pathIndex];
                 lastStop = TransitStops.getStopById(path[path.length - 1]);
-
+                
                 foundList.push({
                     provider: provider,
                     route: routes[index.routeIndex],
@@ -181,11 +192,13 @@ function searchRoutes() {
                     bound: index.pathIndex
                 });
             }
+            console.log("Found list build used " + (Date.now() - t) + " ms");
         }
     }
 
     var html = "<ul class=\"list-group\">";
 
+    t = Date.now();
     var routeName;
     var availableKeypads = {};
     for (i = 0; i < foundList.length; i++) {
@@ -207,6 +220,7 @@ function searchRoutes() {
                 "</li>";
         }
     }
+    console.log("HTML build used " + (Date.now() - t) + " ms");
 
     html += "</ul>";
     $(".all-route-list").html(html);
@@ -244,7 +258,10 @@ function drawRouteOnMap(route, bound) {
     var dbStop;
     var i;
     for (i = 0; i < path.length; i++) {
+        console.log("Finding stop " + path[i])
         dbStop = TransitStops.getStopById(path[i]);
+        console.log("DBSTOP " + i);
+        console.log(dbStop);
         pos = { lat: dbStop.lat, lng: dbStop.lng };
         coords.push(pos);
         Map.addMarker(pos, {
@@ -252,7 +269,7 @@ function drawRouteOnMap(route, bound) {
             label: "" + (i + 1)
         });
     }
-
+    console.log(coords);
     Map.addPolyline(coords, "#FF0000", 2);
 }
 

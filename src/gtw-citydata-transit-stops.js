@@ -151,7 +151,13 @@ export function fetchAllDatabase(pc) {
     });
 }
 
+var _cacheSortedStops = false;
+
 export function getAllStops() {
+    if (_cacheSortedStops){
+        return _cacheSortedStops;
+    }
+
     var allStops = [];
     for (var provider of providers) {
         if (provider) {
@@ -161,6 +167,13 @@ export function getAllStops() {
             }
         }
     }
+    
+    allStops.sort(function(a, b){
+        return a.stopId.toString().localeCompare(b.stopId.toString());
+    });
+
+    _cacheSortedStops = allStops;
+
     return allStops;
 }
 
@@ -196,11 +209,28 @@ export function getAllStopsNearby(lat, lng, range, sorted = true) {
 }
 
 export function getStopById(stopId) {
+    if (stopId === undefined){
+        return false;
+    }
+
     var allStops = getAllStops();
-    var i;
-    for (i = 0; i < allStops.length; i++) {
-        if (stopId === allStops[i].stopId) {
-            return allStops[i];
+
+    var mid;
+    var val;
+    var compare;
+    var start = 0;
+    var end = allStops.length - 1;
+
+    while (start < end) {
+        mid = Math.floor((start + end) / 2);
+        val = allStops[mid];
+        compare = stopId.toString().localeCompare(val.stopId.toString());
+        if (compare === 0) {
+            return val;
+        } else if (compare > 0) {
+            start = mid + 1;
+        } else {
+            end = mid - 1;
         }
     }
     return false;
