@@ -1,0 +1,2 @@
+(window.webpackJsonp=window.webpackJsonp||[]).push([[34],{109:function(e,s,n){"use strict";n.r(s),s.default="- Fixes button stuck after pressing bug\r\n- Fixes wrongly switched back to nearby routes screen from routes search if location chanaged."}}]);
+//# sourceMappingURL=34.e9d0e8bba22fbdbfb2ce.js.map

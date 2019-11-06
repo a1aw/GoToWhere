@@ -1,0 +1,1 @@
+{"version":3,"sources":["webpack:///./src/changelog.txt"],"names":[],"mappings":"2FAAA,OAAe","file":"34.e9d0e8bba22fbdbfb2ce.js","sourcesContent":["export default \"- Fixes button stuck after pressing bug\\r\\n- Fixes wrongly switched back to nearby routes screen from routes search if location chanaged.\""],"sourceRoot":""}
