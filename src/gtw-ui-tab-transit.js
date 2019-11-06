@@ -25,12 +25,12 @@ var lastLng = false;
 var searchMode = false;
 
 function showTouchKeypad() {
-    $("#search-transit-text").removeAttr("readonly");
+    //$("#search-transit-text").removeAttr("readonly");
     TouchKeypad.showTouchKeypad();
 }
 
 function hideTouchKeypad() {
-    $("#search-transit-text").attr("readonly", "readonly");
+    //$("#search-transit-text").attr("readonly", "readonly");
     TouchKeypad.hideTouchKeypad();
 }
 
@@ -237,6 +237,8 @@ function searchRoutes() {
     //$(".all-route-list .route-selection:nth-child(1)").mouseenter();
 
     filterProviderSort(".all-route-list");
+
+    adjustMargin();
 }
 
 function resetProviderSort() {
@@ -254,6 +256,8 @@ function clearSearch() {
     TouchKeypad.reset();
 }
 
+window.t = TransitStops;
+
 function drawRouteOnMap(route, bound) {
     var path = route.paths[bound];
 
@@ -262,10 +266,7 @@ function drawRouteOnMap(route, bound) {
     var dbStop;
     var i;
     for (i = 0; i < path.length; i++) {
-        console.log("Finding stop " + path[i])
         dbStop = TransitStops.getStopById(path[i]);
-        console.log("DBSTOP " + i);
-        console.log(dbStop);
         pos = { lat: dbStop.lat, lng: dbStop.lng };
         coords.push(pos);
         Map.addMarker(pos, {
@@ -273,7 +274,6 @@ function drawRouteOnMap(route, bound) {
             label: "" + (i + 1)
         });
     }
-    console.log(coords);
     Map.addPolyline(coords, "#FF0000", 2);
 }
 
@@ -838,8 +838,9 @@ export function enable() {
 
     TouchKeypad.addListener(touchKeypadListener = function (obj) {
         var searchText;
-        if ($(obj).hasClass("touch-keypad-function-clear")) {
-            clearSearch();
+        if ($(obj).hasClass("touch-keypad-function-done")) {
+            hideTouchKeypad();
+            adjustMargin();
         } else if ($(obj).hasClass("touch-keypad-function-backspace")) {
             searchText = $("#search-transit-text").val();
             $("#search-transit-text").val(searchText.slice(0, -1));

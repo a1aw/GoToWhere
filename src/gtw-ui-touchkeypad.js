@@ -1,6 +1,6 @@
 var onClickListeners = [];
 
-$(".touch-keypad-function-clear").on("click", mouseClickTouchKeypadValue);
+$(".touch-keypad-function-done").on("click", mouseClickTouchKeypadValue);
 $(".touch-keypad-function-backspace").on("click", mouseClickTouchKeypadValue);
 $(".touch-keypad-value").on("click", mouseClickTouchKeypadValue);
 

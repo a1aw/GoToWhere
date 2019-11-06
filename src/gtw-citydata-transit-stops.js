@@ -209,7 +209,8 @@ export function getAllStopsNearby(lat, lng, range, sorted = true) {
 }
 
 export function getStopById(stopId) {
-    if (stopId === undefined){
+    if (stopId === undefined) {
+        console.log("Undefined stopid");
         return false;
     }
 
@@ -221,7 +222,7 @@ export function getStopById(stopId) {
     var start = 0;
     var end = allStops.length - 1;
 
-    while (start < end) {
+    while (start <= end) {
         mid = Math.floor((start + end) / 2);
         val = allStops[mid];
         compare = stopId.toString().localeCompare(val.stopId.toString());

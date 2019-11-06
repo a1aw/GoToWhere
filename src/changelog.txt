@@ -1,1 +1,3 @@
-- Fixes button stuck after pressing bug (3)
+- Fixes showing "false" in routes
+- Adds functionality to close keypad
+- Sets search transit text field to be fully read-only
