@@ -1,2 +1,1 @@
-- Fixes webpage scrolling problem
-- Fixes layout problem for mobile split container
+- Adds GTAG tracking
