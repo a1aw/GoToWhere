@@ -3,6 +3,10 @@
 import $ from 'jquery';
 window.jQuery = $;
 window.$ = $;
+import JSZip from 'jszip';
+import JSZipUtils from 'jszip-utils';
+window.JSZip = JSZip;
+window.JSZipUtils = JSZipUtils;
 
 var req = require.context("@wikimedia/jquery.i18n/src");
 
@@ -136,68 +140,109 @@ if (!promise) {
             $("#startup-progress").css("width", 25 + (progress / 8) + "%");
         });
         promise.then(function () {
-            $("#startup-status").html($.i18n("startup-status-init-db"));
-            promise = Transit.fetchAllDatabase(function (progress) {
+            $("#startup-status").html($.i18n("startup-status-obtaining-db-version"));
+            promise = Transit.obtainDatabaseVersion(function (progress) {
                 $("#startup-progress").css("width", (25 + progress / 4 * 3) + "%");
             });
             promise.then(function () {
-                $("#startup-progress").css("width", "100%");
-                $("#startup-status").html($.i18n("startup-status-init-map"));
-                promise = Map.init();
+                $("#startup-status").html($.i18n("startup-status-checking-db-update"));
+                promise = Transit.checkDatabaseUpdate(function (progress) {
+                    $("#startup-progress").css("width", (25 + progress / 4 * 3) + "%");
+                });
                 promise.then(function () {
-                    $("#startup-status").html($.i18n("startup-status-finish"));
-                    $(".build-version").fadeOut(2000);
-
-                    var lastVer = localStorage.getItem("gtw-lastversion");
-                    if (lastVer && lastVer !== VERSION) {
-                        console.log("Application updated to " + VERSION + ". Showing change-log.");
-                        ui.showModal("updated", VERSION);
-                    }
-                    localStorage.setItem("gtw-lastversion", VERSION);
-
-                    ui.init();
-
-                    //TransitManager.start();
-                    //TransitManager.forceUpdate();
-
-                    var errPlugins = [];
-                    var plugin;
-                    for (var pluginKey in PluginLoader.plugins) {
-                        plugin = PluginLoader.plugins[pluginKey];
-                        if (plugin.status < 0) {
-                            errPlugins.push(plugin);
-                        }
-                    }
-                    console.log(errPlugins);
-
-                    if (errPlugins.length) {
-                        ui.showModal("errorplugins", errPlugins);
-                    }
-
-                    loc.requestLocationAccess(function () {
-                        //ui.init();
-                        //TransitManager.forceUpdate();
-                        $("#loc-status-btn").addClass("btn-success");
-                        $("#loc-status-btn").removeClass("btn-warning");
-                        setTimeout(function () {
-                            $("#loc-status-btn").fadeOut(500);
-                        }, 2000);
-                    }, function () {
-                        $("#loc-status-btn").addClass("btn-danger");
-                        $("#loc-status-btn").removeClass("btn-warning");
-                        $("#loc-status-btn").append(" <span> No Location!</span>");
-                        setTimeout(function () {
-                            $("#loc-status-btn span").fadeOut(500);
-                        }, 5000);
+                    $("#startup-status").html($.i18n("startup-status-downloading-db"));
+                    promise = Transit.downloadDatabase(function (progress) {
+                        console.log(progress);
+                        $("#startup-progress").css("width", (25 + progress / 4 * 3) + "%");
                     });
-
-                    setTimeout(function () {
-                        $(".footer").animate({ height: 0, opacity: 0 }, 1000, function () {
-                            $(".footer").css("display", "none");
+                    promise.then(function () {
+                        $("#startup-status").html($.i18n("startup-status-updating-routes-db"));
+                        promise = Transit.updateRoutes(function (progress) {
+                            console.log(progress);
+                            $("#startup-progress").css("width", (25 + progress / 4 * 3) + "%");
                         });
-                    }, 2000);
-                    $(".startup").fadeOut(1000, function () {
-                        __stopHeaderAnimation = true;
+                        promise.then(function () {
+                            $("#startup-status").html($.i18n("startup-status-storing-routes"));
+                            promise = Transit.waitToStore(function (progress) {
+                                console.log(progress);
+                                $("#startup-progress").css("width", (25 + progress / 4 * 3) + "%");
+                            });
+                            promise.then(function () {
+                                $("#startup-status").html($.i18n("startup-status-updating-stops-db"));
+                                promise = Transit.updateStops(function (progress) {
+                                    console.log(progress);
+                                    $("#startup-progress").css("width", (25 + progress / 4 * 3) + "%");
+                                });
+                                promise.then(function () {
+                                    $("#startup-status").html($.i18n("startup-status-storing-stops"));
+                                    promise = Transit.waitToStore(function (progress) {
+                                        console.log(progress);
+                                        $("#startup-progress").css("width", (25 + progress / 4 * 3) + "%");
+                                    });
+                                    promise.then(function () {
+                                        $("#startup-progress").css("width", "100%");
+                                        $("#startup-status").html($.i18n("startup-status-init-map"));
+                                        promise = Map.init();
+                                        promise.then(function () {
+                                            $("#startup-status").html($.i18n("startup-status-finish"));
+                                            $(".build-version").fadeOut(2000);
+
+                                            var lastVer = localStorage.getItem("gtw-lastversion");
+                                            if (lastVer && lastVer !== VERSION) {
+                                                console.log("Application updated to " + VERSION + ". Showing change-log.");
+                                                ui.showModal("updated", VERSION);
+                                            }
+                                            localStorage.setItem("gtw-lastversion", VERSION);
+
+                                            ui.init();
+
+                                            //TransitManager.start();
+                                            //TransitManager.forceUpdate();
+
+                                            var errPlugins = [];
+                                            var plugin;
+                                            for (var pluginKey in PluginLoader.plugins) {
+                                                plugin = PluginLoader.plugins[pluginKey];
+                                                if (plugin.status < 0) {
+                                                    errPlugins.push(plugin);
+                                                }
+                                            }
+                                            console.log(errPlugins);
+
+                                            if (errPlugins.length) {
+                                                ui.showModal("errorplugins", errPlugins);
+                                            }
+
+                                            loc.requestLocationAccess(function () {
+                                                //ui.init();
+                                                //TransitManager.forceUpdate();
+                                                $("#loc-status-btn").addClass("btn-success");
+                                                $("#loc-status-btn").removeClass("btn-warning");
+                                                setTimeout(function () {
+                                                    $("#loc-status-btn").fadeOut(500);
+                                                }, 2000);
+                                            }, function () {
+                                                $("#loc-status-btn").addClass("btn-danger");
+                                                $("#loc-status-btn").removeClass("btn-warning");
+                                                $("#loc-status-btn").append(" <span> No Location!</span>");
+                                                setTimeout(function () {
+                                                    $("#loc-status-btn span").fadeOut(500);
+                                                }, 5000);
+                                            });
+
+                                            setTimeout(function () {
+                                                $(".footer").animate({ height: 0, opacity: 0 }, 1000, function () {
+                                                    $(".footer").css("display", "none");
+                                                });
+                                            }, 2000);
+                                            $(".startup").fadeOut(1000, function () {
+                                                __stopHeaderAnimation = true;
+                                            });
+                                        });
+                                    });
+                                });
+                            });
+                        });
                     });
                 });
             });

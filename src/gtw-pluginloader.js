@@ -82,12 +82,12 @@ export function load(pc) {
                 import(`./plugins/${installedPlugin}/index.js`).then(function(mod) {
                     var msg;
                     if (!mod) {
-                        msg = $.i18n("plugin-error-no-module-returned", pkg);
+                        msg = $.i18n("plugin-error-no-module-returned", installedPlugin);
                         console.error(msg);
                         info.status = -2;
                         info.msg = msg;
                     } else if (!mod.onload || typeof mod.onload !== "function") {
-                        msg = $.i18n("plugin-error-no-onload-function", pkg);
+                        msg = $.i18n("plugin-error-no-onload-function", installedPlugin);
                         console.error(msg);
                         info.status = -3;
                         info.msg = msg;
@@ -105,7 +105,7 @@ export function load(pc) {
                                 info.status = 0;
                                 delete info.msg;
                             } else {
-                                var msg = $.i18n("plugin-error-onload-function-error", pkg);
+                                var msg = $.i18n("plugin-error-onload-function-error", installedPlugin);
                                 console.error(msg);
                                 info.status = -4;
                                 info.msg = msg;

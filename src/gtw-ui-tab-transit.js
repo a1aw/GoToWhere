@@ -1,6 +1,5 @@
 import * as Transit from './gtw-citydata-transit';
-import * as TransitRoutes from './gtw-citydata-transit-routes';
-import * as TransitStops from './gtw-citydata-transit-stops';
+import * as TransitGtfs from './gtw-citydata-transit-gtfs';
 import * as TransitEta from './gtw-citydata-transit-eta';
 import * as RequestLimiter from './gtw-requestlimiter';
 import * as Settings from './gtw-settings';

@@ -1,6 +1,6 @@
 //GTW Database
 
-var dbPromise = false;
+export var dbPromise = false;
 
 export function open() {
     return dbPromise = new Promise((resolve, reject) => {
@@ -8,22 +8,46 @@ export function open() {
             console.log('This browser doesn\'t support IndexedDB');
             return false;
         }
-        var request = indexedDB.open("gotowhere-db", 1);
+        var request = indexedDB.open("gotowhere-db", 2);
         request.onupgradeneeded = function (event) {
             var db = event.target.result;
-            //Schema v1
-            console.log("Creating DB schema");
-            if (!db.objectStoreNames.contains("transitRoutes")) {
-                db.createObjectStore("transitRoutes", { keyPath: 'provider' });
-            }
-            if (!db.objectStoreNames.contains("transitStops")) {
-                db.createObjectStore("transitStops", { keyPath: 'provider' });
-            }
-            if (!db.objectStoreNames.contains("transitReference")) {
-                db.createObjectStore("transitReference", { keyPath: 'provider' });
-            }
-            if (!db.objectStoreNames.contains("pluginStorage")) {
-                db.createObjectStore("pluginStorage", { keyPath: 'package' });
+            //Schema v2
+            console.log("Creating/Updating DB schema");
+            var store;
+            switch (event.oldVersion) {
+                case 0:
+                    db.createObjectStore("pluginStorage", { keyPath: 'package' });
+                    db.createObjectStore("transitReference", { keyPath: 'provider' });
+                case 1:
+                    if (db.objectStoreNames.contains("transitStops")) {
+                        db.deleteObjectStore("transitStops");
+                    }
+                    if (db.objectStoreNames.contains("transitRoutes")) {
+                        db.deleteObjectStore("transitRoutes");
+                    }
+                    //GTFS Database
+                    db.createObjectStore("gtfs_versions", { keyPath: ['package', 'provider'] });
+
+                    db.createObjectStore("gtfs_fare_rules", { keyPath: ['package', 'provider', 'fare_id'] });
+
+                    db.createObjectStore("gtfs_fare_attributes", { keyPath: ['package', 'provider', 'fare_id'] });
+
+                    db.createObjectStore("gtfs_stops", { keyPath: ['provider', 'stop_id'] });
+
+                    store = db.createObjectStore("gtfs_stop_times", { keyPath: ['package', 'provider'] });
+                    store.createIndex("stop_id", "stop_id");
+
+                    db.createObjectStore("gtfs_routes", { keyPath: ['package', 'provider', 'route_id'] });
+
+                    db.createObjectStore("gtfs_trips", { keyPath: ['package', 'provider', 'trip_id'] });
+
+                    db.createObjectStore("gtfs_calendar", { keyPath: ['package', 'provider', 'service_id'] });
+
+                    db.createObjectStore("gtfs_agency", { keyPath: ['package', 'provider', 'agency_id'] });
+
+                    db.createObjectStore("gtfs_frequencies", { keyPath: ['package', 'provider', 'trip_id'] });
+
+                    db.createObjectStore("gtfs_calendar_dates", { keyPath: ['package', 'provider', 'service_id', 'date'] });
             }
         };
         request.onsuccess = function (event) {
@@ -66,84 +90,12 @@ export function getPluginStorage(pkg) {
     });
 }
 
-export function getTransitRoutesByProvider(provider) {
-    return new Promise((resolve, reject) => {
-        dbPromise.then(function (db) {
-            var tx = db.transaction("transitRoutes", "readonly");
-            var store = tx.objectStore("transitRoutes");
-            var request = store.get(provider);
-            request.onsuccess = function () {
-                resolve(request.result);
-            };
-            request.onerror = reject;
-        });
-    });
-}
-
-export function putTransitRoutes(db) {
-    const { type, provider, routes, version } = db;
-    if (!type || !provider || !routes || !version) {
-        console.error("Error: Invalid routes database structure from " + (provider ? provider : "unknown provider") + ".");
-        return false;
-    }
-    for (var route of routes) {
-        const { type, provider, routeId, routeName, etaProviders, paths } = route;
-        if (!type || !provider || !routeId || !routeName || !etaProviders || !paths || !etaProviders.length || !paths.length) {
-            console.error("Error: Invalid database route structure from " + (db.provider ? db.provider : "unknown provider") + ".");
-            return false;
-        }
-    }
-    var clone = Object.assign({}, db);
-    return dbPromise.then(function (db) {
-        var tx = db.transaction("transitRoutes", "readwrite");
-        var store = tx.objectStore("transitRoutes");
-        store.put(clone);
-        return tx.complete;
-    });
-}
-
-export function getTransitStopsByProvider(provider) {
-    return new Promise((resolve, reject) => {
-        dbPromise.then(function (db) {
-            var tx = db.transaction("transitStops", "readonly");
-            var store = tx.objectStore("transitStops");
-            var request = store.get(provider);
-            request.onsuccess = function () {
-                resolve(request.result);
-            };
-            request.onerror = reject;
-        });
-    });
-}
-
-export function putTransitStops(db) {
-    const { type, provider, stops, version } = db;
-    if (!type || !provider || !stops || !version) {
-        console.error("Error: Invalid stops database structure from " + (provider ? provider : "unknown provider") + ".");
-        return false;
-    }
-    for (var stop of stops) {
-        const { type, provider, stopId, stopName, addr, lat, lng } = stop;
-        if (!type || !provider || !stopId || !stopName || !addr || !lat || !lng || typeof lat !== "number" || typeof lng !== "number") {
-            console.error("Error: Invalid database stop structure from " + (db.provider ? db.provider : "unknown provider") + ".");
-            return false;
-        }
-    }
-    var clone = Object.assign({}, db);
-    return dbPromise.then(function (db) {
-        var tx = db.transaction("transitStops", "readwrite");
-        var store = tx.objectStore("transitStops");
-        store.put(clone);
-        return tx.complete;
-    });
-}
-
-export function getTransitReferenceByProvider(provider) {
+export function getTransitReferenceByProvider(providerName) {
     return new Promise((resolve, reject) => {
         dbPromise.then(function (db) {
             var tx = db.transaction("transitReference", "readonly");
             var store = tx.objectStore("transitReference");
-            var request = store.get(provider);
+            var request = store.get(providerName);
             request.onsuccess = function () {
                 resolve(request.result);
             };
@@ -153,24 +105,9 @@ export function getTransitReferenceByProvider(provider) {
 }
 
 export function putTransitReference(db) {
-    const { type, provider, routes, stops, version } = db;
-    if (!type || !provider || !routes || !stops || !version) {
-        console.error("Error: Invalid reference database structure from " + (provider ? provider : "unknown provider") + ".");
+    if (db.package === undefined || db.provider === underfined || db.version === undefined) {
+        console.error("Error: Database does not contain a package name, a provider name or a version! Aborting to add this database.");
         return false;
-    }
-    for (var route of routes) {
-        const { type, provider, routeId, routeName, etaProviders, paths } = route;
-        if (!type || !provider || !routeId || !routeName || !etaProviders || !paths || !etaProviders.length) { //|| !paths.length) {
-            console.error("Error: Invalid reference database route structure from " + (db.provider ? db.provider : "unknown provider") + ".");
-            return false;
-        }
-    }
-    for (var stop of stops) {
-        const { type, provider, stopId, stopName, addr, lat, lng } = stop;
-        if (!type || !provider || !stopId || !stopName || !addr || lat === undefined || lng === undefined || typeof lat !== "number" || typeof lng !== "number") {
-            console.error("Error: Invalid reference database stop structure from " + (db.provider ? db.provider : "unknown provider") + ".");
-            return false;
-        }
     }
     var clone = Object.assign({}, db);
     return dbPromise.then(function (db) {
