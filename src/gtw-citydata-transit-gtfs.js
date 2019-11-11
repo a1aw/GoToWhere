@@ -176,6 +176,33 @@ export function getVersion(pkg, provider) {
     });
 }
 
+export function put(pkg, provider, dataType, data) {
+    if (dataType === "agency") {
+        return putAgencies(pkg, provider, data);
+    } else if (dataType === "calendar_dates") {
+        return putCalendarDates(pkg, provider, data);
+    } else if (dataType === "calendar") {
+        return putCalendars(pkg, provider, data);
+    } else if (dataType === "fare_attributes") {
+        return putFareAttributes(pkg, provider, data);
+    } else if (dataType === "fare_rules") {
+        return putFareRules(pkg, provider, data);
+    } else if (dataType === "frequencies") {
+        return putFrequencies(pkg, provider, data);
+    } else if (dataType === "routes") {
+        return putRoutes(pkg, provider, data);
+    } else if (dataType === "stops") {
+        return putStops(pkg, provider, data);
+    } else if (dataType === "stop_times") {
+        return putStopTimes(pkg, provider, data);
+    } else if (dataType === "trips") {
+        return putTrips(pkg, provider, data);
+    } else {
+        console.error("Error: Invalid put function for data type: " + dataType);
+        return false;
+    }
+}
+
 //Required: fare_id (string)
 //Cond/Optional: route_id, origin_id, destination_id, contains_id (string)
 export function putFareRules(pkg, provider, data) {

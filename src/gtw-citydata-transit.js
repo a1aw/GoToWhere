@@ -2,10 +2,13 @@
 import * as Misc from './gtw-misc';
 import * as dbGtfs from './gtw-citydata-transit-gtfs';
 import Papa from 'papaparse';
+import oboe from 'oboe';
 
 var providers = [];
+var totalProms = [];
 var dbVersions = {};
 var dbZips = {};
+var dbChunks = {};
 var dbUpdateNeeded = {};
 
 //
@@ -96,11 +99,9 @@ export function checkDatabaseUpdate(pc) {
     return Misc.allProgress(proms, pc);
 }
 
-var totalProms = [];
-
 window.processMs = 0;
 window.processCount = 0;
-function streamPut(putFunc, provider, zip, fileName, pc) {
+function csvStreamPut(putFunc, provider, zip, fileName, pc) {
     return new Promise((resolve, reject) => {
         var chunk = "";
         var items = [];
@@ -200,7 +201,20 @@ export function downloadDatabase(pc) {
     return Misc.allProgress(proms, pc);
 }
 
-export function updateRoutes(pc) {
+var FILES = [
+    "agency.json",
+    "calendar_dates.json",
+    "calendar.json",
+    "fare_attributes.json",
+    "fare_rules.json",
+    "frequencies.json",
+    "routes.json",
+    "stops.json",
+    "stop_times.json",
+    "trips.json"
+];
+    
+export function prepareUpdate(pc) {
     console.log("DBZips:");
     console.log(dbZips);
     var proms = [];
@@ -210,51 +224,146 @@ export function updateRoutes(pc) {
         var key = provider.pkg + "," + provider.id;
         if (dbZips[key]) {
             zip = dbZips[key];
-            console.log("Updating for key: " + key);
+            console.log("Preparing for update for key: " + key);
             if (!zip.files["version.json"]) {
                 console.error("Error: Database returned from " + key + " does not contain a version file.");
-                return;
+                continue;
             }
 
-            if (zip.files["agency.txt"]) {
-                proms.push(streamPut(dbGtfs.putAgencies, provider, zip, "agency.txt"));
+            dbChunks[key] = [];
+            for (var file of FILES) {
+                if (zip.files[file]) {
+                    proms.push(zip.files[file].async("string").then(function (str) {
+                        var obj = JSON.parse(str);
+                        console.log(obj);
+                        dbChunks[key].push(obj);
+                    }));
+                }
             }
-            if (zip.files["calendar_dates.txt"]) {
-                proms.push(streamPut(dbGtfs.putCalendarDates, provider, zip, "calendar_dates.txt"));
-            }
-            if (zip.files["calendar.txt"]) {
-                proms.push(streamPut(dbGtfs.putCalendars, provider, zip, "calendar.txt"));
-            }
-            /*
-            if (zip.files["fare_attributes.txt"]) {
-                proms.push(streamPut(dbGtfs.putFareAttributes, provider, zip, "fare_attributes.txt", console.log));
-            }
-            if (zip.files["fare_rules.txt"]) {
-                proms.push(streamPut(dbGtfs.putFareRules, provider, zip, "fare_rules.txt"));
-            }
-            */
-            if (zip.files["frequencies.txt"]) {
-                proms.push(streamPut(dbGtfs.putFrequencies, provider, zip, "frequencies.txt"));
-            }
-            if (zip.files["routes.txt"]) {
-                proms.push(streamPut(dbGtfs.putRoutes, provider, zip, "routes.txt"));
-            }
-            if (zip.files["stops.txt"]) {
-                proms.push(streamPut(dbGtfs.putStops, provider, zip, "stops.txt"));
-            }
-            /*
-            if (zip.files["stop_times.txt"]) {
-                waitProms.push(streamPut(dbGtfs.putStopTimes, provider, zip, "stop_times.txt"));
-            }
-            */
-            if (zip.files["trips.txt"]) {
-                proms.push(streamPut(dbGtfs.putTrips, provider, zip, "trips.txt"));
-            }
+        }
+    }
+    return Misc.allProgress(proms, pc);
+}
 
-            proms.push(zip.file("version.json").async("string").then(function (jsonStr) {
-                var json = JSON.parse(jsonStr);
-                return dbGtfs.putVersion(provider.pkg, provider.id, json.version);
-            }));
+const chunkWorker = new Worker("img/chunkworker.js");
+window.x = chunkWorker;
+console.log(x);
+
+export function readChunks(pc) {
+    console.log("DBChunks:");
+    console.log(dbChunks);
+    var proms = [];
+    var p;
+    var i;
+    var infos;
+    var zip;
+    for (var provider of providers) {
+        var key = provider.pkg + "," + provider.id;
+        zip = dbZips[key];
+        if (dbChunks[key]) {
+            infos = dbChunks[key];
+            chunkWorker.postMessage(infos);
+            /*
+            for (var info of infos) {
+                for (i = 0; i < info.chunks; i++) {
+                    proms.push(new Promise((resolve, reject) => {
+                        var chunk = "";
+                        var ps = [];
+                        console.log(i + " " + info.dataType);
+                        console.log(zip);
+                        zip.file(info.dataType + "-" + i + ".txt").internalStream("string")
+                            .on("data", function (data) {
+                                chunk += data;
+
+                                var lineEnd = chunk.lastIndexOf("\r\n");
+                                if (lineEnd !== -1) {
+                                    var str = chunk.substr(0, lineEnd);
+                                    ps.push(new Promise((resolve, reject) => {
+                                        Papa.parse(str, {
+                                            skipEmptyLines: true,
+                                            worker: true,
+                                            chunk: function (rows) {
+                                                var obj;
+                                                var objs = [];
+                                                var j;
+                                                var k;
+                                                for (j = 0; j < rows.length; j++) {
+                                                    obj = {};
+                                                    for (k = 0; k < info.headers.length; k++) {
+                                                        obj[info.headers[k]] = rows[j][k];
+                                                    }
+                                                    objs.push(obj);
+                                                }
+                                                totalProms.push(dbGtfs.put(provider.pkg, provider.id, info.dataType, objs));
+                                            }, complete: function () {
+                                                console.log("parse chunk complete");
+                                                resolve();
+                                            }
+                                        });
+                                    }));
+                                }
+                            })
+                            .on("error", function (err) {
+                                console.log("ERROR");
+                                reject(err);
+                            })
+                            .on("end", function () {
+                                console.log("Chunk end");
+                                Promise.all(ps).then(resolve);
+                            })
+                            .resume();
+                    }));
+                    /*
+                    proms.push(new Promise((resolve, reject) => {
+                        var i = 0;
+                        //var sst = Date.now();
+                        var o = Date.now();
+                        var chunk = "";
+                        zip.file(info.dataType + "-" + i + ".json").internalStream("string")
+                            .on("data", function (data) {
+                                chunk += data;
+                                //console.log(info.dataType + "Data return " + (++i) + " used " + (Date.now() - sst));
+                                //sst = Date.now();
+                            })
+                            .on("error", function (err) {
+
+                            })
+                            .on("end", function () {
+                                console.log("End used " + (Date.now() - o) + " ms");
+                                var s = Date.now();
+                                var x = JSON.parse(chunk);
+                                console.log("got dt: " + x.dataType);
+                                console.log("parsing used " + (Date.now() - s));
+                                resolve();
+                            })
+                            .resume();
+                    }));
+                    proms.push(zip.file(info.dataType + "-" + i + ".json").async("string").then(function (data) {
+                        console.log("It is parsing slow");
+                        /*
+                        var chunk = JSON.parse(data);
+                        var objs = [];
+                        var obj;
+                        var j;
+                        var k;
+                        for (j = 0; j < chunk.rows.length; j++) {
+                            obj = {};
+                            for (k = 0; k < info.headers.length; k++) {
+                                obj[info.headers[k]] = chunk.rows[j][k];
+                            }
+                            objs.push(obj);
+                        }
+                        totalProms.push(dbGtfs.put(provider.pkg, provider.id, info.dataType, objs));
+                    }));
+
+                }
+
+                totalProms.push(zip.file("version.json").async("string").then(function (jsonStr) {
+                    var json = JSON.parse(jsonStr);
+                    return dbGtfs.putVersion(provider.pkg, provider.id, json.version);
+                }));
+            }
+            */
         }
     }
     return Misc.allProgress(proms, pc);
@@ -265,35 +374,4 @@ export function waitToStore(pc) {
         console.log("Done storing");
         totalProms = [];
     });
-}
-
-export function updateStops(pc) {
-    console.log("DBZips:");
-    console.log(dbZips);
-    var proms = [];
-    var p;
-    var zip;
-    for (var provider of providers) {
-        var key = provider.pkg + "," + provider.id;
-        if (dbZips[key]) {
-            zip = dbZips[key];
-            console.log("Updating for key: " + key);
-            if (!zip.files["version.json"]) {
-                console.error("Error: Database returned from " + key + " does not contain a version file.");
-                return;
-            }
-            /*
-            if (zip.files["fare_attributes.txt"]) {
-                proms.push(streamPut(dbGtfs.putFareAttributes, provider, zip, "fare_attributes.txt", console.log));
-            }
-            if (zip.files["fare_rules.txt"]) {
-                proms.push(streamPut(dbGtfs.putFareRules, provider, zip, "fare_rules.txt"));
-            }
-            if (zip.files["stop_times.txt"]) {
-                proms.push(streamPut(dbGtfs.putStopTimes, provider, zip, "stop_times.txt"));
-            }
-            */
-        }
-    }
-    return Misc.allProgress(proms, pc);
 }

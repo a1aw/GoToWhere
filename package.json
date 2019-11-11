@@ -47,7 +47,8 @@
         "webpack-cli": "^3.3.9",
         "webpack-dev-server": "^3.9.0",
         "webpack-merge": "^4.2.2",
-        "workbox-webpack-plugin": "^4.3.1"
+        "workbox-webpack-plugin": "^4.3.1",
+        "worker-loader": "^2.0.0"
     },
     "dependencies": {
         "@wikimedia/jquery.i18n": "^1.0.5",
@@ -57,6 +58,7 @@
         "jquery": "^3.4.1",
         "jszip": "^3.2.2",
         "jszip-utils": "^0.1.0",
+        "oboe": "^2.1.5",
         "papaparse": "^5.1.0",
         "popper.js": "^1.16.0",
         "proj4": "^2.5.0",

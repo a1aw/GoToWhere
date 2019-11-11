@@ -156,88 +156,81 @@ if (!promise) {
                         $("#startup-progress").css("width", (25 + progress / 4 * 3) + "%");
                     });
                     promise.then(function () {
-                        $("#startup-status").html($.i18n("startup-status-updating-routes-db"));
-                        promise = Transit.updateRoutes(function (progress) {
+                        $("#startup-status").html($.i18n("startup-status-preparing-update"));
+                        promise = Transit.prepareUpdate(function (progress) {
                             console.log(progress);
                             $("#startup-progress").css("width", (25 + progress / 4 * 3) + "%");
                         });
                         promise.then(function () {
-                            $("#startup-status").html($.i18n("startup-status-storing-routes"));
-                            promise = Transit.waitToStore(function (progress) {
+                            $("#startup-status").html($.i18n("startup-status-reading-chunks"));
+                            promise = Transit.readChunks(function (progress) {
                                 console.log(progress);
                                 $("#startup-progress").css("width", (25 + progress / 4 * 3) + "%");
                             });
                             promise.then(function () {
-                                $("#startup-status").html($.i18n("startup-status-updating-stops-db"));
-                                promise = Transit.updateStops(function (progress) {
+                                $("#startup-status").html($.i18n("startup-status-storing-db"));
+                                promise = Transit.waitToStore(function (progress) {
                                     console.log(progress);
                                     $("#startup-progress").css("width", (25 + progress / 4 * 3) + "%");
                                 });
                                 promise.then(function () {
-                                    $("#startup-status").html($.i18n("startup-status-storing-stops"));
-                                    promise = Transit.waitToStore(function (progress) {
-                                        console.log(progress);
-                                        $("#startup-progress").css("width", (25 + progress / 4 * 3) + "%");
-                                    });
+                                    $("#startup-progress").css("width", "100%");
+                                    $("#startup-status").html($.i18n("startup-status-init-map"));
+                                    promise = Map.init();
                                     promise.then(function () {
-                                        $("#startup-progress").css("width", "100%");
-                                        $("#startup-status").html($.i18n("startup-status-init-map"));
-                                        promise = Map.init();
-                                        promise.then(function () {
-                                            $("#startup-status").html($.i18n("startup-status-finish"));
-                                            $(".build-version").fadeOut(2000);
+                                        $("#startup-status").html($.i18n("startup-status-finish"));
+                                        $(".build-version").fadeOut(2000);
 
-                                            var lastVer = localStorage.getItem("gtw-lastversion");
-                                            if (lastVer && lastVer !== VERSION) {
-                                                console.log("Application updated to " + VERSION + ". Showing change-log.");
-                                                ui.showModal("updated", VERSION);
+                                        var lastVer = localStorage.getItem("gtw-lastversion");
+                                        if (lastVer && lastVer !== VERSION) {
+                                            console.log("Application updated to " + VERSION + ". Showing change-log.");
+                                            ui.showModal("updated", VERSION);
+                                        }
+                                        localStorage.setItem("gtw-lastversion", VERSION);
+
+                                        ui.init();
+
+                                        //TransitManager.start();
+                                        //TransitManager.forceUpdate();
+
+                                        var errPlugins = [];
+                                        var plugin;
+                                        for (var pluginKey in PluginLoader.plugins) {
+                                            plugin = PluginLoader.plugins[pluginKey];
+                                            if (plugin.status < 0) {
+                                                errPlugins.push(plugin);
                                             }
-                                            localStorage.setItem("gtw-lastversion", VERSION);
+                                        }
+                                        console.log(errPlugins);
 
-                                            ui.init();
+                                        if (errPlugins.length) {
+                                            ui.showModal("errorplugins", errPlugins);
+                                        }
 
-                                            //TransitManager.start();
+                                        loc.requestLocationAccess(function () {
+                                            //ui.init();
                                             //TransitManager.forceUpdate();
-
-                                            var errPlugins = [];
-                                            var plugin;
-                                            for (var pluginKey in PluginLoader.plugins) {
-                                                plugin = PluginLoader.plugins[pluginKey];
-                                                if (plugin.status < 0) {
-                                                    errPlugins.push(plugin);
-                                                }
-                                            }
-                                            console.log(errPlugins);
-
-                                            if (errPlugins.length) {
-                                                ui.showModal("errorplugins", errPlugins);
-                                            }
-
-                                            loc.requestLocationAccess(function () {
-                                                //ui.init();
-                                                //TransitManager.forceUpdate();
-                                                $("#loc-status-btn").addClass("btn-success");
-                                                $("#loc-status-btn").removeClass("btn-warning");
-                                                setTimeout(function () {
-                                                    $("#loc-status-btn").fadeOut(500);
-                                                }, 2000);
-                                            }, function () {
-                                                $("#loc-status-btn").addClass("btn-danger");
-                                                $("#loc-status-btn").removeClass("btn-warning");
-                                                $("#loc-status-btn").append(" <span> No Location!</span>");
-                                                setTimeout(function () {
-                                                    $("#loc-status-btn span").fadeOut(500);
-                                                }, 5000);
-                                            });
-
+                                            $("#loc-status-btn").addClass("btn-success");
+                                            $("#loc-status-btn").removeClass("btn-warning");
                                             setTimeout(function () {
-                                                $(".footer").animate({ height: 0, opacity: 0 }, 1000, function () {
-                                                    $(".footer").css("display", "none");
-                                                });
+                                                $("#loc-status-btn").fadeOut(500);
                                             }, 2000);
-                                            $(".startup").fadeOut(1000, function () {
-                                                __stopHeaderAnimation = true;
+                                        }, function () {
+                                            $("#loc-status-btn").addClass("btn-danger");
+                                            $("#loc-status-btn").removeClass("btn-warning");
+                                            $("#loc-status-btn").append(" <span> No Location!</span>");
+                                            setTimeout(function () {
+                                                $("#loc-status-btn span").fadeOut(500);
+                                            }, 5000);
+                                        });
+
+                                        setTimeout(function () {
+                                            $(".footer").animate({ height: 0, opacity: 0 }, 1000, function () {
+                                                $(".footer").css("display", "none");
                                             });
+                                        }, 2000);
+                                        $(".startup").fadeOut(1000, function () {
+                                            __stopHeaderAnimation = true;
                                         });
                                     });
                                 });

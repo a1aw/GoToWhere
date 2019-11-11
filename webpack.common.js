@@ -54,6 +54,12 @@ module.exports = {
                         minimize: true
                     }
                 }]
+            },
+            {
+                test: /\.worker\.js$/,
+                use: {
+                    loader: 'worker-loader'
+                }
             }
         ]
     },
