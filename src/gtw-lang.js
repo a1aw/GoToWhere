@@ -30,7 +30,6 @@ export function localizedKey(localizedObject, key) {
     if (localizedObject[key]) {
         return localizedObject[key];
     }
-
     return false;
 }
 

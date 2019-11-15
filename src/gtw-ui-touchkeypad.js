@@ -52,6 +52,14 @@ export function removeListener(listener) {
     return false;
 }
 
+export function enableFunctionKeys() {
+    $(".touch-keypad-function").removeClass("disabled");
+}
+
+export function disableFunctionKeys() {
+    $(".touch-keypad-function").addClass("disabled");
+}
+
 export function setEnabled(keyMap) {
     $(".numeric-keypad .touch-keypad-value").each(function () {
         var val = $(this).html();

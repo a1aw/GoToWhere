@@ -5,6 +5,7 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 const WorkboxPlugin = require('workbox-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const pkg = require('./package.json');
+const WorkerPlugin = require('worker-plugin');
 
 module.exports = {
     entry: {
@@ -54,12 +55,6 @@ module.exports = {
                         minimize: true
                     }
                 }]
-            },
-            {
-                test: /\.worker\.js$/,
-                use: {
-                    loader: 'worker-loader'
-                }
             }
         ]
     },
@@ -87,6 +82,7 @@ module.exports = {
         new WorkboxPlugin.GenerateSW({
             clientsClaim: true,
             skipWaiting: true
-        })
+        }),
+        new WorkerPlugin()
     ]
 };

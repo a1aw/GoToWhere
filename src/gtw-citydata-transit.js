@@ -1,8 +1,9 @@
 //City Data: Transit
 import * as Misc from './gtw-misc';
-import * as dbGtfs from './gtw-citydata-transit-gtfs';
+import Dexie from 'dexie';
 import Papa from 'papaparse';
 import oboe from 'oboe';
+import { db } from './gtw-citydata-transit-gtfs';
 
 var providers = [];
 var totalProms = [];
@@ -58,20 +59,29 @@ export function getProvider(id) {
 }
 
 //
-// Three-stage database update handling
+// Database Update
 //
-// Obtain version -> Check update -> Update database
 
 export function obtainDatabaseVersion(pc) {
     console.log("Obtaining db version");
     var proms = [];
     for (var provider of providers) {
+        //proms.push(new Promise((resolve, reject) => { resolve(false); }))
+        window.x = db;
+        proms.push(db["versions"].where("[package+provider]").equals([provider.pkg, provider.id]).first().then(function (row) {
+            if (row) {
+                var key = row["package"] + "," + row["provider"];
+                dbVersions[key] = row.version;
+            }
+        }));
+        /*
         proms.push(dbGtfs.getVersion(provider.pkg, provider.id).then(function (ver) {
             if (ver) {
                 var key = ver["package"] + "," + ver["provider"];
                 dbVersions[key] = ver.version;
             }
         }));
+        */
     }
     return Misc.allProgress(proms, pc);
 }
@@ -89,7 +99,7 @@ export function checkDatabaseUpdate(pc) {
             });
             proms.push(p.then(function (update) {
                 dbUpdateNeeded[key] = update;
-            }).reject(function () {
+            }).catch(function (err) {
                 console.error("Error: Promise rejected when checking update for " + key + ".");
             }));
         } else {
@@ -97,88 +107,6 @@ export function checkDatabaseUpdate(pc) {
         }
     }
     return Misc.allProgress(proms, pc);
-}
-
-window.processMs = 0;
-window.processCount = 0;
-function csvStreamPut(putFunc, provider, zip, fileName, pc) {
-    return new Promise((resolve, reject) => {
-        var chunk = "";
-        var items = [];
-        var proms = [];
-        var rowCount = 0;
-        var headers = false;
-        var h = zip.file(fileName).internalStream("string")
-            .on("data", function (data) {
-                chunk += data;
-
-                var lastLineEnd = chunk.lastIndexOf("\r\n");
-
-                if (lastLineEnd !== -1) {
-                    var data = chunk.substr(0, lastLineEnd);
-                    var p = new Promise((resolve, reject) => {
-                        Papa.parse(data, {
-                            skipEmptyLines: true,
-                            chunk: function (results, parser) {
-                                var pst = Date.now();
-                                if (!headers) {
-                                    console.log("Headers row");
-                                    headers = results.data.shift();
-                                    console.log(headers);
-                                }
-                                var i;
-                                var row;
-                                var objs = [];
-                                for (i = 0; i < results.data.length; i++) {
-                                    row = results.data[i];
-                                    if (row.length <= 1) {
-                                        console.log("Empty Row");
-                                        return;
-                                    }
-                                    if (row.length !== headers.length) {
-                                        console.error("Headers length mismatch");
-                                        debugger;
-                                        return;
-                                    }
-                                    var j;
-                                    var obj = {};
-                                    for (j = 0; j < headers.length; j++) {
-                                        obj[headers[j]] = row[j];
-                                    }
-                                    objs.push(obj);
-                                }
-                                totalProms.push(putFunc(provider.pkg, provider.id, objs));
-                                processMs += Date.now() - pst;
-                                processCount++;
-                            },
-                            complete: function (results, file) {
-                                console.log("Parse complete");
-                                resolve();
-                            }
-                        });
-                        if (lastLineEnd !== chunk.length - 2) {
-                            chunk = chunk.substr(lastLineEnd + 2);
-                        } else {
-                            chunk = "";
-                        }
-                    });
-                    proms.push(p);
-                }
-
-            })
-            .on("error", function (err) {
-                reject(err);
-            })
-            .on("end", function () {
-                console.log("Chunk end");
-                if (typeof pc === "function") {
-                    Misc.allProgress(proms, pc).then(resolve);
-                } else {
-                    Promise.all(proms).then(resolve);
-                }
-            });
-        h.resume();
-    });
 }
 
 export function downloadDatabase(pc) {
@@ -235,21 +163,50 @@ export function prepareUpdate(pc) {
                 if (zip.files[file]) {
                     proms.push(zip.files[file].async("string").then(function (str) {
                         var obj = JSON.parse(str);
+                        obj.pkg = provider.pkg;
+                        obj.id = provider.id;
                         console.log(obj);
                         dbChunks[key].push(obj);
                     }));
                 }
             }
+
+            proms.push(zip.file("version.json").async("string").then(function (str) {
+                var json = JSON.parse(str);
+                json["package"] = provider.pkg;
+                json["provider"] = provider.id;
+                db.versions.put(json);
+            }));
         }
     }
     return Misc.allProgress(proms, pc);
 }
 
-const chunkWorker = new Worker("img/chunkworker.js");
-window.x = chunkWorker;
-console.log(x);
-
+/*
 export function readChunks(pc) {
+    return new Promise((resolve, reject) => {
+        var worker = new Worker("./workers/loaddb.worker.js", { type: 'module' });
+
+        worker.postMessage({
+            chunks: dbChunks,
+            zips: dbZips
+        });
+
+        worker.addEventListener("message", function (evt) {
+            console.log(evt);
+            var msg = evt.data;
+            if (msg.type === 0) {
+                resolve()
+            } else if (msg.type === 1) {
+                pc(msg.progress);
+            }
+        });
+    });
+}
+*/
+var worker = new Worker("./workers/loadgtfs.worker.js", { type: 'module' });
+
+export function readChunks(dataType, pc) {
     console.log("DBChunks:");
     console.log(dbChunks);
     var proms = [];
@@ -262,111 +219,62 @@ export function readChunks(pc) {
         zip = dbZips[key];
         if (dbChunks[key]) {
             infos = dbChunks[key];
-            chunkWorker.postMessage(infos);
-            /*
-            for (var info of infos) {
-                for (i = 0; i < info.chunks; i++) {
-                    proms.push(new Promise((resolve, reject) => {
-                        var chunk = "";
-                        var ps = [];
-                        console.log(i + " " + info.dataType);
-                        console.log(zip);
-                        zip.file(info.dataType + "-" + i + ".txt").internalStream("string")
-                            .on("data", function (data) {
-                                chunk += data;
-
-                                var lineEnd = chunk.lastIndexOf("\r\n");
-                                if (lineEnd !== -1) {
-                                    var str = chunk.substr(0, lineEnd);
-                                    ps.push(new Promise((resolve, reject) => {
-                                        Papa.parse(str, {
-                                            skipEmptyLines: true,
-                                            worker: true,
-                                            chunk: function (rows) {
-                                                var obj;
-                                                var objs = [];
-                                                var j;
-                                                var k;
-                                                for (j = 0; j < rows.length; j++) {
-                                                    obj = {};
-                                                    for (k = 0; k < info.headers.length; k++) {
-                                                        obj[info.headers[k]] = rows[j][k];
-                                                    }
-                                                    objs.push(obj);
-                                                }
-                                                totalProms.push(dbGtfs.put(provider.pkg, provider.id, info.dataType, objs));
-                                            }, complete: function () {
-                                                console.log("parse chunk complete");
-                                                resolve();
-                                            }
-                                        });
-                                    }));
-                                }
-                            })
-                            .on("error", function (err) {
-                                console.log("ERROR");
-                                reject(err);
-                            })
-                            .on("end", function () {
-                                console.log("Chunk end");
-                                Promise.all(ps).then(resolve);
-                            })
-                            .resume();
-                    }));
-                    /*
-                    proms.push(new Promise((resolve, reject) => {
-                        var i = 0;
-                        //var sst = Date.now();
-                        var o = Date.now();
-                        var chunk = "";
-                        zip.file(info.dataType + "-" + i + ".json").internalStream("string")
-                            .on("data", function (data) {
-                                chunk += data;
-                                //console.log(info.dataType + "Data return " + (++i) + " used " + (Date.now() - sst));
-                                //sst = Date.now();
-                            })
-                            .on("error", function (err) {
-
-                            })
-                            .on("end", function () {
-                                console.log("End used " + (Date.now() - o) + " ms");
-                                var s = Date.now();
-                                var x = JSON.parse(chunk);
-                                console.log("got dt: " + x.dataType);
-                                console.log("parsing used " + (Date.now() - s));
-                                resolve();
-                            })
-                            .resume();
-                    }));
-                    proms.push(zip.file(info.dataType + "-" + i + ".json").async("string").then(function (data) {
-                        console.log("It is parsing slow");
-                        /*
-                        var chunk = JSON.parse(data);
-                        var objs = [];
-                        var obj;
-                        var j;
-                        var k;
-                        for (j = 0; j < chunk.rows.length; j++) {
-                            obj = {};
-                            for (k = 0; k < info.headers.length; k++) {
-                                obj[info.headers[k]] = chunk.rows[j][k];
-                            }
-                            objs.push(obj);
-                        }
-                        totalProms.push(dbGtfs.put(provider.pkg, provider.id, info.dataType, objs));
-                    }));
-
+            for (const info of infos) {
+                if (dataType !== info.dataType) {
+                    continue;
                 }
 
-                totalProms.push(zip.file("version.json").async("string").then(function (jsonStr) {
-                    var json = JSON.parse(jsonStr);
-                    return dbGtfs.putVersion(provider.pkg, provider.id, json.version);
+                proms.push(new Promise((resolve, reject) => {
+                    var chunk = "";
+                    var ps = [];
+                    console.log("Loading " + info.dataType);
+                    zip.file(info.dataType + "-chunk.json").internalStream("string")
+                        .on("data", function (data) {
+                            chunk += data;
+                        })
+                        .on("error", function (err) {
+                            console.log("ERROR");
+                            reject(err);
+                        })
+                        .on("end", function () {
+                            console.log("Chunk end");
+                            worker.postMessage({
+                                type: 0,
+                                pkg: provider.pkg,
+                                id: provider.id,
+                                info: info,
+                                string: chunk
+                            });
+                            resolve();
+                        })
+                        .resume();
                 }));
             }
-            */
         }
     }
     return Misc.allProgress(proms, pc);
+}
+
+export function waitToParse(pc) {
+    return new Promise((resolve, reject) => {
+        worker.addEventListener("message", function ext(evt) {
+            var msg = evt.data;
+            if (msg.type === 0) {
+                console.log("Finish");
+                worker.removeEventListener("message", ext);
+                resolve();
+            } else if (msg.type === 1) {
+                pc(msg.progress);
+            } else if (msg.type === 2) {
+                var data = evt.data;
+                //totalProms.push(dbGtfs.put(data.pkg, data.id, data.info.dataType, data.result));
+                totalProms.push(db.putGtfs(data.pkg, data.id, data.info.dataType, data.result));
+            }
+        });
+        worker.postMessage({
+            type: 1
+        });
+    });
 }
 
 export function waitToStore(pc) {

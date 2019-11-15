@@ -1,5 +1,4 @@
 import * as Transit from './gtw-citydata-transit';
-import * as TransitGtfs from './gtw-citydata-transit-gtfs';
 import * as TransitEta from './gtw-citydata-transit-eta';
 import * as RequestLimiter from './gtw-requestlimiter';
 import * as Settings from './gtw-settings';
@@ -10,6 +9,8 @@ import * as TouchKeypad from './gtw-ui-touchkeypad';
 import * as Event from './gtw-event';
 import * as UI from './gtw-ui';
 import * as Map from './gtw-map';
+import * as gtfs from './gtw-citydata-transit-gtfs';
+import { languages } from './gtw-lang';
 
 var searchTimeout;
 var updateStopEtaTimer;
@@ -52,6 +53,7 @@ function showSearchRoutes() {
     filterProviderSort(".all-route-list");
 }
 
+
 function hideSearchRoutes() {
     searchMode = false;
 
@@ -74,8 +76,13 @@ function hideSearchRoutes() {
 
 function filterProviderSort(listNodeCss) {
     $(".gtw-providersort-provider").each(function () {
-        var provider = $(this).attr("gtw-provider");
-        var contain = $(listNodeCss + " .route-selection[gtw-provider='" + provider + "']").length > 0;
+        var pkg = $(this).attr("data-gtw-package");
+        var provider = $(this).attr("data-gtw-provider");
+        var agency = $(this).attr("data-gtw-agency");
+
+        var cssCond = "[data-gtw-package='" + pkg + "'][data-gtw-provider='" + provider + "'][data-gtw-agency='" + agency + "']";
+
+        var contain = $(listNodeCss + " .route-selection" + cssCond + "").length > 0;
         if (contain) {
             $(this).css("display", "");
         } else {
@@ -84,151 +91,208 @@ function filterProviderSort(listNodeCss) {
     });
 }
 
-function searchRoutes() {
+var GTFS_CALENDAR_IDS = [
+    "monday",
+    "tuesday",
+    "wednesday",
+    "thursday",
+    "friday",
+    "saturday",
+    "sunday"
+]
+
+var GTFS_CALENDAR_NAMES = [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday"
+]
+
+async function searchRoutes() {
+    TouchKeypad.setEnabled({});
+    TouchKeypad.disableFunctionKeys();
+
     var val = $("#search-transit-text").val();
+
     var useKeypad = true;
     if (!useKeypad) {
         clearSearch();
         return;
     }
-
-    var routes = TransitRoutes.getAllRoutes();
-
-    var len = val.length;
-
-    var foundList = [];
-
-    var i;
-    var provider;
-    var route;
-    var path;
-    var lastStop;
-    var doNotShow = false;
-
-    var t;
-    if (len === 0) {
-        doNotShow = true;
-        console.log("No query input.");
-        t = Date.now();
-        var stopId;
-        for (var route of routes) {
-            provider = TransitRoutes.getProvider(route.provider);
-            for (i = 0; i < route.paths.length; i++) {
-                path = route.paths[i];
-                stopId = path[path.length - 1];
-                lastStop = TransitStops.getStopById(stopId);
-                foundList.push({
-                    provider: provider,
-                    route: route,
-                    lastStop: lastStop,
-                    bound: i
-                });
-            }
-        }
-        console.log("AllRoutesArrayBuild used " + (Date.now() - t) + " ms");
-    } else {
-        t = Date.now();
-        var j;
-        var indexesList = [];
-        for (i = 0; i < routes.length; i++) {
-            routeName = Lang.localizedKey(routes[i], "routeName");
-            if (routeName.length >= len) {
-                for (j = 0; j < routes[i].paths.length; j++) {
-                    indexesList.push({
-                        value: routeName.substr(0, len),
-                        routeIndex: i,
-                        pathIndex: j
-                    });
-                }
-            }
-        }
-        console.log("SearchRoutesArrayBuild used " + (Date.now() - t) + " ms");
-
-        t = Date.now();
-        indexesList.sort(function (a, b) {
-            return a.value.localeCompare(b.value);//Misc.stringCompare(a.value, b.value);
-        });
-        console.log("SortArray used " + (Date.now() - t) + " ms");
-
-        var mid;
-        var midVal;
-        var compare;
-        var start = 0;
-        var end = indexesList.length - 1;
-
-        t = Date.now();
-        while (start < end) {
-            mid = Math.floor((start + end) / 2);
-            midVal = indexesList[mid];
-            compare = val.localeCompare(midVal.value);//Misc.stringCompare(val, midVal.value);
-
-            if (compare === 0) {
-                end = mid;
-            } else if (compare > 0) {
-                start = mid + 1;
-            } else {
-                end = mid - 1;
-            }
-        }
-        console.log("Search used " + (Date.now() - t) + " ms");
-
-        var u;
-        if (indexesList[start].value === val) {
-            t = Date.now();
-            var index;
-            for (i = start; i < indexesList.length; i++) {
-                index = indexesList[i];
-
-                if (index.value !== val) {
-                    break;
-                }
-
-                route = routes[index.routeIndex];
-                provider = TransitRoutes.getProvider(route.provider);
-                path = route.paths[index.pathIndex];
-                lastStop = TransitStops.getStopById(path[path.length - 1]);
-                
-                foundList.push({
-                    provider: provider,
-                    route: routes[index.routeIndex],
-                    lastStop: lastStop,
-                    bound: index.pathIndex
-                });
-            }
-            console.log("Found list build used " + (Date.now() - t) + " ms");
-        }
-    }
-
+    
+    var firstLetters;
+    
     var html = "<ul class=\"list-group\">";
 
-    t = Date.now();
-    var routeName;
-    var availableKeypads = {};
-    for (i = 0; i < foundList.length; i++) {
-        routeName = Lang.localizedKey(foundList[i].route, "routeName");
+    if (val.length === 0) {
+        firstLetters = await gtfs.getAllRouteNames(val.length, 1, true);
+    } else {
+        var result = await gtfs.searchRoutes(val);
 
-        if (val.length < routeName.length) {
-            var letter = routeName.charAt(val.length);
-            availableKeypads[letter] = true;
-        }
+        var i;
+        var j;
+        var k;
+        var l;
+        var routeName;
+        var trips;
+        var trip;
+        var route;
+        var agency;
+        var tripId;
+        var routeId;
+        var lastStop;
+        var stopTimes;
+        var calendar;
+        var calendars = {};
+        var calendarDates = {};
+        var serviceId;
+        var serviceIds = {};
+        firstLetters = [];
 
-        if (!doNotShow) {
-            html +=
-                "<li class=\"list-group-item list-group-item-action d-flex align-items-center route-selection\" gtw-provider=\"" + foundList[i].provider.id + "\" gtw-route-id=\"" + foundList[i].route.routeId + "\" gtw-bound=\"" + foundList[i].bound + "\">" +
-                "    <div class=\"d-flex flex-column route-id\">" +
-                "        <div>" + Lang.localizedKey(foundList[i].provider, "name") + "</div>" +
-                "        <div>" + routeName + "</div>" +
-                "    </div>" +
-                "    <div><b>" + $.i18n("transit-eta-to") + ":</b> " + Lang.localizedKey(foundList[i].lastStop, "stopName") + "</div>" +
-                "</li>";
+        var pkg;
+        var provider;
+        var agencyId;
+        
+        var serviceArray;
+        var noServiceArray;
+
+        var count = 0;
+
+        for (i = 0; i < result.length; i++) {
+            route = result[i];
+            routeId = route["route_id"];
+            routeName = Lang.localizedKey(route, "route_short_name");
+            pkg = route["package"];
+            provider = route["provider"];
+            agencyId = route["agency_id"];
+
+            if (val.length < routeName.length) {
+                var str = routeName.substr(val.length, 1);
+                if (!firstLetters.includes(str)) {
+                    firstLetters.push(str);
+                }
+            }
+
+            agency = await gtfs.getAgency(pkg, provider, agencyId);
+            trips = await gtfs.getTripsByRouteId(pkg, provider, routeId);
+            for (j = 0; j < trips.length; j++) {
+                trip = trips[j];
+                tripId = trip["trip_id"];
+                serviceId = trip["service_id"];
+
+                if (!serviceIds[routeId]) {
+                    serviceIds[routeId] = [];
+                } else if (serviceIds[routeId].includes(serviceId)) {
+                    continue;
+                }
+                serviceIds[routeId].push(serviceId);
+
+                if (!calendars[serviceId]) {
+                    calendars[serviceId] = await gtfs.getCalendar(pkg, provider, serviceId);
+                }
+                calendar = calendars[serviceId];
+
+                //TODO: Calendar Dates
+
+                html +=
+                    "<li class=\"list-group-item list-group-item-action d-flex align-items-center route-selection\"  data-gtw-package=\"" + pkg + "\" data-gtw-provider=\"" + provider + "\" data-gtw-agency=\"" + agencyId + "\" data-gtw-route-id=\"" + route["route_id"] + "\" data-gtw-trip-id=\"" + tripId + "\">" +
+                    "    <div class=\"d-flex flex-column route-id\">" +
+                    "        <div>" + Lang.localizedKey(agency, "agency_name") + "</div>" +
+                    "        <div>" + routeName + "</div>" +
+                    "    </div>" +
+                    "    <div class=\"d-flex flex-column stop-info mr-auto\">";
+
+                //TODO: Detect RAW stop times
+                if (gtfs.isStopTimesValid(pkg, provider)) {
+                    stopTimes = await gtfs.getStopTimesByTripId(pkg, provider, tripId);
+                    lastStop = await gtfs.getStop(pkg, provider, stopTimes[stopTimes.length - 1]["stop_id"]);
+
+                    html += "        <div><b>" + $.i18n("transit-eta-to") + ":</b> " + selectAgencyStopName(agency["agency_id"], Lang.localizedKey(lastStop, "stop_name")) + "</div>";
+                } else {
+                    html += "        <div><em>Click for details.</em></div>";
+                }
+
+                html += "<div><span class=\"badge badge-secondary\">"
+                for (k = 0; k < GTFS_CALENDAR_IDS.length; k++) {
+                    html += calendar[GTFS_CALENDAR_IDS[k]];
+                }
+                html += "</span></div>"
+                /*
+                var firstPos = 0;
+                var lastVal = calendar[GTFS_CALENDAR_IDS[0]];
+                var count = 0;
+                var onlyMode = false;
+                console.log("RN: " + routeName);
+                console.log(calendar);
+                for (k = 0; k < GTFS_CALENDAR_IDS.length; k++) {
+                    if (lastVal === calendar[GTFS_CALENDAR_IDS[k]]) {
+                        count++;
+                    } else {
+                        if (count > 1) {
+                            if (count === 2) {
+                                html +=
+                                    "<span class=\"badge badge-secondary\">" +
+                                    $.i18n("transit-" + (onlyMode ? "only-" : "") + (lastVal === 0 ? "no" : "provide") + "-service-and-week", GTFS_CALENDAR_NAMES[firstPos], GTFS_CALENDAR_NAMES[k - 1]) +
+                                    "</span>";
+                            } else {
+                                if (lastVal === 1) {
+                                    html +=
+                                        "<span class=\"badge badge-secondary\">" +
+                                        $.i18n("transit-" + (onlyMode ? "only-" : "") + "provide-service-from-to-week", GTFS_CALENDAR_NAMES[firstPos], GTFS_CALENDAR_NAMES[k - 1]) +
+                                        "</span>";
+                                } else if (count < 6) {
+                                    html +=
+                                        "<span class=\"badge badge-secondary\">" +
+                                        $.i18n("transit-" + (onlyMode ? "only-" : "") + "no-service-from-to-week", GTFS_CALENDAR_NAMES[firstPos], GTFS_CALENDAR_NAMES[k - 1]) +
+                                        "</span>";
+                                } else {
+                                    onlyMode = true;
+                                }
+                            }
+                        } else {
+                            for (l = firstPos; l < k - 1; l++) {
+                                html +=
+                                    "<span class=\"badge badge-secondary\">" +
+                                    $.i18n("transit-" + (onlyMode ? "only-" : "") + (calendar[GTFS_CALENDAR_IDS[l]] === 0 ? "no" : "provide") + "-service-on-week", GTFS_CALENDAR_NAMES[l]) +
+                                    "</span>";
+                            }
+                        }
+                        
+                        if (k === GTFS_CALENDAR_IDS.length - 1) {
+                            html +=
+                                "<span class=\"badge badge-secondary\">" +
+                                $.i18n("transit-" + (onlyMode ? "only-" : "") + (calendar[GTFS_CALENDAR_IDS[k]] === 0 ? "no" : "provide") + "-service-on-sunday") +
+                                "</span>";
+                        } else {
+                            count = 1;
+                            firstPos = k;
+                        }
+                    }
+                    lastVal = calendar[GTFS_CALENDAR_IDS[k]];
+                }
+                */
+
+                html +
+                    "    </div>" +
+                    "</li>";
+            }
         }
     }
-    console.log("HTML build used " + (Date.now() - t) + " ms");
 
     html += "</ul>";
     $(".all-route-list").html(html);
 
+    console.log(firstLetters);
+    var availableKeypads = {};
+    for (var firstLetter of firstLetters) {
+        availableKeypads[firstLetter] = true;
+    }
+    console.log(availableKeypads);
     TouchKeypad.setEnabled(availableKeypads);
+    TouchKeypad.enableFunctionKeys();
 
     $(".all-route-list .route-selection").on("mouseenter", mouseEnterPreviewRoute);
     $(".all-route-list .route-selection").on("click", mouseClickSelectRoute);
@@ -255,21 +319,17 @@ function clearSearch() {
     TouchKeypad.reset();
 }
 
-window.t = TransitStops;
-
-function drawRouteOnMap(route, bound) {
-    var path = route.paths[bound];
-
+async function drawTripOnMap(stopTimes) {
     var coords = [];
     var pos;
-    var dbStop;
+    var stop;
     var i;
-    for (i = 0; i < path.length; i++) {
-        dbStop = TransitStops.getStopById(path[i]);
-        pos = { lat: dbStop.lat, lng: dbStop.lng };
+    for (i = 0; i < stopTimes.length; i++) {
+        stop = await gtfs.getStop(stopTimes[i]["package"], stopTimes[i]["provider"], stopTimes[i]["stop_id"]);
+        pos = { lat: stop["stop_lat"], lng: stop["stop_lon"] };
         coords.push(pos);
         Map.addMarker(pos, {
-            title: dbStop.stopName,
+            title: stop["stop_name"],
             label: "" + (i + 1)
         });
     }
@@ -279,17 +339,14 @@ function drawRouteOnMap(route, bound) {
 function mouseClickSelectRoute() {
     //fromSearch = $(this).parent().parent().hasClass("all-route-list");
 
-    UI.hidePanel();
-    hideTouchKeypad();
+    var pkg = $(this).attr("data-gtw-package");
+    var provider = $(this).attr("data-gtw-provider");
+    var agency = $(this).attr("data-gtw-agency");
+    var routeId = $(this).attr("data-gtw-route-id");
+    var tripId = $(this).attr("data-gtw-trip-id");
+    var stopId = $(this).attr("data-gtw-stop-id");
 
-    Map.removeAllMarkers();
-    Map.removeAllPolylines();
-
-    var provider = TransitRoutes.getProvider($(this).attr("gtw-provider"));
-    var route = provider.getRouteById($(this).attr("gtw-route-id"));
-    var stop = TransitStops.getStopById($(this).attr("gtw-stop-id"));
-    var bound = $(this).attr("gtw-bound");
-
+    /*
     if (!stop) {
         var pos = Loc.getCurrentPosition();
         var path = route.paths[bound];
@@ -311,9 +368,29 @@ function mouseClickSelectRoute() {
             stop = nearestStop;
         }
     }
+    */
 
-    showRouteList(route, bound, stop, true);
-    drawRouteOnMap(route, bound);
+    var valid = gtfs.isStopTimesValid(pkg, provider);
+
+    if (!valid) {
+        UI.showModal("loading",
+            "Showing Route",
+            "Loading route...",
+            "After stop times database built up, this process can be speeded up, enables to discover nearby transit and allows to preview routes."
+        );
+    }
+
+    showRouteList(pkg, provider, agency, routeId, tripId, stopId, true, true).then(function () {
+        UI.hidePanel();
+        hideTouchKeypad();
+
+        Map.removeAllMarkers();
+        Map.removeAllPolylines();
+
+        if (!valid) {
+            UI.hideModal();
+        }
+    });
 }
 
 function mouseEnterPreviewRoute() {
@@ -342,21 +419,42 @@ function mouseEnterPreviewRoute() {
     }
 }
 
-function showRouteList(route, bound, stop = false, scroll = false) {
+function selectAgencyStopName(agencyId, stopName) {
+    if (stopName.startsWith("\"") && stopName.endsWith("\"")) {
+        stopName = stopName.substr(1, stopName.length - 2);
+    }
+    var splits = stopName.split("|");
+    var key = "[" + agencyId + "] ";
+    for (var i = 0; i < splits.length; i++) {
+        if (splits[i].startsWith(key)) {
+            return splits[i].substr(key.length);
+        }
+    }
+    var val = splits[0];
+    var spaceIndex = val.indexOf("] ");
+    if (spaceIndex === -1) {
+        return val;
+    } else {
+        return val.substr(spaceIndex + 2);
+    }
+}
+
+async function showRouteList(pkg, provider, agencyId, routeId, tripId, stopId, scroll = false, draw = false) {
     var html = "<div class=\"row\" style=\"padding: 2%;\"><div class=\"timeline-centered\">";
-    var path = route.paths[bound];
-    var dbStop;
+    var stopTimes = await gtfs.getStopTimesByTripId(pkg, provider, tripId);
     var i;
-    for (i = 0; i < path.length; i++) {
-        dbStop = TransitStops.getStopById(path[i]);
+    var stop;
+    for (i = 0; i < stopTimes.length; i++) {
+        //TODO: Fare attributes and rules
+        stop = await gtfs.getStop(pkg, provider, stopTimes[i]["stop_id"]);
         html +=
-            "<article class=\"timeline-entry\" stop-id=\"" + dbStop.stopId + "\" stop-index=\"" + i + "\">" +
+            "<article class=\"timeline-entry\" data-gtw-package=\"" + pkg + "\" data-gtw-provider=\"" + provider + "\" data-gtw-agency=\"" + agencyId + "\" data-gtw-route-id=\"" + routeId + "\" data-gtw-trip-id=\"" + tripId + "\" data-gtw-stop-id=\"" + stop["stop_id"] + "\">" +
             "    <div class=\"timeline-entry-inner\">" +
             "        <div class=\"timeline-icon bg-light\">" +
             "            " + (i + 1) +
             "        </div>" +
             "        <div class=\"timeline-label\">" +
-            "            <h2><button style=\"padding: 0px;\" class=\"btn btn-link\" stop-id=\"" + dbStop.stopId + "\">" + Lang.localizedKey(dbStop, "stopName") + "</button></h2>" +
+        "            <h2><button style=\"padding: 0px;\" class=\"btn btn-link\" data-gtw-package=\"" + pkg + "\" data-gtw-provider=\"" + provider + "\" data-gtw-stop-id=\"" + stop["stop_id"] + "\" data-gtw-stop-sequence=\"" + stopTimes[i]["stop_sequence"] + "\" data-gtw-stop-index=\"" + i + "\">" + selectAgencyStopName(agencyId, Lang.localizedKey(stop, "stop_name")) + "</button></h2>" +
             "            <p></p>" +
             "        </div>" +
             "    </div>" +
@@ -367,51 +465,66 @@ function showRouteList(route, bound, stop = false, scroll = false) {
     $(".half-map-container").html(html);
 
     $(".half-map-container button").on("click", function () {
-        var x = TransitStops.getStopById($(this).attr("stop-id"));
-        if (x) {
-            showRouteList(route, bound, x);
-        }
+        var pkg = $(this).attr("data-gtw-package");
+        var provider = $(this).attr("data-gtw-provider");
+        //var agency = $(this).attr("data-gtw-agency");
+        //var routeId = $(this).attr("data-gtw-route-id");
+        //var tripId = $(this).attr("data-gtw-trip-id");
+        var stopId = $(this).attr("data-gtw-stop-id");
+        routeListSelectStop(pkg, provider, stopId);
     });
 
-    var provider = TransitRoutes.getProvider(route.provider);
-    var lastStopId = path[path.length - 1];
+    var route = await gtfs.getRoute(pkg, provider, routeId);
+    var agency = await gtfs.getAgency(pkg, provider, agencyId);
+    var lastStopTime = stopTimes[stopTimes.length - 1];
+    var lastStop = await gtfs.getStop(pkg, provider, lastStopTime["stop_id"]); 
     html =
         "<ul class=\"list-group\"><li class=\"list-group-item d-flex align-items-center route-selection\">" +
         "    <div class=\"d-flex flex-column route-id\">" +
-        "        <div>" + Lang.localizedKey(provider, "name") + "</div>" +
-        "        <div>" + Lang.localizedKey(route, "routeName") + "</div>" +
+        "        <div>" + Lang.localizedKey(agency, "agency_name") + "</div>" +
+        "        <div>" + Lang.localizedKey(route, "route_short_name") + "</div>" +
         "    </div>" +
-        "    <div><b>" + $.i18n("transit-eta-to") + ":</b> " + Lang.localizedKey(TransitStops.getStopById(lastStopId), "stopName") + "</div>" +
+        "    <div><b>" + $.i18n("transit-eta-to") + ":</b> " + selectAgencyStopName(agencyId, Lang.localizedKey(lastStop, "stop_name")) + "</div>" +
         "</li></ul>"
         ;
     $(".half-map-tab-panel").html(html);
 
-    adjustMargin();
-    if (stop) {
-        var parent = screen.width >= 768 ? ".desktop" : ".mobile";
-
-        var node = $(parent + " .timeline-entry[stop-id='" + stop.stopId + "']");
-
-        var icon = node.children().children(".timeline-icon");
-        icon.removeClass("bg-light");
-        icon.addClass("bg-primary");
-
-        if (scroll) {
-            node[0].scrollIntoView();
-        }
-
-        var targetPos = { lat: stop.lat, lng: stop.lng };
-
-        Map.setCenter(targetPos);
-        Map.setZoom(18);
-
-        clearInterval(updateStopEtaTimer);
-        var func = function () {
-            showStopEta(route, bound, stop);
-        };
-        func();
-        updateStopEtaTimer = setInterval(func, 30000);
+    if (draw) {
+        drawTripOnMap(stopTimes);
     }
+
+    adjustMargin();
+
+    if (stopId) {
+        routeListSelectStop(pkg, provider, stopId);
+    }
+}
+
+async function routeListSelectStop(pkg, provider, stopId) {
+    var parent = screen.width >= 768 ? ".desktop" : ".mobile";
+
+    var node = $(parent + " .timeline-entry[data-gtw-stop-id='" + stopId + "']");
+
+    var icon = node.children().children(".timeline-icon");
+    icon.removeClass("bg-light");
+    icon.addClass("bg-primary");
+
+    if (scroll) {
+        node[0].scrollIntoView();
+    }
+    var stop = await gtfs.getStop(pkg, provider, stopId);
+
+    var targetPos = { lat: stop["stop_lat"], lng: stop["stop_lon"] };
+
+    Map.setCenter(targetPos);
+    Map.setZoom(18);
+
+    clearInterval(updateStopEtaTimer);
+    var func = function () {
+        showStopEta(route, bound, stop);
+    };
+    func();
+    updateStopEtaTimer = setInterval(func, 30000);
 }
 
 function showStopEta(route, bound, stop) {
@@ -597,9 +710,10 @@ function updateEta() {
         var p = TransitEta.fetchEta({
             provider: result.route.provider,
             etaProviders: result.route.etaProviders,
-            routeId: result.route.routeId,
-            selectedPath: result.bound,
-            stopId: result.stop.stopId
+            routeId: result.route["route_id"],
+            tripId: result.trip["trip_id"],
+            stopId: result.stopTime["stop_id"],
+            stopSeq: result.stopTime["stop_sequence"]
         });
         p.then(function (eta) {
             var text = "";
@@ -724,7 +838,7 @@ function updateEta() {
     }
 }
 
-function findNearbyRoutes() {
+async function findNearbyRoutes() {
     clearInterval(updateEtaTimer);
 
     var pos = Loc.getCurrentPosition();
@@ -736,14 +850,14 @@ function findNearbyRoutes() {
     lastLng = lng;
 
     var range = Settings.get("min_nearby_transit_range", 200) / 1000.0;
-
-    var allNearbyStops = TransitStops.getAllStopsNearby(lat, lng, range, true, true);
+    
+    var allNearbyStops = await gtfs.searchNearbyStops(lat, lng, range, true);
 
     if (allNearbyStops.length === 0) {
         var testRange = range;
         do {
             testRange += 0.05;
-            allNearbyStops = TransitStops.getAllStopsNearby(lat, lng, testRange, true, true);
+            allNearbyStops = await gtfs.searchNearbyStops(lat, lng, testRange, true, true);
         } while (allNearbyStops.length === 0 && testRange < 10);
 
         if (testRange >= 10) {
@@ -765,46 +879,66 @@ function findNearbyRoutes() {
 
     var maxNearbyBusDisplay = Settings.get("max_nearby_transit_to_display", 20);
     allNearbyRoutes = [];
+    console.log(allNearbyStops);
+
     for (var stopResult of allNearbyStops) {
         if (allNearbyRoutes.length >= maxNearbyBusDisplay) {
             break;
         }
 
-        var routeResults = Transit.searchRoutesOfStop(stopResult.stop);
+        var stop = stopResult.stop;
 
-        for (var routeResult of routeResults) {
+        var pkg = stop["package"];
+        var provider = stop["provider"];
+
+        if (!gtfs.isStopTimesValid(pkg, provider)) {
+            continue;
+        }
+
+        var stopRoutes = await gtfs.searchStopRoutes(pkg, provider, stop["stop_id"]);
+
+        //TODO: seperate trips
+        for (var routeId in stopRoutes.trips) {
+            var trip = stopRoutes.trips[routeId];
             allNearbyRoutes.push({
-                route: routeResult.route,
-                bound: routeResult.bound,
-                stop: stopResult.stop,
+                route: stopRoutes.routes[routeId],
+                trip: trip,
+                stopTime: stopRoutes.stopTimes[trip["trip_id"]],
                 distance: stopResult.distance
             });
         }
     }
 
+    console.log(allNearbyRoutes);
+
     var html;
     var distance;
-    var paths;
-    var stopId;
-    var provider;
+    //var paths;
+    //var stopId;
+
+    var stop;
+    var agency;
     html = "<div class=\"row item-list nearby-route-list\"" + (searchMode ? " style=\"display: none\"" : "") + "><ul class=\"list-group\">";
     for (var result of allNearbyRoutes) {
-        paths = result.route.paths[result.bound];
-        stopId = paths[paths.length - 1];
+        //paths = result.route.paths[result.bound];
+        //stopId = paths[paths.length - 1];
+
         distance = Math.round(result.distance * 1000);
-        provider = TransitRoutes.getProvider(result.route.provider);
+        agency = await gtfs.getAgency(result.route["package"], result.route["provider"], result.route["agency_id"]);
+        stop = await gtfs.getStop(result.stopTime["package"], result.stopTime["provider"], result.stopTime["stop_id"]);
+
         html +=
-            "    <li class=\"list-group-item list-group-item-action d-flex justify-content-between align-items-center route-selection\" gtw-provider=\"" + result.route.provider + "\" gtw-route-id=\"" + result.route.routeId + "\" gtw-stop-id=\"" + result.stop.stopId + "\" gtw-bound=\"" + result.bound + "\">" +
+            "    <li class=\"list-group-item list-group-item-action d-flex justify-content-between align-items-center route-selection\" data-gtw-package=\"" + result.route["package"] + "\" data-gtw-provider=\"" + result.route["provider"] + "\" data-gtw-agency=\"" + result.route["agency_id"] + "\" data-gtw-route-id=\"" + result.route["route_id"] + "\" data-gtw-trip-id=\"" + result.trip["trip_id"] + "\" data-gtw-stop-id=\"" + result.stopTime["stop_id"] + "\" data-gtw-stop-seq=\"" + result.stopTime["stop_sequence"] + "\">" +
             "        <div class=\"d-flex flex-column route-id\">" +
-            "            <div>" + Lang.localizedKey(provider, "name") + "</div>" +
-            "            <div>" + Lang.localizedKey(result.route, "routeName") + "</div>" +
+            "            <div>" + Lang.localizedKey(agency, "agency_name") + "</div>" +
+            "            <div>" + Lang.localizedKey(result.route, "route_short_name") + "</div>" +
             "        </div>" +
             "        <div class=\"d-flex flex-column stop-info mr-auto\">" +
+            //"            <div>" + Lang.localizedKey(result.route, "route_long_name") + "</div>" +
+            //"                <b>" + $.i18n("transit-eta-to") + ":</b> <small>" + Lang.localizedKey(TransitStops.getStopById(stopId), "stopName") +
+            //"</small></div>" +
             "            <div>" +
-            "                <b>" + $.i18n("transit-eta-to") + ":</b> <small>" + Lang.localizedKey(TransitStops.getStopById(stopId), "stopName") +
-            "</small></div>" +
-            "            <div>" +
-            "                " + Lang.localizedKey(result.stop, "stopName") + " (" + distance + $.i18n("transit-eta-metres") + ")" +
+            "                " + selectAgencyStopName(agency["agency_id"], Lang.localizedKey(stop, "stop_name")) + " (" + distance + $.i18n("transit-eta-metres") + ")" +
             "            </div>" +
             "        </div>" +
             "        <span class=\"badge badge-primary badge-pill transit-eta\">" + $.i18n("transit-eta-retrieving") + "</span>" +
@@ -831,7 +965,7 @@ function findNearbyRoutes() {
     updateEtaTimer = setInterval(updateEta, 30000);
 }
 
-export function enable() {
+export async function enable() {
     RequestLimiter.clear();
     TransitEta.clearCache();
 
@@ -870,23 +1004,16 @@ export function enable() {
         }
     });
 
-    var providers = TransitRoutes.getProviders();
+    var agencies = await gtfs.getAgencies();
 
-    if (providers.length > 0) {
+    if (agencies.length > 0) {
         var buttonScroll =
             "<div class=\"hori-scroll btn-group\">" +
             "    <button type=\"button\" class=\"btn btn-primary gtw-providersort gtw-providersort-all\"><i class=\"fa fa-reply-all\"></i><br />" + $.i18n("transit-eta-sort-all") + "</button>";
 
-        for (var iprovider of providers) {
-            var image = "";
-            if (iprovider.type === TransitType.BUS) {
-                image = "fa-bus";
-            } else if (iprovider.type === TransitType.TRAIN) {
-                image = "fa-train";
-            } else {
-                image = "fa-question";
-            }
-            buttonScroll += " <button type=\"button\" class=\"btn btn-default gtw-providersort gtw-providersort-provider\" gtw-provider=\"" + iprovider.id + "\"><i class=\"fa " + image + "\"></i><br />" + Lang.localizedKey(iprovider, "name") + "</button>";
+        for (var agency of agencies) {
+            var image = "fa-bus";
+            buttonScroll += " <button type=\"button\" class=\"btn btn-default gtw-providersort gtw-providersort-provider\" data-gtw-package=\"" + agency["package"] + "\" data-gtw-provider=\"" + agency["provider"] + "\" data-gtw-agency=\"" + agency["agency_id"] + "\"><i class=\"fa " + image + "\"></i><br />" + Lang.localizedKey(agency, "agency_name") + "</button>";
         }
 
         buttonScroll += "</div>";
@@ -926,12 +1053,16 @@ export function enable() {
             } else {
                 $(".gtw-providersort").removeClass("btn-primary");
 
-                var provider = $(this).attr("gtw-provider");
+                var pkg = $(this).attr("data-gtw-package");
+                var provider = $(this).attr("data-gtw-provider");
+                var agency = $(this).attr("data-gtw-agency");
                 $(this).addClass("btn-primary");
+                
+                var cssCond = "[data-gtw-package='" + pkg + "'][data-gtw-provider='" + provider + "'][data-gtw-agency='" + agency + "']";
 
-                $(".gtw-providersort-provider:not([gtw-provider='" + provider + "'])").addClass("btn-default");
-                $(".route-selection[gtw-provider='" + provider + "']").attr("style", "");
-                $(".route-selection:not([gtw-provider='" + provider + "'])").attr("style", "display: none!important");
+                $(".gtw-providersort-provider:not(" + cssCond + ")").addClass("btn-default");
+                $(".route-selection" + cssCond).attr("style", "");
+                $(".route-selection:not(" + cssCond + ")").attr("style", "display: none!important");
             }
         });
 

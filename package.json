@@ -48,12 +48,13 @@
         "webpack-dev-server": "^3.9.0",
         "webpack-merge": "^4.2.2",
         "workbox-webpack-plugin": "^4.3.1",
-        "worker-loader": "^2.0.0"
+        "worker-plugin": "^3.2.0"
     },
     "dependencies": {
         "@wikimedia/jquery.i18n": "^1.0.5",
         "bootstrap": "^4.3.1",
         "crypto-js": "^3.1.9-1",
+        "dexie": "^2.0.4",
         "font-awesome": "^4.7.0",
         "jquery": "^3.4.1",
         "jszip": "^3.2.2",

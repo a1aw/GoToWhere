@@ -65,11 +65,16 @@ body {
     position: relative;
 }
 
-.startup .progress-panel {
+.progress-panel {
     position: absolute;
     text-align: center;
     width: 100%;
     bottom: 0px;
+    z-index: 2;
+}
+
+.bg-loaddb-panel {
+    display: none;
 }
 
 .request-progress-panel {

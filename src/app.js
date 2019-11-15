@@ -107,7 +107,9 @@ import * as RequestLimiter from './gtw-requestlimiter';
 import * as log from './gtw-log';
 import * as lang from './gtw-lang';
 import * as Database from './gtw-db';
+import * as gtfs from './gtw-citydata-transit-gtfs';
 import proj4 from 'proj4';
+import { validateStopTimes } from './gtw-citydata-transit-gtfs';
 
 $(".build-version").html(VERSION);
 
@@ -123,11 +125,24 @@ RequestLimiter.start();
 Cors.register("www.gotowhere.ga", true);
 Cors.register("plugins.gotowhere.ga", true);
 
-$("#startup-status").html($.i18n("startup-status-downloading-plugins"));
+//$("#startup-status").html($.i18n("startup-status-downloading-plugins"));
 
 $("#startup-progress").css("width", "12.5%");
 $("#startup-status").html($.i18n("startup-status-open-db"));
 var promise = Database.open();
+
+var GTFS_DATA_TYPES = [
+    "agency",
+    "calendar",
+    "calendar_dates",
+    "frequencies",
+    "routes",
+    "trips",
+    "stops",
+    "stop_times",
+    "fare_attributes",
+    "fare_rules"
+];
 
 if (!promise) {
     $("#startup-status").attr("style", "color: red");
@@ -136,109 +151,142 @@ if (!promise) {
     promise.then(function () {
         $("#startup-progress").css("width", "25%");
         $("#startup-status").html($.i18n("startup-status-loading-plugins"));
-        promise = PluginLoader.load(function (progress) {
+        return PluginLoader.load(function (progress) {
             $("#startup-progress").css("width", 25 + (progress / 8) + "%");
         });
-        promise.then(function () {
-            $("#startup-status").html($.i18n("startup-status-obtaining-db-version"));
-            promise = Transit.obtainDatabaseVersion(function (progress) {
-                $("#startup-progress").css("width", (25 + progress / 4 * 3) + "%");
-            });
-            promise.then(function () {
-                $("#startup-status").html($.i18n("startup-status-checking-db-update"));
-                promise = Transit.checkDatabaseUpdate(function (progress) {
-                    $("#startup-progress").css("width", (25 + progress / 4 * 3) + "%");
-                });
-                promise.then(function () {
-                    $("#startup-status").html($.i18n("startup-status-downloading-db"));
-                    promise = Transit.downloadDatabase(function (progress) {
-                        console.log(progress);
-                        $("#startup-progress").css("width", (25 + progress / 4 * 3) + "%");
-                    });
-                    promise.then(function () {
-                        $("#startup-status").html($.i18n("startup-status-preparing-update"));
-                        promise = Transit.prepareUpdate(function (progress) {
-                            console.log(progress);
-                            $("#startup-progress").css("width", (25 + progress / 4 * 3) + "%");
-                        });
-                        promise.then(function () {
-                            $("#startup-status").html($.i18n("startup-status-reading-chunks"));
-                            promise = Transit.readChunks(function (progress) {
-                                console.log(progress);
-                                $("#startup-progress").css("width", (25 + progress / 4 * 3) + "%");
-                            });
-                            promise.then(function () {
-                                $("#startup-status").html($.i18n("startup-status-storing-db"));
-                                promise = Transit.waitToStore(function (progress) {
-                                    console.log(progress);
-                                    $("#startup-progress").css("width", (25 + progress / 4 * 3) + "%");
-                                });
-                                promise.then(function () {
-                                    $("#startup-progress").css("width", "100%");
-                                    $("#startup-status").html($.i18n("startup-status-init-map"));
-                                    promise = Map.init();
-                                    promise.then(function () {
-                                        $("#startup-status").html($.i18n("startup-status-finish"));
-                                        $(".build-version").fadeOut(2000);
-
-                                        var lastVer = localStorage.getItem("gtw-lastversion");
-                                        if (lastVer && lastVer !== VERSION) {
-                                            console.log("Application updated to " + VERSION + ". Showing change-log.");
-                                            ui.showModal("updated", VERSION);
-                                        }
-                                        localStorage.setItem("gtw-lastversion", VERSION);
-
-                                        ui.init();
-
-                                        //TransitManager.start();
-                                        //TransitManager.forceUpdate();
-
-                                        var errPlugins = [];
-                                        var plugin;
-                                        for (var pluginKey in PluginLoader.plugins) {
-                                            plugin = PluginLoader.plugins[pluginKey];
-                                            if (plugin.status < 0) {
-                                                errPlugins.push(plugin);
-                                            }
-                                        }
-                                        console.log(errPlugins);
-
-                                        if (errPlugins.length) {
-                                            ui.showModal("errorplugins", errPlugins);
-                                        }
-
-                                        loc.requestLocationAccess(function () {
-                                            //ui.init();
-                                            //TransitManager.forceUpdate();
-                                            $("#loc-status-btn").addClass("btn-success");
-                                            $("#loc-status-btn").removeClass("btn-warning");
-                                            setTimeout(function () {
-                                                $("#loc-status-btn").fadeOut(500);
-                                            }, 2000);
-                                        }, function () {
-                                            $("#loc-status-btn").addClass("btn-danger");
-                                            $("#loc-status-btn").removeClass("btn-warning");
-                                            $("#loc-status-btn").append(" <span> No Location!</span>");
-                                            setTimeout(function () {
-                                                $("#loc-status-btn span").fadeOut(500);
-                                            }, 5000);
-                                        });
-
-                                        setTimeout(function () {
-                                            $(".footer").animate({ height: 0, opacity: 0 }, 1000, function () {
-                                                $(".footer").css("display", "none");
-                                            });
-                                        }, 2000);
-                                        $(".startup").fadeOut(1000, function () {
-                                            __stopHeaderAnimation = true;
-                                        });
-                                    });
-                                });
-                            });
-                        });
-                    });
-                });
-            });
+    }).then(function () {
+        $("#startup-status").html($.i18n("startup-status-obtaining-db-version"));
+        return Transit.obtainDatabaseVersion(function (progress) {
+            $("#startup-progress").css("width", (25 + progress / 4 * 3) + "%");
         });
+    }).then(function () {
+        $("#startup-status").html($.i18n("startup-status-checking-db-update"));
+        return Transit.checkDatabaseUpdate(function (progress) {
+            $("#startup-progress").css("width", (25 + progress / 4 * 3) + "%");
+        });
+    }).then(function () {
+        $("#startup-status").html($.i18n("startup-status-downloading-db"));
+        return Transit.downloadDatabase(function (progress) {
+            console.log(progress);
+            $("#startup-progress").css("width", (25 + progress / 4 * 3) + "%");
+        });
+    }).then(function () {
+        $("#startup-status").html($.i18n("startup-status-preparing-update"));
+        return Transit.prepareUpdate(function (progress) {
+            console.log(progress);
+            $("#startup-progress").css("width", progress + "%");
+        });
+    }).then(function loadAllGtfs(i) {
+        if (typeof i !== "number") {
+            i = 0;
+        }
+        var dataType = GTFS_DATA_TYPES[i];
+        $("#startup-status").html($.i18n("startup-status-loading-" + dataType));
+        return Transit.readChunks(dataType, function (progress) {
+            console.log(progress);
+            $("#startup-progress").css("width", ((progress / 3 / GTFS_DATA_TYPES.length) + (i * 100 / GTFS_DATA_TYPES.length)) + "%");
+        }).then(function parseChunks() {
+            $("#startup-status").html($.i18n("startup-status-updating-" + dataType));
+            var remainChunks = -1;
+            return Transit.waitToParse(function (progress) {
+                console.log(progress);
+                $("#startup-progress").css("width", ((progress / 3 + 100 / 3) / GTFS_DATA_TYPES.length + (i * 100 / GTFS_DATA_TYPES.length)) + "%");
+            }).then(function (remain) {
+                remainChunks = remain;
+                $("#startup-status").html($.i18n("startup-status-storing-" + dataType));
+                return Transit.waitToStore(function (progress) {
+                    console.log(progress);
+                    $("#startup-progress").css("width", ((progress / 3 + 200 / 3) / GTFS_DATA_TYPES.length + (i * 100 / GTFS_DATA_TYPES.length)) + "%");
+                });
+            }).then(function(){
+                console.log("Remaining: " + remainChunks);
+                if (remainChunks > 0) {
+                    return parseChunks();
+                }
+            });
+        }).then(function () {
+            if (i != GTFS_DATA_TYPES.length - 1) {
+                return loadAllGtfs(i + 1);
+            }
+        });
+    }).then(function () {
+        $("#startup-progress").css("width", "100%");
+        $("#startup-status").html($.i18n("startup-status-init-map"));
+        return Map.init();
+    }).then(function () {
+        $("#startup-status").html($.i18n("startup-status-finish"));
+        $(".build-version").fadeOut(2000);
+
+        var lastVer = localStorage.getItem("gtw-lastversion");
+        if (lastVer && lastVer !== VERSION) {
+            console.log("Application updated to " + VERSION + ". Showing change-log.");
+            ui.showModal("updated", VERSION);
+        }
+        localStorage.setItem("gtw-lastversion", VERSION);
+
+        ui.init();
+
+        //TransitManager.start();
+        //TransitManager.forceUpdate();
+
+        var errPlugins = [];
+        var plugin;
+        for (var pluginKey in PluginLoader.plugins) {
+            plugin = PluginLoader.plugins[pluginKey];
+            if (plugin.status < 0) {
+                errPlugins.push(plugin);
+            }
+        }
+        console.log(errPlugins);
+
+        if (errPlugins.length) {
+            ui.showModal("errorplugins", errPlugins);
+        }
+
+        loc.requestLocationAccess(function () {
+            //ui.init();
+            //TransitManager.forceUpdate();
+            $("#loc-status-btn").addClass("btn-success");
+            $("#loc-status-btn").removeClass("btn-warning");
+            setTimeout(function () {
+                $("#loc-status-btn").fadeOut(500);
+            }, 2000);
+        }, function () {
+            $("#loc-status-btn").addClass("btn-danger");
+            $("#loc-status-btn").removeClass("btn-warning");
+            $("#loc-status-btn").append(" <span> No Location!</span>");
+            setTimeout(function () {
+                $("#loc-status-btn span").fadeOut(500);
+            }, 5000);
+        });
+
+        setTimeout(function () {
+            $(".footer").animate({ height: 0, opacity: 0 }, 1000, function () {
+                $(".footer").css("display", "none");
+            });
+        }, 2000);
+        $(".startup").fadeOut(1000, function () {
+            __stopHeaderAnimation = true;
+        });
+
+        //TODO: Check is raw
+        if (false) {
+            $("#bg-loaddb-status").html("Preparing to build database...");
+            $(".bg-loaddb-panel").fadeIn();
+            var worker = new Worker("./workers/bg-loaddb-worker.js", { type: 'module' });
+            worker.addEventListener("message", function (evt) {
+                var msg = evt.data;
+                if (msg.type === 0) {
+                    $("#bg-loaddb-status").html("Finish!");
+                    $(".bg-loaddb-panel").fadeOut();
+                } else if (msg.type === 1) {
+                    $("#bg-loaddb-status").html("Building " + msg.stage + " database...");
+                } else if (msg.type === 2) {
+                    console.log(msg.progress);
+                    $("#bg-loaddb-progress").css("width", msg.progress + "%");
+                }
+            });
+            worker.postMessage("stop_times");
+        }
     });
 }

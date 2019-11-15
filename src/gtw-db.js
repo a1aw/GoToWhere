@@ -25,7 +25,7 @@ export function open() {
                     if (db.objectStoreNames.contains("transitRoutes")) {
                         db.deleteObjectStore("transitRoutes");
                     }
-                    //GTFS Database
+                    /*
                     db.createObjectStore("gtfs_versions", { keyPath: ['package', 'provider'] });
 
                     db.createObjectStore("gtfs_fare_rules", { keyPath: ['package', 'provider', 'fare_id'] });
@@ -48,6 +48,7 @@ export function open() {
                     db.createObjectStore("gtfs_frequencies", { keyPath: ['package', 'provider', 'trip_id'] });
 
                     db.createObjectStore("gtfs_calendar_dates", { keyPath: ['package', 'provider', 'service_id', 'date'] });
+                    */
             }
         };
         request.onsuccess = function (event) {
