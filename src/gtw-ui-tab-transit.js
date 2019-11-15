@@ -210,7 +210,7 @@ async function searchRoutes() {
                     stopTimes = await gtfs.getStopTimesByTripId(pkg, provider, tripId);
                     lastStop = await gtfs.getStop(pkg, provider, stopTimes[stopTimes.length - 1]["stop_id"]);
 
-                    html += "        <div><b>" + $.i18n("transit-eta-to") + ":</b> " + selectAgencyStopName(agency["agency_id"], Lang.localizedKey(lastStop, "stop_name")) + "</div>";
+                    html += "        <div><b>" + $.i18n("transit-eta-to") + ":</b> " + gtfs.selectAgencyStopName(agency["agency_id"], Lang.localizedKey(lastStop, "stop_name")) + "</div>";
                 } else {
                     html += "        <div><em>Click for details.</em></div>";
                 }
@@ -419,26 +419,6 @@ function mouseEnterPreviewRoute() {
     }
 }
 
-function selectAgencyStopName(agencyId, stopName) {
-    if (stopName.startsWith("\"") && stopName.endsWith("\"")) {
-        stopName = stopName.substr(1, stopName.length - 2);
-    }
-    var splits = stopName.split("|");
-    var key = "[" + agencyId + "] ";
-    for (var i = 0; i < splits.length; i++) {
-        if (splits[i].startsWith(key)) {
-            return splits[i].substr(key.length);
-        }
-    }
-    var val = splits[0];
-    var spaceIndex = val.indexOf("] ");
-    if (spaceIndex === -1) {
-        return val;
-    } else {
-        return val.substr(spaceIndex + 2);
-    }
-}
-
 async function showRouteList(pkg, provider, agencyId, routeId, tripId, stopId, scroll = false, draw = false) {
     var html = "<div class=\"row\" style=\"padding: 2%;\"><div class=\"timeline-centered\">";
     var stopTimes = await gtfs.getStopTimesByTripId(pkg, provider, tripId);
@@ -454,7 +434,7 @@ async function showRouteList(pkg, provider, agencyId, routeId, tripId, stopId, s
             "            " + (i + 1) +
             "        </div>" +
             "        <div class=\"timeline-label\">" +
-        "            <h2><button style=\"padding: 0px;\" class=\"btn btn-link\" data-gtw-package=\"" + pkg + "\" data-gtw-provider=\"" + provider + "\" data-gtw-stop-id=\"" + stop["stop_id"] + "\" data-gtw-stop-sequence=\"" + stopTimes[i]["stop_sequence"] + "\" data-gtw-stop-index=\"" + i + "\">" + selectAgencyStopName(agencyId, Lang.localizedKey(stop, "stop_name")) + "</button></h2>" +
+            "            <h2><button style=\"padding: 0px;\" class=\"btn btn-link\" data-gtw-package=\"" + pkg + "\" data-gtw-provider=\"" + provider + "\" data-gtw-agency=\"" + agencyId + "\" data-gtw-route-id=\"" + routeId + "\" data-gtw-trip-id=\"" + tripId + "\" data-gtw-stop-id=\"" + stop["stop_id"] + "\" data-gtw-stop-sequence=\"" + stopTimes[i]["stop_sequence"] + "\" data-gtw-stop-index=\"" + i + "\">" + gtfs.selectAgencyStopName(agencyId, Lang.localizedKey(stop, "stop_name")) + "</button></h2>" +
             "            <p></p>" +
             "        </div>" +
             "    </div>" +
@@ -467,11 +447,11 @@ async function showRouteList(pkg, provider, agencyId, routeId, tripId, stopId, s
     $(".half-map-container button").on("click", function () {
         var pkg = $(this).attr("data-gtw-package");
         var provider = $(this).attr("data-gtw-provider");
-        //var agency = $(this).attr("data-gtw-agency");
-        //var routeId = $(this).attr("data-gtw-route-id");
-        //var tripId = $(this).attr("data-gtw-trip-id");
+        var agencyId = $(this).attr("data-gtw-agency");
+        var routeId = $(this).attr("data-gtw-route-id");
+        var tripId = $(this).attr("data-gtw-trip-id");
         var stopId = $(this).attr("data-gtw-stop-id");
-        routeListSelectStop(pkg, provider, stopId);
+        routeListSelectStop(pkg, provider, agencyId, routeId, tripId, stopId);
     });
 
     var route = await gtfs.getRoute(pkg, provider, routeId);
@@ -484,7 +464,7 @@ async function showRouteList(pkg, provider, agencyId, routeId, tripId, stopId, s
         "        <div>" + Lang.localizedKey(agency, "agency_name") + "</div>" +
         "        <div>" + Lang.localizedKey(route, "route_short_name") + "</div>" +
         "    </div>" +
-        "    <div><b>" + $.i18n("transit-eta-to") + ":</b> " + selectAgencyStopName(agencyId, Lang.localizedKey(lastStop, "stop_name")) + "</div>" +
+        "    <div><b>" + $.i18n("transit-eta-to") + ":</b> " + gtfs.selectAgencyStopName(agencyId, Lang.localizedKey(lastStop, "stop_name")) + "</div>" +
         "</li></ul>"
         ;
     $(".half-map-tab-panel").html(html);
@@ -496,11 +476,11 @@ async function showRouteList(pkg, provider, agencyId, routeId, tripId, stopId, s
     adjustMargin();
 
     if (stopId) {
-        routeListSelectStop(pkg, provider, stopId);
+        routeListSelectStop(pkg, provider, agencyId, routeId, tripId, stopId);
     }
 }
 
-async function routeListSelectStop(pkg, provider, stopId) {
+async function routeListSelectStop(pkg, provider, agencyId, routeId, tripId, stopId) {
     var parent = screen.width >= 768 ? ".desktop" : ".mobile";
 
     var node = $(parent + " .timeline-entry[data-gtw-stop-id='" + stopId + "']");
@@ -512,7 +492,13 @@ async function routeListSelectStop(pkg, provider, stopId) {
     if (scroll) {
         node[0].scrollIntoView();
     }
+
+    var agency = await gtfs.getAgency(pkg, provider, agencyId);
+    var route = await gtfs.getRoute(pkg, provider, routeId);
+    var trip = await gtfs.getTrip(pkg, provider, tripId);
     var stop = await gtfs.getStop(pkg, provider, stopId);
+
+    console.log(trip);
 
     var targetPos = { lat: stop["stop_lat"], lng: stop["stop_lon"] };
 
@@ -521,14 +507,14 @@ async function routeListSelectStop(pkg, provider, stopId) {
 
     clearInterval(updateStopEtaTimer);
     var func = function () {
-        showStopEta(route, bound, stop);
+        showStopEta(agency, route, trip, stop);
     };
     func();
     updateStopEtaTimer = setInterval(func, 30000);
 }
 
-function showStopEta(route, bound, stop) {
-    var node = $(".timeline-entry[stop-id='" + stop.stopId + "'] p");
+function showStopEta(agency, route, trip, stop) {
+    var node = $(".timeline-entry[data-gtw-stop-id='" + stop["stop_id"] + "'] p");
 
     var content =
         "<p><u>" + $.i18n("transit-eta") + "</u></p>" +
@@ -536,11 +522,11 @@ function showStopEta(route, bound, stop) {
         ;
 
     var p = TransitEta.fetchEta({
-        provider: route.provider,
-        etaProviders: route.etaProviders,
-        routeId: route.routeId,
-        selectedPath: parseInt(bound),
-        stopId: stop.stopId
+        etaProviders: agency["agency_id"].split("+"),
+        agency: agency,
+        route: route,
+        trip: trip,
+        stop: stop
     });
     if (!p) {
         content +=
@@ -554,126 +540,185 @@ function showStopEta(route, bound, stop) {
             "<tr class=\"table-dark\">" +
             "    <td colspan=\"4\"><div class=\"spinner-border spinner-border-sm\" role=\"status\"></div> " + $.i18n("transit-eta-retrieving-data") + "</td>" +
             "</tr>";
-        p.then(function (data) {
-            var h = data.options;
+        p.then(function (returned) {
+            var opt = returned.options;
             var content = "";
-            var node = $(".timeline-entry[stop-id='" + h.stopId + "'] p table tbody");
-            if (data.code && data.code === -2) {
+            var node = $(".timeline-entry[data-gtw-stop-id='" + opt.stop["stop_id"] + "'] p table tbody");
+            if (returned.code === -2) {
                 content +=
                     "<tr class=\"table-dark\">" +
                     "    <td colspan=\"4\">" + $.i18n("transit-eta-no-eta-providers") + "</td>" +
                     //"    <td>---</td>" +
                     "</tr>"
                     ;
-            } else if (!data.schedules || data.code && data.code === -1) {
+            } else if (returned.feeds.length === 0 || returned.code === -1) {
                 content +=
                     "<tr class=\"table-dark\">" +
                     "    <td colspan=\"4\">" + $.i18n("transit-eta-no-data-received") + "</td>" +
                     //"    <td>---</td>" +
                     "</tr>"
                     ;
-            } else if (data.schedules.length === 0) {
-                content +=
-                    "<tr class=\"table-dark\">" +
-                    "    <td colspan=\"4\">" + $.i18n("transit-eta-no-schedules-pending") + "</td>" +
-                    //"    <td>---</td>" +
-                    "</tr>"
-                    ;
             } else {
-                var active = false;
-                for (var schedule of data.schedules) {
-                    var eta = Math.floor((schedule.time - schedule.serverTime) / 1000 / 60);
-
-                    var html = "<tr class=\"table-";
-
-                    if (eta >= 20) {
-                        html += "secondary";
-                    } else if (eta >= 15) {
-                        html += "info";
-                    } else if (eta >= 10) {
-                        html += "success";
-                    } else if (eta >= 5) {
-                        html += "warning";
-                    } else if (eta >= 1) {
-                        html += "danger";
-                    } else {
-                        html += "dark";
-                    }
-
-                    if (!active && eta > 0) {
-                        active = true;
-                        html += " active";
-                    }
-
-                    html += "\">";
-
-                    //TODO: isOutdated
-
-                    var provider = TransitEta.getProvider(schedule.provider);
-                    if (!provider) {
-                        console.error("Error: Could not find TransitEta provider to get localized names: " + schedule.provider);
-                        return;
-                    }
-
-                    var colspan = 4;
-
-                    if (h.etaProviders.length > 1) {
-                        html += "<td>" + Lang.localizedKey(provider, "name") + "</td>";
-                        colspan--;
-                    }
-
-                    if (schedule.msg !== undefined && schedule.time === undefined) {
-                        html += "<td colspan=\"" + colspan + "\">" + schedule.msg + "</td>";
-                    } else {
-                        html += "<td>";
-                        if (schedule.msg !== undefined) {
-                            html += schedule.msg;
+                var alerts = [];
+                var pairs = [];
+                for (var feed of returned.feeds) {
+                    for (var entity of feed.entity) {
+                        var tripUpdate = entity["trip_update"];
+                        if (tripUpdate) {
+                            var timestamp = tripUpdate.timestamp ? tripUpdate.timestamp : feed.header.timestamp;
+                            pairs.push({
+                                timestamp: timestamp,
+                                tripUpdate: tripUpdate
+                            });
                         }
-                        if (schedule.time !== undefined) {
-                            if (schedule.msg !== undefined) {
-                                html += "<br />";
+
+                        if (entity["alert"]) {
+                            alerts.push(entity["alert"]);
+                        }
+                    }
+                }
+
+                if (pairs.length === 0) {
+                    content +=
+                        "<tr class=\"table-dark\">" +
+                        "    <td colspan=\"4\">" + $.i18n("transit-eta-no-schedules-pending") + "</td>" +
+                        //"    <td>---</td>" +
+                        "</tr>"
+                        ;
+                } else {
+                    var active = false;
+                    for (var pair of pairs) {
+                        var stopTimeUpdates = pair.tripUpdate["stop_time_update"];
+                        if (stopTimeUpdates && stopTimeUpdates.length > 0) {
+                            for (var stopTimeUpdate of stopTimeUpdates) {
+                                if (!stopTimeUpdate["schedule_relationship"] || stopTimeUpdate["schedule_relationship"] === "SCHEDULED") {
+                                    var etaTime;
+                                    //TODO: Calculate non-absolute time from trips
+                                    if (stopTimeUpdate.departure) {
+                                        etaTime = stopTimeUpdate.departure.time;
+                                    } else if (stopTimeUpdate.arrival) {
+                                        etaTime = stopTimeUpdate.arrival.time;
+                                    }
+
+                                    var eta = Math.floor((etaTime - pair.timestamp) / 1000 / 60);
+
+                                    var html = "<tr class=\"table-";
+
+                                    if (eta >= 20) {
+                                        html += "secondary";
+                                    } else if (eta >= 15) {
+                                        html += "info";
+                                    } else if (eta >= 10) {
+                                        html += "success";
+                                    } else if (eta >= 5) {
+                                        html += "warning";
+                                    } else if (eta >= 1) {
+                                        html += "danger";
+                                    } else {
+                                        html += "dark";
+                                    }
+
+                                    if (!active && eta > 0) {
+                                        active = true;
+                                        html += " active";
+                                    }
+
+                                    html += "\">";
+
+                                    /*
+                                    //TODO: isOutdated
+
+                                    var provider = TransitEta.getProvider(schedule.provider);
+                                    if (!provider) {
+                                        console.error("Error: Could not find TransitEta provider to get localized names: " + schedule.provider);
+                                        return;
+                                    }
+                                    */
+
+                                    var colspan = 4;
+
+                                    /*
+                                    if (opt.etaProviders.length > 1) {
+                                        html += "<td>" + Lang.localizedKey(provider, "name") + "</td>";
+                                        colspan--;
+                                    }
+                                    */
+
+                                    if (pair.tripUpdate["vehicle"] && pair.tripUpdate["vehicle"]["vehicle"] && pair.tripUpdate["vehicle"]["vehicle"]["label"]) {
+                                        html += "<td>" + pair.tripUpdate["vehicle"]["vehicle"]["label"] + "</td>";
+                                        colspan--;
+                                    }
+
+                                    /*
+                                    if (schedule.msg !== undefined && schedule.time === undefined) {
+                                        html += "<td colspan=\"" + colspan + "\">" + schedule.msg + "</td>";
+                                    }
+                                    */
+
+                                    html += "<td>";
+                                    /*
+                                    if (schedule.msg !== undefined) {
+                                        html += schedule.msg;
+                                    }
+                                    if (schedule.time !== undefined) {
+                                        if (schedule.msg !== undefined) {
+                                            html += "<br />";
+                                        }
+                                    }
+                                    */
+
+                                    if (eta > 0) {
+                                        html += $.i18n("transit-eta-minutes", eta);
+                                    } else {
+                                        html += $.i18n("transit-eta-arrived-left");
+                                    }
+
+                                    html += "</td><td";
+
+                                    /*
+                                    if (schedule.isLive === undefined) {
+                                    }
+                                    */
+                                    html += " colspan=\"2\"";
+
+                                    html += ">";
+
+                                    var time = new Date(etaTime);
+
+                                    html += Misc.fillZero(time.getHours()) + ":" + Misc.fillZero(time.getMinutes());
+                                    /*
+                                    if (schedule.time !== undefined) {
+                                    } else {
+                                        html += "---";
+                                    }
+                                    */
+
+                                    html += "</td>";
+
+                                    /*
+                                    if (schedule.isLive !== undefined) {
+                                        if (schedule.isLive) {
+                                            html += "<td><span style=\"color: red; float: right; font-size: 10px;\"><i class=\"fa fa-circle\"></i> " + $.i18n("transit-eta-live") + "</span></td>";
+                                        } else {
+                                            html += "<td><span style=\"font-size: 10px; float: right; font-style: italic;\">" + $.i18n("transit-eta-scheduled") + "</span></td>";
+                                        }
+                                    }
+                                    */
+
+                                    html += "</tr>";
+                                    content += html;
+                                } else {
+                                    //TODO: cancelled
+                                }
                             }
-                            if (eta > 0) {
-                                html += $.i18n("transit-eta-minutes", eta);
-                            } else {
-                                html += $.i18n("transit-eta-arrived-left");
-                            }
-                        }
-
-                        html += "</td><td";
-
-                        if (schedule.isLive === undefined) {
-                            html += " colspan=\"2\"";
-                        }
-
-                        html += ">";
-
-                        var time = new Date(schedule.time);
-
-                        if (schedule.time !== undefined) {
-                            html += Misc.fillZero(time.getHours()) + ":" + Misc.fillZero(time.getMinutes());
                         } else {
-                            html += "---";
-                        }
-
-                        html += "</td>";
-
-                        if (schedule.isLive !== undefined) {
-                            if (schedule.isLive) {
-                                html += "<td><span style=\"color: red; float: right; font-size: 10px;\"><i class=\"fa fa-circle\"></i> " + $.i18n("transit-eta-live") + "</span></td>";
-                            } else {
-                                html += "<td><span style=\"font-size: 10px; float: right; font-style: italic;\">" + $.i18n("transit-eta-scheduled") + "</span></td>";
-                            }
+                            //TODO: NO Data
                         }
                     }
-
-                    //TODO: Features
-
-                    html += "</tr>";
-                    content += html;
                 }
             }
             node.html(content);
+            
         }).catch(function (options, err) {
             var node = $(".timeline-entry[stop-id='" + options.stopId + "'] p table tbody");
             node.html("<tr class=\"table-danger\"><td colspan=\"4\">" + $.i18n("transit-eta-error-fetching-eta") + "</td></tr>");
@@ -707,19 +752,21 @@ function updateEta() {
     }
     //var h;
     for (var result of allNearbyRoutes) {
+        var agency = gtfs.get
         var p = TransitEta.fetchEta({
-            provider: result.route.provider,
-            etaProviders: result.route.etaProviders,
-            routeId: result.route["route_id"],
-            tripId: result.trip["trip_id"],
-            stopId: result.stopTime["stop_id"],
-            stopSeq: result.stopTime["stop_sequence"]
+            etaProviders: result.route["agency_id"].split("+"),
+            agency: result.agency,
+            route: result.route,
+            trip: result.trip,
+            stop: result.stop
         });
-        p.then(function (eta) {
+        p.then(function (returned) {
+            console.log("Returned feed!");
+            console.log(returned);
             var text = "";
-            var h = eta.options;
+            var opt = returned.options;
 
-            var node = $(".nearby-route-list .route-selection[gtw-provider=\"" + h.provider + "\"][gtw-route-id=\"" + h.routeId + "\"][gtw-bound=\"" + h.selectedPath + "\"][gtw-stop-id=\"" + h.stopId + "\"]");
+            var node = $(".nearby-route-list .route-selection[data-gtw-package=\"" + opt.agency["package"] + "\"][data-gtw-provider=\"" + opt.agency["provider"] + "\"][data-gtw-agency=\"" + opt.agency["agency_id"] + "\"][data-gtw-route-id=\"" + opt.route["route_id"] + "\"][data-gtw-trip-id=\"" + opt.trip["trip_id"] + "\"][data-gtw-stop-id=\"" + opt.stop["stop_id"] + "\"]");
 
             node.removeClass("list-group-item-secondary");
             node.removeClass("list-group-item-info");
@@ -731,78 +778,126 @@ function updateEta() {
 
             var badgeClass = "btn-secondary";
 
-            if (!eta || !eta.schedules || eta.code && eta.code < 0) {
+            if (returned.code < 0) {
                 text = $.i18n("transit-eta-route-not-available-short");
                 node.addClass("list-group-item-light");
-            } else if (eta.schedules.length === 0) {
-                text = $.i18n("transit-eta-no-schedules-pending-short");
+            } else if (returned.feeds.length === 0) {
+                text = $.i18n("transit-eta-no-feed-received");
                 node.addClass("list-group-item-light");
             } else {
-                var schedule = eta.schedules[0];
-
-                var calcEta = Math.floor((schedule.time - schedule.serverTime) / 1000 / 60);
-
-                var css = "";
-
-                if (calcEta >= 20) {
-                    css = "secondary";
-                } else if (calcEta >= 15) {
-                    css = "info";
-                } else if (calcEta >= 10) {
-                    css = "success";
-                } else if (calcEta >= 5) {
-                    css = "warning";
-                } else if (calcEta >= 1) {
-                    css = "danger";
-                } else {
-                    css = "dark";
-                }
-                node.addClass("list-group-item-" + css);
-
-                //TODO: isOutdated
-
-                if (schedule.msg !== undefined) {
-                    var msg = schedule.msg;
-                    if (msg.length > 20) {
-                        text = $.i18n("transit-eta-transit-notice");
-                    } else {
-                        text = schedule.msg;
-                    }
-                    badgeClass = "badge-warning";
-                } else if (schedule.time !== undefined) {
-                    if (schedule.msg !== undefined) {
-                        text += "<br />";
-                    }
-
-                    badgeClass = "badge-primary";
-                    if (calcEta > 0) {
-                        text += $.i18n("transit-eta-minutes", calcEta);
-                    } else {
-                        text += $.i18n("transit-eta-arrived-left", calcEta);
-                        badgeClass = "badge-dark";
-                    }
-
-                    if (schedule.isLive !== undefined) {
-                        text += "<br /><span style=\"font-size: 10px; position: absolute; top: 16px; right: 16px; ";
-                        if (schedule.isLive) {
-                            text += "color: red;\"><i class=\"fa fa-circle\"></i> " + $.i18n("transit-eta-live") + "</span>";
-                        } else {
-                            text += "color: black; font-style: italic;\">" + $.i18n("transit-eta-scheduled") + "</span>";
+                var pairs = [];
+                for (var feed of returned.feeds) {
+                    for (var entity of feed.entity) {
+                        var tripUpdate = entity["trip_update"];
+                        if (tripUpdate) {
+                            var timestamp = tripUpdate.timestamp ? tripUpdate.timestamp : feed.header.timestamp;
+                            pairs.push({
+                                timestamp: timestamp,
+                                tripUpdate: tripUpdate
+                            });
                         }
                     }
                 }
-
+                //TODO: Sort trip updates
                 /*
-                if (schedule.hasTime) {
-                    text += Misc.fillZero(schedule.time.hr) + ":" + Misc.fillZero(schedule.time.min);
-                } else {
-                    text += "---";
-                }
+                tripUpdates.sort((a, b) => {
+                    if (a["stop_time_update"].departure && b["stop_time_update"].departure) {
+                        return a["stop_time_update"].departure - b["stop_time_update"].departure;
+                    } else if (a["stop_time_update"].arrival && b["stop_time_update"].departure) {
+                        return a["stop_time_update"].arrival - b["stop_time_update"].departure;
+                    } else if (a["stop_time_update"].departure && b["stop_time_update"].arrival) {
+                        return a["stop_time_update"].departure - b["stop_time_update"].arrival;
+                    }
+                });
                 */
+                if (pairs.length === 0) {
+                    text = $.i18n("transit-eta-no-schedules-pending-short");
+                    node.addClass("list-group-item-light");
+                } else {
+                    var pair = pairs[0];
 
-                //TODO: Features
+                    var stopTimeUpdates = pair.tripUpdate["stop_time_update"];
+                    if (stopTimeUpdates && stopTimeUpdates.length > 0) {
+                        var stopTimeUpdate = stopTimeUpdates[0];
+
+                        if (!stopTimeUpdate["schedule_relationship"] || stopTimeUpdate["schedule_relationship"] === "SCHEDULED") {
+                            var etaTime;
+                            //TODO: Calculate non-absolute time from trips
+                            if (stopTimeUpdate.departure) {
+                                etaTime = stopTimeUpdate.departure.time;
+                            } else if (stopTimeUpdate.arrival) {
+                                etaTime = stopTimeUpdate.arrival.time;
+                            }
+
+                            //TODO: uncertainty
+
+                            var calcEta = Math.floor((etaTime - pair.timestamp) / 1000 / 60);
+                            console.log("calculated eta: " + calcEta);
+
+                            var css = "";
+
+                            if (calcEta >= 20) {
+                                css = "secondary";
+                            } else if (calcEta >= 15) {
+                                css = "info";
+                            } else if (calcEta >= 10) {
+                                css = "success";
+                            } else if (calcEta >= 5) {
+                                css = "warning";
+                            } else if (calcEta >= 1) {
+                                css = "danger";
+                            } else {
+                                css = "dark";
+                            }
+                            node.addClass("list-group-item-" + css);
+
+                            badgeClass = "badge-primary";
+                            if (calcEta > 0) {
+                                text += $.i18n("transit-eta-minutes", calcEta);
+                            } else {
+                                text += $.i18n("transit-eta-arrived-left", calcEta);
+                                badgeClass = "badge-dark";
+                            }
+                            /*
+                            if (schedule.msg !== undefined) {
+                                var msg = schedule.msg;
+                                if (msg.length > 20) {
+                                    text = $.i18n("transit-eta-transit-notice");
+                                } else {
+                                    text = schedule.msg;
+                                }
+                                badgeClass = "badge-warning";
+                            } else if (schedule.time !== undefined) {
+                                if (schedule.msg !== undefined) {
+                                    text += "<br />";
+                                }
+
+                                
+
+                                if (schedule.isLive !== undefined) {
+                                    text += "<br /><span style=\"font-size: 10px; position: absolute; top: 16px; right: 16px; ";
+                                    if (schedule.isLive) {
+                                        text += "color: red;\"><i class=\"fa fa-circle\"></i> " + $.i18n("transit-eta-live") + "</span>";
+                                    } else {
+                                        text += "color: black; font-style: italic;\">" + $.i18n("transit-eta-scheduled") + "</span>";
+                                    }
+                                }
+                            }
+                            */
+                        } else {
+                            //TODO: No data or skipped
+                            console.log("NODATA");
+                        }
+                    } else {
+                        //TODO: Cancelled
+                        console.log("Cancelled");
+                    }        
+                }
             }
+
             var badge = node.children(".transit-eta");
+
+            console.log(badge);
 
             badge.removeClass("badge-primary");
             badge.removeClass("badge-secondary");
@@ -900,9 +995,12 @@ async function findNearbyRoutes() {
         //TODO: seperate trips
         for (var routeId in stopRoutes.trips) {
             var trip = stopRoutes.trips[routeId];
+            var agency = await gtfs.getAgency(pkg, provider, stopRoutes.routes[routeId]["agency_id"]);
             allNearbyRoutes.push({
+                agency: agency,
                 route: stopRoutes.routes[routeId],
                 trip: trip,
+                stop: stop,
                 stopTime: stopRoutes.stopTimes[trip["trip_id"]],
                 distance: stopResult.distance
             });
@@ -938,7 +1036,7 @@ async function findNearbyRoutes() {
             //"                <b>" + $.i18n("transit-eta-to") + ":</b> <small>" + Lang.localizedKey(TransitStops.getStopById(stopId), "stopName") +
             //"</small></div>" +
             "            <div>" +
-            "                " + selectAgencyStopName(agency["agency_id"], Lang.localizedKey(stop, "stop_name")) + " (" + distance + $.i18n("transit-eta-metres") + ")" +
+            "                " + gtfs.selectAgencyStopName(agency["agency_id"], Lang.localizedKey(stop, "stop_name")) + " (" + distance + $.i18n("transit-eta-metres") + ")" +
             "            </div>" +
             "        </div>" +
             "        <span class=\"badge badge-primary badge-pill transit-eta\">" + $.i18n("transit-eta-retrieving") + "</span>" +

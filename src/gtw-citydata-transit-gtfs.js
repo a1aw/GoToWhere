@@ -24,6 +24,69 @@ db.version(1).stores({
 // Misc
 //
 
+export function selectAgencyStopName(agencyId, stopName) {
+    if (stopName.startsWith("\"") && stopName.endsWith("\"")) {
+        stopName = stopName.substr(1, stopName.length - 2);
+    }
+    var splits = stopName.split("|");
+    var key = "[" + agencyId + "] ";
+    for (var i = 0; i < splits.length; i++) {
+        if (splits[i].startsWith(key)) {
+            return splits[i].substr(key.length);
+        }
+    }
+    var val = splits[0];
+    var spaceIndex = val.indexOf("] ");
+    if (spaceIndex === -1) {
+        return val;
+    } else {
+        return val.substr(spaceIndex + 2);
+    }
+}
+
+export async function getCurrentTrip(pkg, provider, routeId) {
+    var trips = await getTripsByRouteId(pkg, provider, routeId);
+    var freq;
+    for (var trip of trips) {
+        freq = getCurrentFrequency(pkg, provider, trip["trip_id"]);
+        if (freq) {
+            return trip;
+        }
+    }
+    return false;
+}
+
+export async function getCurrentFrequency(pkg, provider, tripId) {
+    var freqs = await getFrequencies(pkg, provider, tripId);
+    var now = Date.now();
+    var startDate;
+    var endDate;
+    var splits;
+    for (var freq of freqs) {
+        splits = freq["start_time"].split(":");
+        startDate = new Date();
+        startDate.setHours(splits[0]);
+        startDate.setMinutes(splits[1]);
+        startDate.setSeconds(splits[2]);
+
+        splits = freq["end_time"].split(":");
+        endDate = new Date();
+        endDate.setHours(splits[0]);
+        endDate.setMinutes(splits[1]);
+        endDate.setSeconds(splits[2]);
+
+        if (now >= startDate.getTime() && now <= endDate.getTime()) {
+            return freq;
+        }
+    }
+    return false;
+}
+
+export async function getFrequencies(pkg, provider, tripId) {
+    return await db["frequencies"].where("[package+provider+trip_id]")
+        .equals([pkg, provider, tripId]).toArray();
+}
+
 export async function searchRoutes(query) {
     return await db["routes"].where("route_short_name")
         .startsWithIgnoreCase(query).toArray();
@@ -117,6 +180,11 @@ export async function getAgency(pkg, provider, agencyId) {
 export async function getRoute(pkg, provider, routeId) {
     return await db["routes"].where("[package+provider+route_id]")
         .equals([pkg, provider, routeId]).first();
+}
+
+export async function getTrip(pkg, provider, tripId) {
+    return await db["trips"].where("[package+provider+trip_id]")
+        .equals([pkg, provider, tripId]).first();
 }
 
 export async function getTripsByRouteId(pkg, provider, routeId) {

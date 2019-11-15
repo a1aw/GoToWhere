@@ -13,16 +13,14 @@ function parseIsoDatetime(dtstr) {
 }
 
 export function onload() {
-    console.log("ONLOAD")
     Cors.register("db.kmbeta.ml", true);
-    Cors.register("rt.data.gov.hk", true);
     Transit.registerProvider("gtwp-hktransit", "hktransit", new HkTransitGtfsProvider());
     return true;
 };
 
 var HkTransitGtfsProvider = function () {
 
-    this.isDatabaseUpdateNeeded = function (resolve, reject, localVer) {
+    this.checkDatabaseUpdate = function (resolve, reject, localVer) {
         console.log(localVer);
         resolve(false);
     };

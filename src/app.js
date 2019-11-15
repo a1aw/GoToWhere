@@ -109,7 +109,8 @@ import * as lang from './gtw-lang';
 import * as Database from './gtw-db';
 import * as gtfs from './gtw-citydata-transit-gtfs';
 import proj4 from 'proj4';
-import { validateStopTimes } from './gtw-citydata-transit-gtfs';
+
+window.p = TransitEta;
 
 $(".build-version").html(VERSION);
 
@@ -129,7 +130,6 @@ Cors.register("plugins.gotowhere.ga", true);
 
 $("#startup-progress").css("width", "12.5%");
 $("#startup-status").html($.i18n("startup-status-open-db"));
-var promise = Database.open();
 
 var GTFS_DATA_TYPES = [
     "agency",
@@ -144,31 +144,34 @@ var GTFS_DATA_TYPES = [
     "fare_rules"
 ];
 
-if (!promise) {
+if (!window.indexedDB || !window.localStorage) {
     $("#startup-status").attr("style", "color: red");
     $("#startup-status").html($.i18n("startup-status-not-supported"));
 } else {
-    promise.then(function () {
-        $("#startup-progress").css("width", "25%");
-        $("#startup-status").html($.i18n("startup-status-loading-plugins"));
-        return PluginLoader.load(function (progress) {
-            $("#startup-progress").css("width", 25 + (progress / 8) + "%");
+    $("#startup-progress").css("width", "25%");
+    $("#startup-status").html($.i18n("startup-status-loading-plugins"));
+    PluginLoader.load(function (progress) {
+            $("#startup-progress").css("width", progress + "%");
+    }).then(function () {
+        $("#startup-status").html($.i18n("startup-status-fetching-reference-db"));
+        return TransitEta.fetchAllDatabase(function (progress) {
+            $("#startup-progress").css("width", progress + "%");
         });
     }).then(function () {
         $("#startup-status").html($.i18n("startup-status-obtaining-db-version"));
         return Transit.obtainDatabaseVersion(function (progress) {
-            $("#startup-progress").css("width", (25 + progress / 4 * 3) + "%");
+            $("#startup-progress").css("width", progress + "%");
         });
     }).then(function () {
         $("#startup-status").html($.i18n("startup-status-checking-db-update"));
         return Transit.checkDatabaseUpdate(function (progress) {
-            $("#startup-progress").css("width", (25 + progress / 4 * 3) + "%");
+            $("#startup-progress").css("width", progress + "%");
         });
     }).then(function () {
         $("#startup-status").html($.i18n("startup-status-downloading-db"));
         return Transit.downloadDatabase(function (progress) {
             console.log(progress);
-            $("#startup-progress").css("width", (25 + progress / 4 * 3) + "%");
+            $("#startup-progress").css("width", progress + "%");
         });
     }).then(function () {
         $("#startup-status").html($.i18n("startup-status-preparing-update"));

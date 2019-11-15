@@ -18,8 +18,8 @@ var dbUpdateNeeded = {};
 
 export function registerProvider(pkg, id, provider) {
     if (!provider.fetchDatabase || typeof provider.fetchDatabase !== "function" ||
-        !provider.isDatabaseUpdateNeeded || typeof provider.isDatabaseUpdateNeeded !== "function") {
-        throw new Error("Error: " + name + " does not contain fetchDatabase or isDatabaseUpdateNeeded function!");
+        !provider.checkDatabaseUpdate || typeof provider.checkDatabaseUpdate !== "function") {
+        throw new Error("Error: " + name + " does not contain fetchDatabase or checkDatabaseUpdate function!");
     }
 
     provider.pkg = pkg;
@@ -95,7 +95,7 @@ export function checkDatabaseUpdate(pc) {
         var key = provider.pkg + "," + provider.id;
         if (dbVersions[key]) {
             p = new Promise((resolve, reject) => {
-                provider.isDatabaseUpdateNeeded(resolve, reject, dbVersions[key]);
+                provider.checkDatabaseUpdate(resolve, reject, dbVersions[key]);
             });
             proms.push(p.then(function (update) {
                 dbUpdateNeeded[key] = update;

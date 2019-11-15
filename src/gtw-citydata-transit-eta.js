@@ -16,15 +16,16 @@ export function timeDifference(a, b) {
     return x - y;
 }
 
-export function registerProvider(type, id, name, provider) {
+export function registerProvider(pkg, id, etaProviders, provider) {
     if (!provider.fetchEta || typeof provider.fetchEta !== "function" ||
         !provider.fetchDatabase || typeof provider.fetchDatabase !== "function" ||
-        !provider.isDatabaseUpdateNeeded || typeof provider.isDatabaseUpdateNeeded !== "function") {
-        throw new Error("Error: " + id + " does not contain fetchEta, fetchDatabase or isDatabaseUpdateNeeded function!");
+        !provider.checkDatabaseUpdate || typeof provider.checkDatabaseUpdate !== "function") {
+        throw new Error("Error: " + id + " does not contain fetchEta, fetchDatabase or checkDatabaseUpdate function!");
     }
 
-    provider.type = type;
+    provider.pkg = pkg;
     provider.id = id;
+    provider.etaProviders = etaProviders;
     provider.db = false;
 
     if (typeof name === "object") {
@@ -36,67 +37,13 @@ export function registerProvider(type, id, name, provider) {
         provider.name = name;
     }
 
-    provider.getRoute = function (routeId) {
-        if (!this.db) {
-            return false;
-        }
-        var i;
-        for (i = 0; i < this.db.routes.length; i++) {
-            if (this.db.routes[i].routeId === routeId) {
-                return this.db.routes[i];
-            }
-        }
-        return false;
-    };
-
-    provider.getRouteById = function (routeId) {
-        var routes = this.getRoutes();
-        for (var route of routes) {
-            if (route.routeId === routeId) {
-                return route;
-            }
-        }
-        return false;
-    };
-
-    provider.getRoutes = function () {
-        return this.db ? this.db.routes : [];
-    };
-
-    provider.getStop = function (stopId) {
-        if (!this.db) {
-            return false;
-        }
-        var i;
-        for (i = 0; i < this.db.stops.length; i++) {
-            if (this.db.stops[i].stopId === stopId) {
-                return this.db.stops[i];
-            }
-        }
-        return false;
-    };
-
-    provider.getStopById = function (stopId) {
-        var stops = this.getStops();
-        for (var stop of stops) {
-            if (stop.stopId === stopId) {
-                return stop;
-            }
-        }
-        return false;
-    };
-
-    provider.getStops = function () {
-        return this.db ? this.db.stops : [];
-    };
-
     providers.push(provider);
 }
 
-export function unregisterProvider(id) {
+export function unregisterProvider(pkg, id) {
     var found = -1;
     for (var i = 0; i < providers.length; i++) {
-        if (providers[i].id === id) {
+        if (providers[i].pkg === pkg && providers[i].id === id) {
             found = i;
         }
     }
@@ -107,100 +54,88 @@ export function getProviders() {
     return providers;
 }
 
-export function getProvider(id) {
+export function getProvider(pkg, id) {
     for (var provider of providers) {
-        if (provider.id === id) {
+        if (provider.pkg === pkg && provider.id === id) {
             return provider;
         }
     }
     return false;
 }
 
-export function fetchAllDatabase(pc) {
-    return new Promise((resolve, reject) => {
-        var proms = [];
-        for (var provider of providers) {
-            proms.push(Database.getTransitReferenceByProvider(provider.id).then(function (db) {
-                if (!db) {
+export function getEtaProvider(etaProvider) {
+    for (var provider of providers) {
+        if (provider.etaProviders.includes(etaProvider)){
+            return provider;
+        }
+    }
+    return false;
+}
+
+export async function fetchAllDatabase(pc) {
+    var db;
+    for (var provider of providers) {
+        db = await Database.getTransitReference(provider.pkg, provider.id);
+        if (!db) {
+            continue;
+        }
+        provider.db = db;
+    }
+
+    var needs = {};
+    for (var provider of providers) {
+        if (provider.db) {
+            console.log("has db " + provider.id);
+            try {
+                var needed = await new Promise((resolve, reject) => {
+                    provider.checkDatabaseUpdate(resolve, reject, provider.db.version);
+                });
+                console.log("update: " + provider.id + " " + needed);
+                needs[provider.id] = needed;
+            } catch (err) {
+                console.error("Error: Database check update for " + provider.id + " failed!");
+                needs[provider.id] = false;
+            }
+        } else {
+            console.log("No db found for " + provider.id);
+            needs[provider.id] = true;
+        }
+    }
+    console.log(needs);
+    for (var provider of providers) {
+        if (needs[provider.id]) {
+            try {
+                var data = await new Promise((resolve, reject) => {
+                    provider.fetchDatabase(resolve, reject);
+                });
+                if (!data["package"] || !data["provider"] || !data.version) {
+                    console.error("Error: Returned reference database is missing version, package or provider parameter(s) for " + (data.provider ? data.provider : "unknown provider") + ".");
                     return;
                 }
-                var TransitEta = require('./gtw-citydata-transit-eta.js');
-                var provider = TransitEta.getProvider(db.provider);
-                if (provider) {
-                    provider.db = db;
-                }
-            }).catch(reject));
-        }
-        Promise.all(proms).then(function () {
-            var needs = {};
-            var proms = [];
-            var p;
-            for (const provider of providers) {
-                if (provider.db) {
-                    console.log("has db " + provider.id);
-                    p = new Promise((resolve, reject) => {
-                        provider.isDatabaseUpdateNeeded(resolve, reject, provider.db.version);
-                    });
-                    p.then(function (needed) {
-                        console.log("update: " + provider.id + " " + needed);
-                        needs[provider.id] = needed;
-                    }).catch(function () {
-                        console.error("Error: Database check update for " + provider.id + " failed!");
-                        needs[provider.id] = false;
-                    });
-                    proms.push(p);
-                } else {
-                    console.log("No db found for " + provider.id);
-                    needs[provider.id] = true;
-                }
+                provider.db = data;
+                return Database.putTransitReference(data);
+            } catch (err) {
+                console.error("Error: Database fetch for " + provider.id + " failed!");
             }
-            Promise.all(proms).then(function () {
-                var proms = [];
-                var p;
-                console.log(needs);
-                for (const provider of providers) {
-                    if (needs[provider.id]) {
-                        p = new Promise((resolve, reject) => {
-                            provider.fetchDatabase(resolve, reject);
-                        });
-                        p.then(function (data) {
-                            const { type, provider, routes, stops, version } = data;
-
-                            if (!type || !provider || !routes || !stops || !version) {
-                                console.error("Error: Returned reference database is in wrong structure for " + (provider ? provider : "unknown provider") + ".");
-                                return;
-                            }
-
-                            var db = {
-                                type: type,
-                                provider: provider,
-                                routes: routes,
-                                stops: stops,
-                                version: version
-                            };
-
-                            var TransitEta = require('./gtw-citydata-transit-eta.js');
-                            var providerObj = TransitEta.getProvider(data.provider);
-                            providerObj.db = db;
-
-                            return Database.putTransitReference(db);
-                        });
-                        proms.push(p);
-                    }
-                }
-                Misc.allProgress(proms, pc).then(resolve).catch(reject);
-            });
-        }).catch(reject);
-    });
+        }
+    }
 }
 
 export function fetchEta(opt) {
+    console.log(opt);
+    if (!opt.agency || !opt.route || !opt.trip || !opt.stop) {
+        console.error("Error: Fetch ETA missing agency, route, trip or stop parameter.");
+        return false;
+    }
     return new Promise((resolve, reject) => {
         var proms = [];
         var count = 0;
         for (var providerId of opt.etaProviders) {
+            console.log("Proms: " + providerId);
             proms.push(new Promise((resolve, reject) => {
-                var provider = getProvider(providerId);
+                var provider = getEtaProvider(providerId);
+
+                console.log(provider);
 
                 if (!provider) {
                     resolve();
@@ -210,7 +145,7 @@ export function fetchEta(opt) {
 
                 count++;
 
-                var key = providerId + "-" + opt.routeId + "-" + opt.selectedPath + "-" + opt.stopId;
+                var key = providerId + "-" + opt.route["route_id"] + "-" + opt.trip["trip_id"] + "-" + opt.stop["stop_id"];
                 var cached = cache[key];
                 var now = new Date();
 
@@ -218,72 +153,44 @@ export function fetchEta(opt) {
                     cached = false;
                     delete cache[key];
                 }
-
+                console.log("checkccache")
                 if (!cached) {
+                    console.log("Requesting to eta")
                     var global = this;
                     var p = new Promise((resolve, reject) => {
                         provider.fetchEta(resolve, reject, opt);
                     });
-                    p.then(function (scheObj) {
-                        if (!scheObj) {
-                            resolve(false);
-                            return;
-                        }
-
-                        const { schedules, options } = scheObj;
-                        if (!schedules || !options) {
-                            console.error("Error: Plugin returned a TransitSchedule object with invalid structure.");
-                            reject(opt, "Invalid TransitSchedule structure");
-                            return;
-                        }
-
-                        for (var sche of schedules) {
-                            if (sche.type === undefined || sche.provider === undefined || sche.serverTime === undefined || sche.msg === undefined && sche.time === undefined || isNaN(parseInt(sche.serverTime))) {
-                                console.error("Error: Plugin returned a TransitSchedule object with invalid schedules.");
-                                reject(opt, "Invalid TransitSchedule schedules");
-                                return;
-                            }
-                        }
-
+                    p.then(function (feed) {
                         var time = new Date();
-
-                        var out = {
-                            schedules: schedules,
-                            options: options
-                        };
 
                         cache[key] = {
                             lastFetched: time.getTime(),
-                            data: out
+                            feed: feed
                         };
 
-                        resolve(out);
+                        console.log("Returned feed:");
+                        console.log(feed);
+                        resolve(feed);
                     }).catch(function (err) {
                         reject(opt, err);
+                        console.log("errored: " + err);
                     });
                 } else {
-                    resolve(cached.data);
+                    console.log("return cache")
+                    resolve(cached.feed);
                 }
             }));
         }
-        Promise.all(proms).then(function (values) {
+        Promise.all(proms).then(function (feeds) {
             if (count > 0) {
-                var schedules = [];
-                for (var value of values) {
-                    if (value && value.schedules) {
-                        schedules = schedules.concat(value.schedules);
+                var out = [];
+                for (var feed of feeds) {
+                    if (feed && feed.header && feed.entity) {
+                        out.push(feed);
                     }
                 }
-                schedules.sort(function (a, b) {
-                    if (!a.time) {
-                        return 1;
-                    } else if (!b.time) {
-                        return -1;
-                    }
-                    return a.time - b.time;
-                });
                 resolve({
-                    schedules: schedules,
+                    feeds: out,
                     options: opt,
                     code: 0
                 })

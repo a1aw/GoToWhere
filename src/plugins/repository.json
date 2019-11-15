@@ -12,6 +12,21 @@
     "targetApi": "0.0.1",
     "region": "HK",
     "category": "transit",
-    "dependencies": { }
+    "dependencies": {}
+  },
+  "gtwp-ctbnwfb": {
+    "package": "gtwp-ctbnwfb",
+    "name": "CTBNWFB",
+    "fullName": "Citybus and New World First Bus Transit ETA",
+    "desc": "Providing publicized transit data from Citybus and New World First Bus.",
+    "author": "mob41",
+    "license": "https://github.com/mob41/GoToWhere/tree/master/src/plugins/gtwp-ctbnwfb/LICENSE",
+    "closedApi": false,
+    "github": "https://github.com/mob41/GoToWhere/tree/master/src/plugins/gtwp-ctbnwfb",
+    "version": "0.0.1",
+    "targetApi": "0.0.1",
+    "region": "HK",
+    "category": "transitEta",
+    "dependencies": {}
   }
 }
