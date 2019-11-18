@@ -8,6 +8,10 @@ export var plugins = {};
 
 export var installedPlugins = [];
 
+var deprecatedPlugins = [
+    "gtwp-kmb"
+];
+
 export function install(pkg, autoSave) {
     if (isInstalled(pkg)) {
         return false;
@@ -73,6 +77,12 @@ export function load(pc) {
     var p;
     var proms = [];
     for (var installedPlugin of installedPlugins) {
+        if (deprecatedPlugins.includes(installedPlugin)) {
+            alert($.i18n("plugin-deprecated-auto-uninstall", installedPlugin));
+            uninstall(installedPlugin);
+            continue;
+        }
+
         const info = {
             "package": installedPlugin,
             status: 1,

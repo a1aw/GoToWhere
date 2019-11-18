@@ -195,6 +195,8 @@
   "error-plugins-message": "訊息:",
   "error-plugins-solutions": "解決方法:",
 
+  "plugin-deprecated-auto-uninstall": "插件 \"$1\" 已經不能使用 或 被其他插件取代, 將會自動解除安裝這插件。您可以忽略這訊息。",
+
   "split-panel-back": "返回",
   "split-panel-move-up": "推上",
   "split-panel-move-down": "推下",
