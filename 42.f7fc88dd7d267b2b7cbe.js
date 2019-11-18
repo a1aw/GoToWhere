@@ -1,0 +1,2 @@
+(window.webpackJsonp=window.webpackJsonp||[]).push([[42],{226:function(e,a,s){"use strict";s.r(a),a.default="- Uses GTFS-static as database standard\r\n- Uses GTFS-realtime as ETA standard\r\n- Introduces service timetable\r\n- Provides route frequency even if no realtime ETA available\r\n"}}]);
+//# sourceMappingURL=42.f7fc88dd7d267b2b7cbe.js.map
