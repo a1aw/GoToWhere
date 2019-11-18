@@ -87,6 +87,7 @@ var task = function (limit) {
                 }
                 obj["package"] = data.pkg;
                 obj["provider"] = data.id;
+                obj["version"] = data.info.version;
                 objs.push(obj);
             }
 

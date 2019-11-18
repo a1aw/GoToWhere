@@ -57,6 +57,26 @@ $(".ui-half-map-back-btn").on("click", function () {
     showPanel();
 });
 
+var splitContainerPercent = 50;
+
+$(".ui-pull-up-btn").on("click", function () {
+    if (splitContainerPercent >= 90) {
+        return;
+    }
+    splitContainerPercent += 10;
+    $(".mobile-split-container").css("height", splitContainerPercent + "%");
+    adjustMargin();
+});
+
+$(".ui-pull-down-btn").on("click", function () {
+    if (splitContainerPercent <= 10) {
+        return;
+    }
+    splitContainerPercent -= 10;
+    $(".mobile-split-container").css("height", splitContainerPercent + "%");
+    adjustMargin();
+});
+
 export function init() {
     if (Object.keys(PluginLoader.plugins).length === 0) {
         gettingStarted();

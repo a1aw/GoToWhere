@@ -1,5 +1,6 @@
 //City Data: Transit
 import * as Misc from './gtw-misc';
+import * as gtfs from './gtw-citydata-transit-gtfs';
 import Dexie from 'dexie';
 import Papa from 'papaparse';
 import oboe from 'oboe';
@@ -11,6 +12,7 @@ var dbVersions = {};
 var dbZips = {};
 var dbChunks = {};
 var dbUpdateNeeded = {};
+var dbMaps = {};
 
 //
 // Provider registration
@@ -72,6 +74,7 @@ export function obtainDatabaseVersion(pc) {
             if (row) {
                 var key = row["package"] + "," + row["provider"];
                 dbVersions[key] = row.version;
+                dbMaps[key] = row.map;
             }
         }));
         /*
@@ -109,6 +112,35 @@ export function checkDatabaseUpdate(pc) {
     return Misc.allProgress(proms, pc);
 }
 
+export async function validateAllDatabase() {
+    var map;
+    var valid;
+    for (var provider of providers) {
+        var key = provider.pkg + "," + provider.id;
+        map = dbMaps[key];
+        if (!map) {
+            console.error("Error: GTFS database does not contain a map to validate! Forcing it to update!");
+            dbUpdateNeeded[key] = true;
+            continue;
+        }
+        valid = await gtfs.validateDatabase(provider.pkg, provider.id, dbVersions[key], map);
+        if (!valid) {
+            console.warn("Warning: Invalid GTFS database compared with map! Forcing to update!");
+            dbUpdateNeeded[key] = true;
+            continue;
+        }
+    }
+}
+
+export function hasDatabaseUpdate() {
+    for (var key in dbUpdateNeeded) {
+        if (dbUpdateNeeded[key]) {
+            return true;
+        }
+    }
+    return false;
+}
+
 export function downloadDatabase(pc) {
     console.log("DBUpdateNeeded:");
     console.log(dbUpdateNeeded);
@@ -138,6 +170,7 @@ var FILES = [
     "frequencies.json",
     "routes.json",
     "stops.json",
+    "stop_time_paths.json",
     "stop_times.json",
     "trips.json"
 ];
@@ -177,6 +210,7 @@ export function prepareUpdate(pc) {
                 json["provider"] = provider.id;
                 db.versions.put(json);
             }));
+            proms.push(gtfs.clearDatabase(provider.pkg, provider.id));
         }
     }
     return Misc.allProgress(proms, pc);
@@ -204,7 +238,15 @@ export function readChunks(pc) {
     });
 }
 */
-var worker = new Worker("./workers/loadgtfs.worker.js", { type: 'module' });
+var worker = false;
+
+export function initializeWorker() {
+    worker = new Worker("./workers/loadgtfs.worker.js", { type: 'module' });
+}
+
+export function terminateWorker() {
+    worker.terminate();
+}
 
 export function readChunks(dataType, pc) {
     console.log("DBChunks:");
@@ -255,7 +297,7 @@ export function readChunks(dataType, pc) {
     return Misc.allProgress(proms, pc);
 }
 
-export function waitToParse(pc) {
+export function waitToUpdate(pc) {
     return new Promise((resolve, reject) => {
         worker.addEventListener("message", function ext(evt) {
             var msg = evt.data;
@@ -267,19 +309,11 @@ export function waitToParse(pc) {
                 pc(msg.progress);
             } else if (msg.type === 2) {
                 var data = evt.data;
-                //totalProms.push(dbGtfs.put(data.pkg, data.id, data.info.dataType, data.result));
                 totalProms.push(db.putGtfs(data.pkg, data.id, data.info.dataType, data.result));
             }
         });
         worker.postMessage({
             type: 1
         });
-    });
-}
-
-export function waitToStore(pc) {
-    return Misc.allProgress(totalProms, pc).then(function () {
-        console.log("Done storing");
-        totalProms = [];
     });
 }

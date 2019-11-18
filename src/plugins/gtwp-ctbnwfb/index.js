@@ -6,7 +6,6 @@ import * as gtfs from '../../gtw-citydata-transit-gtfs';
 import * as Lang from '../../gtw-lang';
 
 export function onload() {
-    console.log("Called me!");
     Cors.register("db.kmbeta.ml", true);
     Cors.register("rt.data.gov.hk", true);
     TransitEta.registerProvider("gtwp-ctbnwfb", "ctbnwfb", ["CTB", "NWFB"], new CtbNwfbEtaProvider());
@@ -21,17 +20,34 @@ function parseIsoDatetime(dtstr) {
 var CtbNwfbEtaProvider = function () {
 
     this.checkDatabaseUpdate = function (resolve, reject, localVer) {
-        console.log("Check update!");
-        resolve(false);
+        $.ajax({
+            url: "https://db.kmbeta.ml/ctbnwfb_db-version.json",
+            cache: false,
+            dataType: "json",
+            success: function (data) {
+                var lastUpdatedInt;
+                var localVerInt;
+                try {
+                    lastUpdatedInt = parseInt(data.version);
+                    localVerInt = parseInt(localVer);
+                } catch (err) {
+                    console.error("Error: Could not parse ctbnwfb_db last updated time or cached version! Forcing to be no update");
+                    resolve(false);
+                }
+                resolve(lastUpdatedInt > localVerInt);
+            },
+            error: function (err) {
+                console.error("Error: Could not check ctbnwfb_db update!");
+                resolve(false);
+            }
+        });
     };
 
     this.getRefStopId = function (stopName) {
         stopName = stopName.toUpperCase();
-        console.log(stopName);
         var splits = stopName.split("\/");
         for (var stop of this.db.stops) {
             if (stopName.includes(stop.stopName.toUpperCase())) {
-                console.log(stop);
                 return stop.stopId;
             }
         }
@@ -40,7 +56,9 @@ var CtbNwfbEtaProvider = function () {
 
     this.fetchEta = function (resolve, reject, options) {
         var agencyId = options.agency["agency_id"];
+        var multi = false;
         if (agencyId.includes("+")) {
+            multi = true;
             var splits = agencyId.split("+");
             for (var split of splits) {
                 if (split === "CTB" || split === "NWFB") {
@@ -57,8 +75,6 @@ var CtbNwfbEtaProvider = function () {
         }
 
         gtfs.getAgency("gtwp-hktransit", "hktransit", agencyId).then(etaAgency => {
-            console.log(etaAgency);
-            console.log(options.stop["stop_name"]);
             var stopId = options.stop["stop_id"];
             var stopName = gtfs.selectAgencyStopName(agencyId, options.stop["stop_name"]);
             var refStopId = this.getRefStopId(stopName);
@@ -83,9 +99,9 @@ var CtbNwfbEtaProvider = function () {
 
                     //TODO get start_time and start_date from gtfs db
                     var tripDesc = {
-                        "trip_id": options.trip["trip_id"],
-                        "start_time": "00:00:00",
-                        "start_date": "20190101"
+                        "tripId": options.trip["trip_id"],
+                        "startTime": "00:00:00",
+                        "startDate": "20190101"
                     };
 
                     var sches = resp.data;
@@ -99,7 +115,7 @@ var CtbNwfbEtaProvider = function () {
                             if (sche["eta"] && sche["eta"] !== "") {
                                 etaTime = parseIsoDatetime(sche["eta"]);
                                 updates.push({
-                                    "stop_id": stopId,
+                                    "stopId": stopId,
                                     "arrival": {
                                         time: etaTime.getTime()
                                     }
@@ -124,16 +140,16 @@ var CtbNwfbEtaProvider = function () {
                                     }
                                 ];
                                 alerts.push({
-                                    "informed_entity": [
+                                    informedEntity: [
                                         {
                                             trip: tripDesc,
-                                            "stop_id": stopId
+                                            stopId: stopId
                                         }
                                     ],
-                                    "header_text": {
+                                    headerText: {
                                         translation: transText
                                     },
-                                    "description_text": {
+                                    descriptionText: {
                                         translation: transText
                                     }
                                 });
@@ -141,23 +157,28 @@ var CtbNwfbEtaProvider = function () {
                         }
                     }
 
-                    var vehicleDesc = {
-                        label: Lang.localizedKey(etaAgency, "agency_name")
-                    };
 
                     var time = Date.now();
                     if (updates.length > 0) {
+                        var vehicleDesc = {
+                            label: Lang.localizedKey(etaAgency, "agency_short_name")
+                        };
+
                         var entityId = options.agency["agency_id"] + "-" + options.stop["stop_id"] + "-" + options.route["route_short_name"] + "-trip-update-" + time;
                         var entity = {
                             id: entityId,
-                            vehicle: {
-                                vehicle: vehicleDesc
-                            },
-                            "trip_update": {
+                            tripUpdate: {
                                 trip: tripDesc,
-                                "stop_time_update": updates
+                                stopTimeUpdate: updates
                             }
                         };
+
+                        if (multi) {
+                            entity.vehicle = {
+                                vehicle: vehicleDesc
+                            };
+                        }
+
                         entities.push(entity);
                     }
 
@@ -167,7 +188,7 @@ var CtbNwfbEtaProvider = function () {
                             var entityId = options.agency["agency_id"] + "-" + options.stop["stop_id"] + "-" + options.route["route_short_name"] + "-alert-" + i + "-" + time;
                             var entity = {
                                 id: entityId,
-                                "alert": alerts[i]
+                                alert: alerts[i]
                             };
                             entities.push(entity);
                         }
@@ -175,14 +196,12 @@ var CtbNwfbEtaProvider = function () {
 
                     var feed = {
                         header: {
-                            "gtfs_realtime_version": "2.0",
+                            gtfsRealtimeVersion: "2.0",
                             incrementality: "FULL_DATASET",
                             timestamp: time
                         },
                         entity: entities
                     };
-
-                    console.log(feed);
                     resolve(feed);
                 },
                 error: function (err0, err1, err2) {
@@ -193,7 +212,6 @@ var CtbNwfbEtaProvider = function () {
     };
 
     this.fetchDatabase = function (resolve, reject) {
-        console.log("Fetch db!");
         $.ajax({
             url: "https://db.kmbeta.ml/ctbnwfb_db.json",
             cache: false,

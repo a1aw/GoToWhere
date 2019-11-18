@@ -284,6 +284,11 @@ body {
     cursor: pointer;
 }
 
+.loading-overlay .loading-spinner {
+    width: 100%;
+    height: 100%;
+}
+
 .loading-overlay .spinner-border {
     width: 3rem;
     height: 3rem;
@@ -366,9 +371,16 @@ body {
     left: 0;
     bottom: 0;
     width: 100%;
-    height: 50%;
+    height: 80%;
     padding: 0px;
     background-color: rgba(233,236,239,0.8);
+}
+
+/* Route list */
+
+.view-alert-btn {
+    font-size: inherit;
+    padding: 0px;
 }
 
 /* Media Query */
@@ -497,12 +509,13 @@ body {
 
     .mobile.half-map-panel.gtw-half-map {
         display: block;
-        height: 20vh;
+        /*height: 20vh;*/
     }
 
     .mobile.half-map-container.gtw-half-map {
         display: block;
-        height: 30vh;
+        /*height: 30vh;*/
+        height: inherit;
     }
 }
 

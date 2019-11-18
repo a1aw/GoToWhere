@@ -1,6 +1,7 @@
 // GTW Plugin Loader
 
 import * as Misc from './gtw-misc';
+import * as gtfs from './gtw-citydata-transit-gtfs';
 import repos from './plugins/repository.json';
 
 export var plugins = {};
@@ -18,7 +19,8 @@ export function install(pkg, autoSave) {
     return true;
 }
 
-export function uninstall(pkg, autoSave){
+export async function uninstall(pkg, autoSave) {
+    await gtfs.clearPackageDatabase(pkg);
     var i;
     for (i = 0; i < installedPlugins.length; i++){
         if (installedPlugins[i] === pkg){

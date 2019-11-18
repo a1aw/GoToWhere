@@ -79,8 +79,15 @@ export function enable(pkg) {
     });
 
     $(".ui-btn-viewplugin-uninstall").on("click", function () {
-        PluginLoader.uninstall(packageJson.package);
-        window.location.reload();
+        if ($(this).hasClass("disabled")) {
+            return;
+        }
+        var html = $(this).html();
+        $(this).addClass("disabled");
+        $(this).html("<span class=\"spinner-border spinner-border-sm\" role=\"status\" aria-hidden=\"true\"></span> " + html);
+        PluginLoader.uninstall(packageJson.package).then(function () {
+            window.location.reload();
+        });
     });
 }
 

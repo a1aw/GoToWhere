@@ -7,6 +7,31 @@ export const languages = {
     "zh": "\u7e41\u9ad4\u4e2d\u6587"
 };
 
+export function translatedString(transStr) {
+    var lang = getLanguage();
+    var locale = getLocale();
+
+    for (var trans of transStr.translation) {
+        if (trans.language === lang) {
+            return trans.text;
+        }
+    }
+
+    for (var trans of transStr.translation) {
+        if (trans.language === locale || trans.language.split("-")[0] === locale) {
+            return trans.text;
+        }
+    }
+
+    for (var trans of transStr.translation) {
+        if (trans.language === "en") {
+            return trans.text;
+        }
+    }
+
+    return false;
+}
+
 export function localizedKey(localizedObject, key) {
     var lang = getLanguage();
     var locale = getLocale();
@@ -56,7 +81,8 @@ export function changeLanguage(locale) {
     Settings.set("preferred_language", locale);
     Settings.save();
     $.i18n().locale = locale;
-    return $.i18n().load("i18n/" + locale + ".json", locale).done(function () {
+    return import(`./i18n/${locale}.json`).then(function (module) {
+        $.i18n().load(module.default, locale);
         $("body").i18n();
     });
 }

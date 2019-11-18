@@ -3,26 +3,82 @@ import * as Misc from './gtw-misc';
 
 export var db = new Dexie("gtfs");
 
+var stopTimesValid = {};
+
 db.version(1).stores({
-    "versions": "[package+provider]",
-    "agency": "[package+provider+agency_id],[package+provider]",
-    "calendar": "[package+provider+service_id],[package+provider]",
-    "calendar_dates": "[package+provider+service_id+date],[package+provider],[package+provider+service_id]",
-    "frequencies": "[package+provider+trip_id],[package+provider]",
-    "routes": "[package+provider+route_id],[package+provider],route_short_name",
-    "trips": "[package+provider+trip_id],[package+provider],[package+provider+route_id],[package+provider+route_id+service_id]",
-    "stops": "[package+provider+stop_id],[package+provider]",
-    "stop_times": "++id, [package+provider+trip_id], [package+provider+stop_id], [package+provider]",
-    "fare_attributes": "[package+provider+fare_id],[package+provider]",
-    "fare_rules": "[package+provider+fare_id],[package+provider]",
-    "stop_times_raw": "[package+provider]",
-    "fare_attributes_raw": "[package+provider]",
-    "fare_rules_raw": "[package+provider]"
+    "versions": "[package+provider],[package+provider+version],package",
+    "agency": "[package+provider+agency_id],[package+provider],[package+provider+version],package",
+    "calendar": "[package+provider+service_id],[package+provider],[package+provider+version],package",
+    "calendar_dates": "[package+provider+service_id+date],[package+provider],[package+provider+service_id],[package+provider+version],package",
+    "frequencies": "[package+provider+trip_id],[package+provider],[package+provider+version],package",
+    "routes": "[package+provider+route_id],[package+provider],route_short_name,[package+provider+version],package",
+    "trips": "[package+provider+trip_id],[package+provider],[package+provider+route_id],[package+provider+route_id+service_id],[package+provider+path_id],[package+provider+version],package",
+    "stops": "[package+provider+stop_id],[package+provider],[package+provider+version],package",
+    "stop_times": "++id, [package+provider+trip_id], [package+provider+stop_id], [package+provider],[package+provider+version],package",
+    "stop_time_paths": "++id, [package+provider+path_id], [package+provider+stop_id], [package+provider],[package+provider+version],package",
+    "fare_attributes": "[package+provider+fare_id],[package+provider],[package+provider+version],package",
+    "fare_rules": "[package+provider+fare_id],[package+provider],[package+provider+version],package",
+    "stop_times_raw": "[package+provider],[package+provider+version],package",
+    "fare_attributes_raw": "[package+provider],[package+provider+version],package",
+    "fare_rules_raw": "[package+provider],[package+provider+version],package"
 });
+
+var STORES = [
+    "versions",
+    "agency",
+    "calendar",
+    "calendar_dates",
+    "frequencies",
+    "routes",
+    "trips",
+    "stops",
+    "stop_times",
+    "stop_time_paths",
+    "fare_attributes",
+    "fare_rules",
+    "stop_times_raw",
+    "fare_attributes_raw",
+    "fare_rules_raw"
+];
 
 //
 // Misc
 //
+
+export async function validateDatabase(pkg, provider, version, map) {
+    var requiredRows;
+    var count;
+    for (var key in map) {
+        if (key === "stop_times" ||
+            key === "fare_attributes" ||
+            key === "fare_rules"
+        ) {
+            continue;
+        }
+        requiredRows = map[key];
+        count = await db[key].where("[package+provider+version]")
+            .equals([pkg, provider, version]).count();
+        if (count !== requiredRows) {
+            console.warn("Warning: " + pkg + "," + provider + " " + version + " version database invalid at " + key + " with different rows: " + count + " (Required: " + requiredRows + ")");
+            return false;
+        }
+    }
+    return true;
+}
+
+export async function clearDatabase(pkg, provider) {
+    for (var storeKey of STORES) {
+        await db[storeKey].where("[package+provider]")
+            .equals([pkg, provider]).delete();
+    }
+}
+
+export async function clearPackageDatabase(pkg) {
+    for (var storeKey of STORES) {
+        await db[storeKey].where("package")
+            .equals(pkg).delete();
+    }
+}
 
 export function selectAgencyStopName(agencyId, stopName) {
     if (stopName.startsWith("\"") && stopName.endsWith("\"")) {
@@ -56,6 +112,51 @@ export async function getCurrentTrip(pkg, provider, routeId) {
     return false;
 }
 
+export function timeToDate(timeStr) {
+    var splits = timeStr.split(":");
+    var date = new Date();
+    date.setHours(splits[0]);
+    date.setMinutes(splits[1]);
+    date.setSeconds(splits[2]);
+    return date;
+}
+
+export function isCurrentFrequency(freq) {
+    var now = Date.now();
+
+    var startDate = timeToDate(freq["start_time"]);
+    var endDate = timeToDate(freq["end_time"]);
+
+    return now >= startDate.getTime() && now <= endDate.getTime();
+}
+
+export async function getRoutePathFrequencies(pkg, provider, routeId, pathId) {
+    var trips = await getTripsByRouteId(pkg, provider, routeId);
+    var out = [];
+    var exist;
+    for (var trip of trips) {
+        if (trip["path_id"] !== pathId) {
+            continue;
+        }
+        var freqs = await getFrequencies(pkg, provider, trip["trip_id"]);
+        for (var freq of freqs) {
+            exist = false;
+            for (var outFreq of out) {
+                if (outFreq["start_time"] === freq["start_time"] &&
+                    outFreq["end_time"] === freq["end_time"] &&
+                    outFreq["headway_secs"] === freq["headway_secs"]) {
+                    exist = true;
+                    break;
+                }
+            }
+            if (!exist) {
+                out.push(freq);
+            }
+        }
+    }
+    return out;
+}
+
 export async function getCurrentFrequency(pkg, provider, tripId) {
     var freqs = await getFrequencies(pkg, provider, tripId);
     var now = Date.now();
@@ -63,19 +164,7 @@ export async function getCurrentFrequency(pkg, provider, tripId) {
     var endDate;
     var splits;
     for (var freq of freqs) {
-        splits = freq["start_time"].split(":");
-        startDate = new Date();
-        startDate.setHours(splits[0]);
-        startDate.setMinutes(splits[1]);
-        startDate.setSeconds(splits[2]);
-
-        splits = freq["end_time"].split(":");
-        endDate = new Date();
-        endDate.setHours(splits[0]);
-        endDate.setMinutes(splits[1]);
-        endDate.setSeconds(splits[2]);
-
-        if (now >= startDate.getTime() && now <= endDate.getTime()) {
+        if (isCurrentFrequency(freq)) {
             return freq;
         }
     }
@@ -132,19 +221,19 @@ export function searchNearbyStops(lat, lng, range, sorted = true) {
 
 export function searchStopRoutes(pkg, provider, stopId) {
     return new Promise((resolve, reject) => {
-        var tripIds = [];
+        var pathIds = [];
         var routeIds = [];
         var routes = {};
         var stopTimes = {};
         var trips = {};
-        return getStopTimesByStopId(pkg, provider, stopId).then(function (out) {
+        return getStopTimePathsByStopId(pkg, provider, stopId).then(function (out) {
             for (var stopTime of out) {
-                var tripId = stopTime["trip_id"];
-                tripIds.push([pkg, provider, tripId]);
-                stopTimes[tripId] = stopTime;
+                var pathId = stopTime["path_id"];
+                pathIds.push([pkg, provider, pathId]);
+                stopTimes[pathId] = stopTime;
             }
         }).then(function () {
-            db["trips"].where("[package+provider+trip_id]").anyOf(tripIds).each(trip => {
+            db["trips"].where("[package+provider+path_id]").anyOf(pathIds).each(trip => {
                 var routeId = trip["route_id"];
                 trips[routeId] = trip;
                 routeIds.push([pkg, provider, routeId]);
@@ -207,6 +296,16 @@ export async function getCalendarDates(pkg, provider, serviceId) {
         .equals([pkg, provider, serviceId]).toArray();
 }
 
+export async function getStopTimePathsByStopId(pkg, provider, stopId) {
+    return await db["stop_time_paths"].where("[package+provider+stop_id]")
+        .equals([pkg, provider, stopId]).sortBy("path_id");
+}
+
+export async function getStopTimePathByPathId(pkg, provider, pathId) {
+    return await db["stop_time_paths"].where("[package+provider+path_id]")
+        .equals([pkg, provider, pathId]).sortBy("stop_sequence");
+}
+
 export function getStopTimesByStopId(pkg, provider, stopId) {
     return new Promise((resolve, reject) => {
         if (isStopTimesValid(pkg, provider)) {
@@ -259,8 +358,6 @@ export function getStopTimesByTripId(pkg, provider, tripId) {
     });
 }
 
-var stopTimesValid = {};
-
 export async function validateStopTimes(pkg, provider) {
     var rawRowsArray = await db["stop_times_raw"].where("[package+provider]")
         .equals([pkg, provider]).first();
@@ -269,8 +366,7 @@ export async function validateStopTimes(pkg, provider) {
     return stopTimesValid[pkg + "," + provider] = rawRowsArray.rows.length === dbRows;
 }
 
-stopTimesValid["gtwp-hktransit,hktransit"] = true;
-
 export function isStopTimesValid(pkg, provider) {
+    return false;
     return stopTimesValid[pkg + "," + provider];
 }

@@ -14,6 +14,21 @@
     "category": "transit",
     "dependencies": {}
   },
+  "gtwp-kmblwb": {
+    "package": "gtwp-kmblwb",
+    "name": "KMBLWB",
+    "fullName": "Kowloon Motor Bus and Long Win Bus Transit ETA",
+    "desc": "Providing closed transit data from KMB and LWB.",
+    "author": "mob41",
+    "license": "https://github.com/mob41/GoToWhere/tree/master/src/plugins/gtwp-kmblwb/LICENSE",
+    "closedApi": true,
+    "github": "https://github.com/mob41/GoToWhere/tree/master/src/plugins/gtwp-kmblwb",
+    "version": "0.0.1",
+    "targetApi": "0.0.1",
+    "region": "HK",
+    "category": "transitEta",
+    "dependencies": {}
+  },
   "gtwp-ctbnwfb": {
     "package": "gtwp-ctbnwfb",
     "name": "CTBNWFB",

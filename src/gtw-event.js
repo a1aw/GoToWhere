@@ -2,7 +2,9 @@
 
 export const EVENTS = {
     EVENT_UI_BACK: "EVENT_UI_BACK",
-    EVENT_LOCATION_CHANGE: "EVENT_LOCATION_CHANGE"
+    EVENT_LOCATION_CHANGE: "EVENT_LOCATION_CHANGE",
+    EVENT_LOCATION_SUCCESS: "EVENT_LOCATION_SUCCESS",
+    EVENT_LOCATION_ERROR: "EVENT_LOCATION_ERROR"
 };
 
 var eventListeners = {};
@@ -13,7 +15,7 @@ export function dispatchEvent(event, ...args) {
     }
     for (var listener of eventListeners[event]) {
         if (listener) {
-            listener.apply(args);
+            listener.apply(this, args);
         } else {
             removeListener(listener);
         }

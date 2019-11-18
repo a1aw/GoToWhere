@@ -6,7 +6,6 @@ var maxEntries = 1000;
 
 var logEntries = [];
 
-/*
 var jsTrace = console.trace;
 console.trace = function (msg) {
     log("console", msg, -1);
@@ -31,7 +30,6 @@ var jsError = console.error;
 console.error = function (msg) {
     log("console", msg, 2);
 };
-*/
 
 export var printObject = true;
 

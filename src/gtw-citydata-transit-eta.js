@@ -1,6 +1,7 @@
 //City Data: Transit ETA
 import * as Misc from './gtw-misc';
 import * as Database from './gtw-db';
+import { transit_realtime } from 'gtfs-realtime-bindings';
 
 var providers = [];
 
@@ -113,7 +114,7 @@ export async function fetchAllDatabase(pc) {
                     return;
                 }
                 provider.db = data;
-                return Database.putTransitReference(data);
+                await Database.putTransitReference(data);
             } catch (err) {
                 console.error("Error: Database fetch for " + provider.id + " failed!");
             }
@@ -122,8 +123,7 @@ export async function fetchAllDatabase(pc) {
 }
 
 export function fetchEta(opt) {
-    console.log(opt);
-    if (!opt.agency || !opt.route || !opt.trip || !opt.stop) {
+    if (!opt.agency || !opt.route || !opt.trip || !opt.stopTimes || !opt.stop) {
         console.error("Error: Fetch ETA missing agency, route, trip or stop parameter.");
         return false;
     }
@@ -131,11 +131,8 @@ export function fetchEta(opt) {
         var proms = [];
         var count = 0;
         for (var providerId of opt.etaProviders) {
-            console.log("Proms: " + providerId);
             proms.push(new Promise((resolve, reject) => {
                 var provider = getEtaProvider(providerId);
-
-                console.log(provider);
 
                 if (!provider) {
                     resolve();
@@ -153,30 +150,32 @@ export function fetchEta(opt) {
                     cached = false;
                     delete cache[key];
                 }
-                console.log("checkccache")
+
                 if (!cached) {
-                    console.log("Requesting to eta")
                     var global = this;
                     var p = new Promise((resolve, reject) => {
                         provider.fetchEta(resolve, reject, opt);
                     });
                     p.then(function (feed) {
+                        var obj = transit_realtime.FeedMessage.fromObject(feed);
+                        var result = transit_realtime.FeedMessage.verify(obj);
+                        if (result !== null) {
+                            console.error("Error: Returned feed is invalid: " + result);
+                            return;
+                        }
+
                         var time = new Date();
 
                         cache[key] = {
                             lastFetched: time.getTime(),
-                            feed: feed
+                            feed: obj
                         };
 
-                        console.log("Returned feed:");
-                        console.log(feed);
-                        resolve(feed);
+                        resolve(obj);
                     }).catch(function (err) {
                         reject(opt, err);
-                        console.log("errored: " + err);
                     });
                 } else {
-                    console.log("return cache")
                     resolve(cached.feed);
                 }
             }));

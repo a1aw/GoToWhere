@@ -1,1 +1,4 @@
-- Adds GTAG tracking
+- Uses GTFS-static as database standard
+- Uses GTFS-realtime as ETA standard
+- Introduces service timetable
+- Provides route frequency even if no realtime ETA available

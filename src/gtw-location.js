@@ -9,14 +9,16 @@ const CONVENTION_ASK_EVERYTIME = "CONVENTION_ASK_EVERYTIME";
 const CONVENTION_CUSTOM_LOCATION = "CONVENTION_CUSTOM_LOCATION";
 const CONVENTION_ASK_LOCATION_ACCESS = "CONVENTION_ASK_LOCATION_ACCESS";
 const CONVENTION_DIRECT_LOCATION_ACCESS = "CONVENTION_DIRECT_LOCATION_ACCESS";
-const ERROR_NOT_SUPPORTED = 0;
-const ERROR_NO_ACCESS = 1;
 
 export var watchId = 0;
 
 export var markerId = 0;
 
 export var currentPosition = { lat: 22.2952296, lng: 114.1766577 };
+
+var located = false;
+
+var error = false;
 
 export function getConvention() {
     var localStorage = window.localStorage;
@@ -43,6 +45,7 @@ export function requestLocationAccess(successFunc = function () { }, errorFunc =
     var global = this;
 
     navigator.geolocation.getCurrentPosition(function (position) {
+        located = true;
         currentPosition = {
             lat: position.coords.latitude,
             lng: position.coords.longitude
@@ -65,10 +68,26 @@ export function requestLocationAccess(successFunc = function () { }, errorFunc =
                 maximumAge: 0
             }
         );
+        Event.dispatchEvent(Event.EVENTS.EVENT_LOCATION_SUCCESS);
         successFunc(currentPosition);
-    }, function () {
-        errorFunc(ERROR_NO_ACCESS);
-    }, { timeout: 5000 });
+    }, function (err) {
+        located = false;
+        error = err;
+        Event.dispatchEvent(Event.EVENTS.EVENT_LOCATION_ERROR, err);
+        errorFunc(err);
+    }, { timeout: 10000 });
+}
+
+export function isLocated() {
+    return located;
+}
+
+export function isErrored() {
+    return error !== false;
+}
+
+export function getError() {
+    return error;
 }
 
 export function getCurrentPosition() {
@@ -80,10 +99,14 @@ export function onPositionChangeSuccess(position) {
         lat: position.coords.latitude,
         lng: position.coords.longitude
     };
+    located = true;
+    error = false;
     Map.setMarkerPosition(markerId, currentPosition);
     Event.dispatchEvent(Event.EVENTS.EVENT_LOCATION_CHANGE, currentPosition);
 }
 
-export function onPositionChangeError(error) {
-    alert("TODO: Handle Position error!");
+export function onPositionChangeError(err) {
+    located = false;
+    error = err;
+    Event.dispatchEvent(Event.EVENTS.EVENT_LOCATION_ERROR, err);
 }
