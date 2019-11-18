@@ -1,7 +1,7 @@
 //GTW Database
 import Dexie from 'dexie';
 
-export var db = new Dexie("gotowhere-db");
+export var db = new Dexie("gtw-db");
 
 db.version(2).stores({
     "pluginStorage": "package",
