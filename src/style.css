@@ -580,5 +580,34 @@ body {
     .build-version{
         color: #fff;
     }
+
+    .text-dark {
+        color: #fff!important;
+    }
+
+    #gettingStartedWizard {
+        background-color: #989898;
+    }
+
+    #gettingStartedWizard .nav-tabs{
+        border-bottom: unset;
+    }
+
+    #gettingStartedWizard li.active {
+        color: #ffffff!important;
+    }
+
+    #gettingStartedWizard li.done {
+        color: #cecece!important;
+    }
+
+    #gettingStartedWizard .step-content {
+        background-color: #989898;
+        color: #fff;
+    }
+
+    #gettingStartedWizard .sw-toolbar {
+        background-color: #989898;
+    }
     
 }
