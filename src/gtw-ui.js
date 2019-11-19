@@ -77,6 +77,12 @@ $(".ui-pull-down-btn").on("click", function () {
     adjustMargin();
 });
 
+var darkMode = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+if (darkMode) {
+    $(".header nav").removeClass("navbar-light");
+    $(".header nav").addClass("navbar-dark");
+}
+
 export function init() {
     if (Object.keys(PluginLoader.plugins).length === 0) {
         gettingStarted();

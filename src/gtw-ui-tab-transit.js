@@ -1425,7 +1425,7 @@ function nearbyRoutesLocError(error) {
 
     var html =
         "<div class=\"d-flex justify-content-center w-100\">" +
-        "    <div class=\"text-center\">" +
+        "    <div class=\"text-center text-dark\">" +
         "        <i class=\"fas fa-exclamation-triangle m-5\" style=\"width: 3rem; height: 3rem;\"></i>" +
         "        <div class=\"ml-3 mr-3\">" + errorText + "</div>" +
         "    </div>" +

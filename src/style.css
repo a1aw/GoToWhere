@@ -563,12 +563,19 @@ body {
     }
 
     .timeline-icon {
-        background-color: #a9a9a9 !important;
         background: #a9a9a9;
+        color: #fff;
+    }
+
+    .timeline-icon.bg-light {
+        background-color: #a9a9a9!important;
     }
 
     .timeline-label {
         background: #a9a9a9;
+    }
+
+    .timeline-label p{
         color: #fff;
     }
 
