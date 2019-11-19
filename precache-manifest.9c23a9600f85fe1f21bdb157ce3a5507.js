@@ -12,12 +12,12 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "0.dd29f3d009ca8b207100.worker.worker.js"
   },
   {
-    "revision": "e811858cf9862b5508fe410674ba82d1",
-    "url": "1.3143549eae1b49940de8.worker.js"
+    "revision": "5f17480265a7eaf3c0b5",
+    "url": "1.2f72e2ed133aa6a38bad.js"
   },
   {
-    "revision": "ee2a3a893ab2cb48a4dc",
-    "url": "1.602e26a8780ca0332861.js"
+    "revision": "e811858cf9862b5508fe410674ba82d1",
+    "url": "1.3143549eae1b49940de8.worker.js"
   },
   {
     "revision": "70a77449d7a1e340e82f48cb5677a011",
@@ -204,8 +204,8 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "CNAME"
   },
   {
-    "revision": "7619a95d098878acf782",
-    "url": "app.4f0b188e71811995be21.js"
+    "revision": "f6c5956ddf0c35603cb7",
+    "url": "app.5c9bdd57fbd3c217666a.js"
   },
   {
     "revision": "4fae7e52b1fdad6437fd626d7f30455e",
@@ -268,12 +268,12 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "img/star.png"
   },
   {
-    "revision": "3b0b8ae42a0fb31503a5e39aa4edc003",
+    "revision": "94ed8118b6933d305d672e4ec3561152",
     "url": "index.html"
   },
   {
-    "revision": "8ba6ab62406b034325eb",
-    "url": "runtime.c83d88f945376a8c20da.js"
+    "revision": "4ea0523bd51884a084db",
+    "url": "runtime.a0f1734c2374a93a448b.js"
   },
   {
     "revision": "b6eed9b5e5e2cf1cc106",
