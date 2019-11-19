@@ -8,6 +8,7 @@ export function init() {
     return new Promise((resolve, reject) => {
         import(`./gtw-map-${config.mapApi}`).then(function (m) {
             map = m;
+            window.k = map;
             map.init().then(function () {
                 resolve();
             });

@@ -1,1 +1,1 @@
-- Adds dark mode
+- Dark mode modifications

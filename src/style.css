@@ -553,4 +553,19 @@ body {
     #search-transit-text {
         background-color: #ececec;
     }
+
+    .btn, .btn-link, a {
+        color: #fff;
+    }
+
+    .timeline-icon {
+        background-color: #a9a9a9 !important;
+        background: #a9a9a9;
+    }
+
+    .timeline-label {
+        background: #a9a9a9;
+        color: #fff;
+    }
+    
 }

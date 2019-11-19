@@ -130,14 +130,17 @@ function initDarkMode() {
     map.mapTypes.set("dark_mode", darkModeMapType);
 }
 
-export function checkIfDarkMode(x) {
-    var darkMode = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-
-    if (darkMode) {
+export function setDarkMode(dark) {
+    if (dark) {
         map.setMapTypeId("dark_mode");
     } else {
         map.setMapTypeId("roadmap");
     }
+}
+
+export function checkIfDarkMode() {
+    var darkMode = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    setDarkMode(darkMode);
 }
 
 export function setCenter(coords) {
