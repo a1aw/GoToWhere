@@ -73,6 +73,10 @@ body {
     z-index: 2;
 }
 
+.progress {
+    border-radius: 0px;
+}
+
 .bg-loaddb-panel {
     display: none;
 }
@@ -565,6 +569,15 @@ body {
 
     .timeline-label {
         background: #a9a9a9;
+        color: #fff;
+    }
+
+    .startup {
+        background-color: #3a3a3a;
+        color: #fff;
+    }
+
+    .build-version{
         color: #fff;
     }
     
