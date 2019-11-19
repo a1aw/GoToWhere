@@ -532,3 +532,25 @@ body {
         font-size: 10vw;
     }
 }
+
+@media (prefers-color-scheme: dark) {
+    .map-overlay {
+        background-color: rgba(150, 150, 150, 0.8);
+    }
+
+    .mobile-split-container {
+        background-color: rgba(150, 150, 150, 0.8);
+    }
+
+    .route-selection {
+        background-color: #dadada;
+    }
+
+    .list-group-item-light {
+        background-color: #dadada;
+    }
+    
+    #search-transit-text {
+        background-color: #ececec;
+    }
+}

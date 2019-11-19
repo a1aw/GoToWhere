@@ -19,6 +19,7 @@ export var map = false;
 export function init() {
     return new Promise((resolve, reject) => {
         $("#gtw-map").html("<div id=\"gmap\" style=\"width: 100%; height: 100%;\"></div>");
+
         //Required callback function from the API
         window.initMap = function () {
             map = new google.maps.Map(document.getElementById("gmap"), {
@@ -26,6 +27,8 @@ export function init() {
                 zoom: 12,
                 disableDefaultUI: true
             });
+            initDarkMode();
+            checkIfDarkMode();
             resolve();
             delete window.initMap;
         };
@@ -41,6 +44,100 @@ export function init() {
         element.src = "https://maps.googleapis.com/maps/api/js?callback=initMap&key=" + apiKey;
         document.head.appendChild(element);
     });
+}
+
+function initDarkMode() {
+    var darkModeMapType = new google.maps.StyledMapType([
+        { elementType: 'geometry', stylers: [{ color: '#242f3e' }] },
+        { elementType: 'labels.text.stroke', stylers: [{ color: '#242f3e' }] },
+        { elementType: 'labels.text.fill', stylers: [{ color: '#746855' }] },
+        {
+            featureType: 'administrative.locality',
+            elementType: 'labels.text.fill',
+            stylers: [{ color: '#d59563' }]
+        },
+        {
+            featureType: 'poi',
+            elementType: 'labels.text.fill',
+            stylers: [{ color: '#d59563' }]
+        },
+        {
+            featureType: 'poi.park',
+            elementType: 'geometry',
+            stylers: [{ color: '#263c3f' }]
+        },
+        {
+            featureType: 'poi.park',
+            elementType: 'labels.text.fill',
+            stylers: [{ color: '#6b9a76' }]
+        },
+        {
+            featureType: 'road',
+            elementType: 'geometry',
+            stylers: [{ color: '#38414e' }]
+        },
+        {
+            featureType: 'road',
+            elementType: 'geometry.stroke',
+            stylers: [{ color: '#212a37' }]
+        },
+        {
+            featureType: 'road',
+            elementType: 'labels.text.fill',
+            stylers: [{ color: '#9ca5b3' }]
+        },
+        {
+            featureType: 'road.highway',
+            elementType: 'geometry',
+            stylers: [{ color: '#746855' }]
+        },
+        {
+            featureType: 'road.highway',
+            elementType: 'geometry.stroke',
+            stylers: [{ color: '#1f2835' }]
+        },
+        {
+            featureType: 'road.highway',
+            elementType: 'labels.text.fill',
+            stylers: [{ color: '#f3d19c' }]
+        },
+        {
+            featureType: 'transit',
+            elementType: 'geometry',
+            stylers: [{ color: '#2f3948' }]
+        },
+        {
+            featureType: 'transit.station',
+            elementType: 'labels.text.fill',
+            stylers: [{ color: '#d59563' }]
+        },
+        {
+            featureType: 'water',
+            elementType: 'geometry',
+            stylers: [{ color: '#17263c' }]
+        },
+        {
+            featureType: 'water',
+            elementType: 'labels.text.fill',
+            stylers: [{ color: '#515c6d' }]
+        },
+        {
+            featureType: 'water',
+            elementType: 'labels.text.stroke',
+            stylers: [{ color: '#17263c' }]
+        }
+    ]);
+    map.mapTypes.set("dark_mode", darkModeMapType);
+}
+
+export function checkIfDarkMode(x) {
+    var darkMode = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+    if (darkMode) {
+        map.setMapTypeId("dark_mode");
+    } else {
+        map.setMapTypeId("roadmap");
+    }
 }
 
 export function setCenter(coords) {
