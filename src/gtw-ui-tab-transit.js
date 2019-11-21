@@ -1042,7 +1042,7 @@ async function updateStopEta(agency, route, trip, stopTimes, stop) {
         }
     } catch (options) {
         $(".eta-loading-spinner").css("display", "none");
-        var html = "<p class=\"text-danger\">*" + $.i18n("transit-eta-error-fetching-eta") + "</p>";
+        var html = "<p class=\"text-danger stop-eta-msg\">*" + $.i18n("transit-eta-error-fetching-eta") + "</p>";
         ;
         $(".timeline-entry[data-gtw-stop-id='" + stop["stop_id"] + "'] .stop-eta-info").append(html);
         //var node = $(".timeline-entry[data-gtw-stop-id='" + options.stop["stop_id"] + "'] p table tbody");
