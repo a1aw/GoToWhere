@@ -597,7 +597,7 @@ async function showRouteList(pkg, provider, agencyId, routeId, pathId, stopId, s
             "        </div>" +
             "        <div class=\"timeline-label\">" +
             "            <h2><button style=\"padding: 0px;\" class=\"btn btn-link\" data-gtw-package=\"" + pkg + "\" data-gtw-provider=\"" + provider + "\" data-gtw-agency=\"" + agencyId + "\" data-gtw-route-id=\"" + routeId + "\" data-gtw-path-id=\"" + pathId + "\" data-gtw-stop-id=\"" + stop["stop_id"] + "\" data-gtw-stop-sequence=\"" + stopTimes[i]["stop_sequence"] + "\" data-gtw-stop-index=\"" + i + "\">" + gtfs.selectAgencyStopName(agencyId, Lang.localizedKey(stop, "stop_name")) + "</button></h2>" +
-            "            <p></p>" +
+            "            <p class=\"stop-eta-info\"></p>" +
             "        </div>" +
             "    </div>" +
             "</article>"
@@ -855,15 +855,15 @@ async function updateStopEta(agency, route, trip, stopTimes, stop) {
         console.log(returned);
         var opt = returned.options;
         var content = "";
-        var node = $(".timeline-entry[data-gtw-stop-id='" + opt.stop["stop_id"] + "'] p table tbody");
+        var node = $(".timeline-entry[data-gtw-stop-id='" + opt.stop["stop_id"] + "'] .stop-eta-info table tbody");
         if (returned.code === -2) {
             var html = "<p class=\"stop-eta-msg\">*" + $.i18n("transit-eta-no-eta-providers") + "</p>";
             ;
-            $(".timeline-entry[data-gtw-stop-id='" + opt.stop["stop_id"] + "'] p").append(html);
+            $(".timeline-entry[data-gtw-stop-id='" + opt.stop["stop_id"] + "'] .stop-eta-info").append(html);
         } else if (returned.code === -1 || (returned.feeds && returned.feeds.length === 0)) {
             var html = "<p class=\"stop-eta-msg\">*" + $.i18n("transit-eta-no-data-received") + "</p>";
             ;
-            $(".timeline-entry[data-gtw-stop-id='" + opt.stop["stop_id"] + "'] p").append(html);
+            $(".timeline-entry[data-gtw-stop-id='" + opt.stop["stop_id"] + "'] .stop-eta-info").append(html);
         } else {
             var alerts = [];
             var pairs = [];
@@ -893,7 +893,7 @@ async function updateStopEta(agency, route, trip, stopTimes, stop) {
                     alertsHtml =
                         "<div class=\"stop-eta-msg alert alert-warning\"><i class=\"fas fa-exclamation-triangle\"></i> <b>" + $.i18n("transit-eta-alerts-affecting-stop", alerts.length) + "</b> <button class=\"btn btn-link view-alert-btn\">" + $.i18n("transit-eta-view-alerts-affecting-stop") + "</button></div>";
                 }
-                $(".timeline-entry[data-gtw-stop-id='" + opt.stop["stop_id"] + "'] p").prepend(alertsHtml);
+                $(".timeline-entry[data-gtw-stop-id='" + opt.stop["stop_id"] + "'] .stop-eta-info").prepend(alertsHtml);
                 $(".view-alert-btn").on("click", function () {
                     UI.showModal("viewgtfsalerts", alerts);
                 });
@@ -902,7 +902,7 @@ async function updateStopEta(agency, route, trip, stopTimes, stop) {
             if (pairs.length === 0) {
                 var html = "<p>*" + $.i18n("transit-eta-no-schedules-pending") + "</p>";
                 ;
-                $(".timeline-entry[data-gtw-stop-id='" + opt.stop["stop_id"] + "'] p").append(html);
+                $(".timeline-entry[data-gtw-stop-id='" + opt.stop["stop_id"] + "'] .stop-eta-info").append(html);
             } else {
                 var content = "";
 
@@ -1036,7 +1036,7 @@ async function updateStopEta(agency, route, trip, stopTimes, stop) {
                     }
                 }
 
-                $(".timeline-entry[data-gtw-stop-id='" + opt.stop["stop_id"] + "'] p table tbody").html(content);
+                $(".timeline-entry[data-gtw-stop-id='" + opt.stop["stop_id"] + "'] .stop-eta-info table tbody").html(content);
                 realtimeShown = true;
             }
         }
@@ -1044,7 +1044,7 @@ async function updateStopEta(agency, route, trip, stopTimes, stop) {
         $(".eta-loading-spinner").css("display", "none");
         var html = "<p class=\"text-danger\">*" + $.i18n("transit-eta-error-fetching-eta") + "</p>";
         ;
-        $(".timeline-entry[data-gtw-stop-id='" + stop["stop_id"] + "'] p").append(html);
+        $(".timeline-entry[data-gtw-stop-id='" + stop["stop_id"] + "'] .stop-eta-info").append(html);
         //var node = $(".timeline-entry[data-gtw-stop-id='" + options.stop["stop_id"] + "'] p table tbody");
         //node.html("<tr class=\"table-danger\"><td colspan=\"4\">" + $.i18n("transit-eta-error-fetching-eta") + "</td></tr>");
     }
@@ -1059,7 +1059,7 @@ async function showStopEta(agency, route, trip, stopTimes, stop) {
     }
     showingStopEta = true;
 
-    var node = $(".timeline-entry[data-gtw-stop-id='" + stop["stop_id"] + "'] p");
+    var node = $(".timeline-entry[data-gtw-stop-id='" + stop["stop_id"] + "'] .stop-eta-info");
 
     var content =
         "<u>" + $.i18n("transit-eta") + "</u> <div class=\"spinner-border spinner-border-sm eta-loading-spinner\" role=\"status\"></div>" +
