@@ -126,141 +126,139 @@ var KmbLwbEtaProvider = function () {
                 "&bound=" + bound +
                 "&stop=" + refStopId +
                 "&stop_seq=" + (stopIndex + 1);
+            
+            $.ajax({
+                url: url,
+                method: "GET",
+                dataType: "json",
+                cache: false,
+                success: function (resp) {
+                    var entities = [];
 
-            RequestLimiter.queue(() => {
-                $.ajax({
-                    url: url,
-                    method: "GET",
-                    dataType: "json",
-                    cache: false,
-                    success: function (resp) {
-                        var entities = [];
+                    var updates = [];
+                    var alerts = [];
 
-                        var updates = [];
-                        var alerts = [];
+                    //TODO get start_time and start_date from gtfs db
+                    var tripDesc = {
+                        "tripId": options.trip["trip_id"],
+                        "startTime": "00:00:00",
+                        "startDate": "20190101"
+                    };
 
-                        //TODO get start_time and start_date from gtfs db
-                        var tripDesc = {
-                            "tripId": options.trip["trip_id"],
-                            "startTime": "00:00:00",
-                            "startDate": "20190101"
-                        };
+                    var timestamp = new Date(resp.generated);
 
-                        var timestamp = new Date(resp.generated);
-                        
-                        var sches = resp.response;
-                        if (sches && sches.length > 0) {
-                            var i;
-                            var etaTime;
-                            var sche;
-                            for (i = 0; i < sches.length; i++) {
-                                sche = sches[i];
+                    var sches = resp.response;
+                    if (sches && sches.length > 0) {
+                        var i;
+                        var etaTime;
+                        var sche;
+                        for (i = 0; i < sches.length; i++) {
+                            sche = sches[i];
 
-                                etaTime = false;
-                                var text = sche.t.toLowerCase();
+                            etaTime = false;
+                            var text = sche.t.toLowerCase();
 
-                                if (text.length >= 5) {
-                                    var hr = parseInt(text.substring(0, 2));
-                                    var min = parseInt(text.substring(3, 5));
-                                    if (!isNaN(hr) && !isNaN(min)) {
-                                        etaTime = new Date(resp.updated);
-                                        etaTime.setHours(hr);
-                                        etaTime.setMinutes(min);
-                                    }
-                                }
-
-                                if (etaTime) {
-                                    updates.push({
-                                        "stopId": options.stop["stop_id"],
-                                        "arrival": {
-                                            time: etaTime.getTime()
-                                        }
-                                    });
-                                } else if (text.length > 0) {
-                                    var langCode;
-                                    if (lang === "tc") {
-                                        langCode = "zh-HK";
-                                    } else {
-                                        langCode = "en";
-                                    }
-
-                                    var alertText = "";
-                                    if (multi) {
-                                        alertText += localizedAgencyName + ": ";
-                                    }
-                                    alertText += sche.t;
-
-                                    var transText = [{
-                                        text: alertText,
-                                        language: langCode
-                                    }];
-                                    alerts.push({
-                                        "informedEntity": [
-                                            {
-                                                trip: tripDesc,
-                                                "stop_id": options.stop["stop_id"]
-                                            }
-                                        ],
-                                        "headerText": {
-                                            translation: transText
-                                        },
-                                        "descriptionText": {
-                                            translation: transText
-                                        }
-                                    });
+                            if (text.length >= 5) {
+                                var hr = parseInt(text.substring(0, 2));
+                                var min = parseInt(text.substring(3, 5));
+                                if (!isNaN(hr) && !isNaN(min)) {
+                                    etaTime = new Date(resp.updated);
+                                    etaTime.setHours(hr);
+                                    etaTime.setMinutes(min);
                                 }
                             }
-                        }
 
-                        var time = Date.now();
-                        if (updates.length > 0) {
-                            var vehicleDesc = {
-                                label: localizedAgencyName
+                            if (etaTime) {
+                                updates.push({
+                                    "stopId": options.stop["stop_id"],
+                                    "arrival": {
+                                        time: etaTime.getTime()
+                                    }
+                                });
+                            } else if (text.length > 0) {
+                                var langCode;
+                                if (lang === "tc") {
+                                    langCode = "zh-HK";
+                                } else {
+                                    langCode = "en";
+                                }
+
+                                var alertText = "";
+                                if (multi) {
+                                    alertText += localizedAgencyName + ": ";
+                                }
+                                alertText += sche.t;
+
+                                var transText = [{
+                                    text: alertText,
+                                    language: langCode
+                                }];
+                                alerts.push({
+                                    "informedEntity": [
+                                        {
+                                            trip: tripDesc,
+                                            "stop_id": options.stop["stop_id"]
+                                        }
+                                    ],
+                                    "headerText": {
+                                        translation: transText
+                                    },
+                                    "descriptionText": {
+                                        translation: transText
+                                    }
+                                });
+                            }
+                        }
+                    }
+
+                    var time = Date.now();
+                    if (updates.length > 0) {
+                        var vehicleDesc = {
+                            label: localizedAgencyName
+                        };
+                        var entityId = options.agency["agency_id"] + "-" + options.stop["stop_id"] + "-" + options.route["route_short_name"] + "-trip-update-" + time;
+                        var entity = {
+                            id: entityId,
+                            "tripUpdate": {
+                                trip: tripDesc,
+                                timestamp: timestamp,
+                                "stopTimeUpdate": updates
+                            }
+                        };
+                        if (multi) {
+                            entity.vehicle = {
+                                vehicle: vehicleDesc
                             };
-                            var entityId = options.agency["agency_id"] + "-" + options.stop["stop_id"] + "-" + options.route["route_short_name"] + "-trip-update-" + time;
+                        }
+                        entities.push(entity);
+                    }
+
+                    if (alerts.length > 0) {
+                        var i;
+                        for (i = 0; i < alerts.length; i++) {
+                            var entityId = options.agency["agency_id"] + "-" + options.stop["stop_id"] + "-" + options.route["route_short_name"] + "-alert-" + i + "-" + time;
                             var entity = {
                                 id: entityId,
-                                "tripUpdate": {
-                                    trip: tripDesc,
-                                    timestamp: timestamp,
-                                    "stopTimeUpdate": updates
-                                }
+                                "alert": alerts[i]
                             };
-                            if (multi) {
-                                entity.vehicle = {
-                                    vehicle: vehicleDesc
-                                };
-                            }
                             entities.push(entity);
                         }
-
-                        if (alerts.length > 0) {
-                            var i;
-                            for (i = 0; i < alerts.length; i++) {
-                                var entityId = options.agency["agency_id"] + "-" + options.stop["stop_id"] + "-" + options.route["route_short_name"] + "-alert-" + i + "-" + time;
-                                var entity = {
-                                    id: entityId,
-                                    "alert": alerts[i]
-                                };
-                                entities.push(entity);
-                            }
-                        }
-
-                        var feed = {
-                            header: {
-                                "gtfsRealtimeVersion": "2.0",
-                                incrementality: "FULL_DATASET",
-                                timestamp: time
-                            },
-                            entity: entities
-                        };
-                        
-                        resolve(feed);
-                    },
-                    error: function (err0, err1, err2) {
-                        reject();
                     }
-                })
+
+                    var feed = {
+                        header: {
+                            "gtfsRealtimeVersion": "2.0",
+                            incrementality: "FULL_DATASET",
+                            timestamp: time
+                        },
+                        entity: entities
+                    };
+
+                    resolve(feed);
+                },
+                error: function (err0, err1, err2) {
+                    reject();
+                }
             });
         });
     };

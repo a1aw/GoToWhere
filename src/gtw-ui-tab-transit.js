@@ -833,7 +833,13 @@ async function showGtfsStaticFrequencies(pkg, provider, routeId, stopId, pathId)
     }
 }
 
+var updatingStopEta = false;
+
 async function updateStopEta(agency, route, trip, stopTimes, stop) {
+    if (updatingStopEta) {
+        return;
+    }
+    updatingStopEta = true;
     $(".eta-loading-spinner").css("display", "");
     try {
         var returned = await TransitEta.fetchEta({
@@ -1042,9 +1048,17 @@ async function updateStopEta(agency, route, trip, stopTimes, stop) {
         //var node = $(".timeline-entry[data-gtw-stop-id='" + options.stop["stop_id"] + "'] p table tbody");
         //node.html("<tr class=\"table-danger\"><td colspan=\"4\">" + $.i18n("transit-eta-error-fetching-eta") + "</td></tr>");
     }
+    updatingStopEta = false;
 }
 
+var showingStopEta = false;
+
 async function showStopEta(agency, route, trip, stopTimes, stop) {
+    if (showingStopEta) {
+        return;
+    }
+    showingStopEta = true;
+
     var node = $(".timeline-entry[data-gtw-stop-id='" + stop["stop_id"] + "'] p");
 
     var content =
@@ -1073,6 +1087,8 @@ async function showStopEta(agency, route, trip, stopTimes, stop) {
     };
     func();
     updateStopEtaTimer = setInterval(func, 30000);
+
+    showingStopEta = false;
 }
 
 function updateEta() {
