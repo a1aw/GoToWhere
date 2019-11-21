@@ -546,10 +546,6 @@ body {
         background-color: rgba(150, 150, 150, 0.8);
     }
 
-    .route-selection {
-        background-color: #dadada;
-    }
-
     .list-group-item-light {
         background-color: #dadada;
     }
@@ -562,6 +558,7 @@ body {
         color: #fff;
     }
 
+    /*
     .timeline-icon {
         background: #a9a9a9;
         color: #fff;
@@ -572,15 +569,16 @@ body {
     }
 
     .timeline-label {
-        background: #a9a9a9;
+        background: #a9a9a9!important;
     }
 
     .timeline-label p{
-        color: #fff;
+        color: #fff!important;
     }
+    */
 
     .startup {
-        background-color: #3a3a3a;
+        background-color: #000;
         color: #fff;
     }
 

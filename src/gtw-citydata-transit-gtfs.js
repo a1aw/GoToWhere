@@ -197,26 +197,25 @@ export async function getAllRouteNames(offset, length, noDup) {
     });
 }
 
-export function searchNearbyStops(lat, lng, range, sorted = true) {
-    return new Promise((resolve, reject) => {
-        var out = [];
-        db["stops"].each(stop => {
-            var distance = Misc.geoDistance(lat, lng, stop["stop_lat"], stop["stop_lon"]);
-            if (distance <= range) {
-                out.push({
-                    distance: distance,
-                    stop: stop
-                });
-            }
-        }).then(function () {
-            if (sorted) {
-                out.sort(function (a, b) {
-                    return a.distance - b.distance;
-                });
-            }
-            resolve(out);
-        });
+export async function searchNearbyStops(lat, lng, range, sorted = true) {
+    var stops = await db["stops"].toArray();
+    var out = [];
+    stops.forEach(stop => {
+        var distance = Misc.geoDistance(lat, lng, stop["stop_lat"], stop["stop_lon"]);
+        if (distance <= range) {
+            out.push({
+                distance: distance,
+                stop: stop
+            });
+        }
     });
+
+    if (sorted) {
+        out.sort((a, b) => {
+            return a.distance - b.distance;
+        });
+    }
+    return out;
 }
 
 export function searchStopRoutes(pkg, provider, stopId) {
@@ -226,22 +225,28 @@ export function searchStopRoutes(pkg, provider, stopId) {
         var routes = {};
         var stopTimes = {};
         var trips = {};
+        var st = Date.now();
         return getStopTimePathsByStopId(pkg, provider, stopId).then(function (out) {
             for (var stopTime of out) {
                 var pathId = stopTime["path_id"];
                 pathIds.push([pkg, provider, pathId]);
                 stopTimes[pathId] = stopTime;
             }
+            console.log("PATH DONE: " + (Date.now() - st));
         }).then(function () {
+            st = Date.now();
             db["trips"].where("[package+provider+path_id]").anyOf(pathIds).each(trip => {
                 var routeId = trip["route_id"];
                 trips[routeId] = trip;
                 routeIds.push([pkg, provider, routeId]);
             }).then(function () {
+                console.log("EACH DONE: " + (Date.now() - st));
+                st = Date.now();
                 db["routes"].where("[package+provider+route_id]").anyOf(routeIds).each(route => {
                     var routeId = route["route_id"];
                     routes[routeId] = route;
                 }).then(function () {
+                    console.log("EACH2 DONE: " + (Date.now() - st));
                     resolve({
                         routes: routes,
                         trips: trips,

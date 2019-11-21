@@ -1284,7 +1284,8 @@ async function findNearbyRoutes() {
     lastLng = lng;
 
     var range = Settings.get("min_nearby_transit_range", 200) / 1000.0;
-    
+
+    var st = Date.now();
     var allNearbyStops = await gtfs.searchNearbyStops(lat, lng, range, true);
 
     if (allNearbyStops.length === 0) {
@@ -1310,7 +1311,9 @@ async function findNearbyRoutes() {
             );
         }
     }
+    console.log("Used: " + (Date.now() - st));
 
+    st = Date.now();
     var maxNearbyBusDisplay = Settings.get("max_nearby_transit_to_display", 20);
     allNearbyRoutes = [];
     console.log(allNearbyStops);
@@ -1344,6 +1347,14 @@ async function findNearbyRoutes() {
         }
     }
 
+    console.log("Used: " + (Date.now() - st));
+    st = Date.now();
+    allNearbyRoutes.sort((a, b) => {
+        return a.distance - b.distance;
+    });
+
+    console.log("Used: " + (Date.now() - st));
+    st = Date.now();
     console.log(allNearbyRoutes);
 
     var distance;
@@ -1381,6 +1392,7 @@ async function findNearbyRoutes() {
     html += "</ul>";
 
     $(".nearby-route-list").html(html);
+    console.log("Used: " + (Date.now() - st));
 
     $(".nearby-route-list .route-selection").on("mouseenter", mouseEnterPreviewRoute);
 
