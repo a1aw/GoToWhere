@@ -900,7 +900,7 @@ async function updateStopEta(agency, route, trip, stopTimes, stop) {
             }
 
             if (pairs.length === 0) {
-                var html = "<p>*" + $.i18n("transit-eta-no-schedules-pending") + "</p>";
+                var html = "<p class=\"stop-eta-msg\">*" + $.i18n("transit-eta-no-schedules-pending") + "</p>";
                 ;
                 $(".timeline-entry[data-gtw-stop-id='" + opt.stop["stop_id"] + "'] .stop-eta-info").append(html);
             } else {
