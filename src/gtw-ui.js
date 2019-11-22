@@ -15,10 +15,13 @@ $(document).ready(function () {
     $(".header-links-settings").on("click", function () {
         showModal("settings");
     });
+    $(".header-links-github").on("click", function () {
+        window.open("https://github.com/mob41/GoToWhere");
+    });
     $(".header-links-about").on("click", function () {
         showModal("about");
     });
-    $(".feedback-btn").on("click", function () {
+    $(".header-links-feedback").on("click", function () {
         window.open("https://forms.gle/nP9cp1V2rqhdqybv5");
     });
 });

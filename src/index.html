@@ -79,7 +79,7 @@
 
     <div class="gtw-container">
         <div class="header">
-            <nav class="navbar navbar-expand-sm navbar-light">
+            <nav class="navbar navbar-light"><!-- navbar-expand-sm -->
                 <a class="navbar-brand" href="#"><i class="fas fa-map-marked-alt"></i> <span data-i18n="app-name"></span></a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
                     <span class="navbar-toggler-icon"></span>
@@ -87,17 +87,19 @@
                 <div class="collapse navbar-collapse" id="collapsibleNavbar">
                     <ul class="navbar-nav">
                         <li class="nav-item">
-                            <button class="btn btn-link nav-link header-links-plugins"><i class="fas fa-plus-circle"></i> <span data-i18n="nav-plugins"></span></button>
+                            <button class="btn btn-link nav-link header-links-plugins" data-toggle="collapse" data-target=".navbar-collapse.show"><i class="fas fa-plus-circle"></i> <span data-i18n="nav-plugins"></span></button>
                         </li>
                         <li class="nav-item">
-                            <button class="btn btn-link nav-link header-links-settings"><i class="fas fa-cog"></i> <span data-i18n="nav-settings"></span></button>
+                            <button class="btn btn-link nav-link header-links-settings" data-toggle="collapse" data-target=".navbar-collapse.show"><i class="fas fa-cog"></i> <span data-i18n="nav-settings"></span></button>
                         </li>
-                        <!--
                         <li class="nav-item">
-                            <button class="btn btn-link nav-link" href="https://github.com/mob41/GoToWhere" target="_blank"><i class="fab fa-github"></i> GitHub</button>
-                        </li>-->
+                            <button class="btn btn-link nav-link header-links-github" data-toggle="collapse" data-target=".navbar-collapse.show"><i class="fab fa-github"></i> GitHub</button>
+                        </li>
                         <li class="nav-item">
-                            <button class="btn btn-link nav-link header-links-about"><i class="fas fa-info-circle"></i> <span data-i18n="nav-about"></span></button>
+                            <button class="btn btn-link nav-link header-links-feedback" data-toggle="collapse" data-target=".navbar-collapse.show"><i class="fas fa-exclamation-triangle"></i> <span data-i18n="nav-feedback"></span></button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="btn btn-link nav-link header-links-about" data-toggle="collapse" data-target=".navbar-collapse.show"><i class="fas fa-info-circle"></i> <span data-i18n="nav-about"></span></button>
                         </li>
                     </ul>
                 </div>
@@ -107,8 +109,7 @@
                 <div class="container-fluid">
                     <div class="tabs btn-group">
                         <button type="button" class="btn btn-primary ui-tab" gtw-tab="transitEta"><i class="fas fa-bus"></i> <span data-i18n="home-tab-transit"></span></button>
-                        <!--<button type="button" class="btn btn-link ui-tab" gtw-tab="searchTransit"><i class="fas fa-exclamation-triangle"></i> <span data-i18n="home-tab-alerts"></span></button>-->
-                        <button type="button" class="btn btn-warning feedback-btn"><i class="fas fa-exclamation-triangle"></i> <span data-i18n="nav-feedback"></span></button>
+                        <button type="button" class="btn btn-link disabled" gtw-tab="navigation"><i class="fas fa-location-arrow"></i> <span data-i18n="home-tab-navigation"></span></button>
                     </div>
                     <div class="tab-panel">
                     </div>

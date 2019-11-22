@@ -86,7 +86,7 @@
   "settings-key-show-debug-msg-desc": "Enable to show all debug messages on screen. (Warning, Error Messages)",
 
   "home-tab-transit": "Transit",
-  "home-tab-alerts": "Alerts",
+  "home-tab-navigation": "Navigation",
 
   "location-error": "Location Error",
   "location-error-user-denied-location": "You have denied this app to obtain your current location. You can still use this app, but location is required to find nearby routes.<br />You can use the following steps to unblock location access:<br /><br /><a href=\"https://stackoverflow.com/a/14444695\" target=\"_blank\">iOS</a> | <a href=\"https://support.google.com/chrome/answer/114662?co=GENIE.Platform%3DAndroid&hl=en\" target=\"_blank\">Android</a>",
