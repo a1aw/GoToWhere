@@ -33,10 +33,10 @@ $(".ui-tab").on("click", function () {
     $(".ui-tab").removeClass("btn-primary");
     $(".ui-tab").removeClass("btn-link");
 
-    var tab = $(this).attr("gtw-tab");
+    var tab = $(this).attr("data-gtw-tab");
     $(this).addClass("btn-primary");
 
-    $(".ui-tab:not([gtw-tab='" + tab + "'])").addClass("btn-link");
+    $(".ui-tab:not([data-gtw-tab='" + tab + "'])").addClass("btn-link");
 
     showTab(tab);
 });
@@ -51,7 +51,7 @@ $(".btn").on("mouseup", function () {
 });
 */
 
-$(".ui-half-map-back-btn").on("click", function () {
+$(".ui-split-map-back-btn").on("click", function () {
     Event.dispatchEvent(Event.EVENTS.EVENT_UI_BACK);
     Map.setCenter(Loc.getCurrentPosition());
     Map.setZoom(16);
@@ -99,19 +99,19 @@ export function init() {
 export function showPanel() {
     $(".content-panel-container").css("display", "inline-block");
     $(".top-panel").css("display", "block");
-    $(".header nav").removeClass("gtw-half-map");
+    $(".header nav").removeClass("gtw-split-map");
 
-    $("body").removeClass("gtw-half-map");
-    $("#gtw-map").removeClass("gtw-half-map");
-    $(".map-overlay").removeClass("gtw-half-map");
-    $(".half-map-panel").removeClass("gtw-half-map");
-    $(".half-map-container").removeClass("gtw-half-map");
-    $(".mobile-split-container").removeClass("gtw-half-map");
+    $("body").removeClass("gtw-split-map");
+    $("#gtw-map").removeClass("gtw-split-map");
+    $(".map-overlay").removeClass("gtw-split-map");
+    $(".split-map-panel").removeClass("gtw-split-map");
+    $(".split-map-container").removeClass("gtw-split-map");
+    $(".mobile-split-container").removeClass("gtw-split-map");
 
     //$(".header nav").addClass("bg-dark");
-    //$(".half-map-panel").css("display", "none");
+    //$(".split-map-panel").css("display", "none");
     //$(".top-panel").css("display", "block");
-    //$(".half-map-container").css("display", "none");
+    //$(".split-map-container").css("display", "none");
     //$(".map-overlay").fadeIn(500);
     adjustMargin();
 }
@@ -119,17 +119,17 @@ export function showPanel() {
 export function hidePanel() {
     $(".top-panel").css("display", "none");
     $(".content-panel-container").css("display", "none");
-    $(".header nav").addClass("gtw-half-map");
+    $(".header nav").addClass("gtw-split-map");
 
-    //$("body").addClass("gtw-half-map");
-    $("#gtw-map").addClass("gtw-half-map");
-    $(".map-overlay").addClass("gtw-half-map");
-    $(".half-map-panel").addClass("gtw-half-map");
-    $(".half-map-container").addClass("gtw-half-map");
-    $(".mobile-split-container").addClass("gtw-half-map");
+    //$("body").addClass("gtw-split-map");
+    $("#gtw-map").addClass("gtw-split-map");
+    $(".map-overlay").addClass("gtw-split-map");
+    $(".split-map-panel").addClass("gtw-split-map");
+    $(".split-map-container").addClass("gtw-split-map");
+    $(".mobile-split-container").addClass("gtw-split-map");
 
-    //$(".half-map-panel").css("display", "block");
-    //$(".half-map-container").css("display", "block");
+    //$(".split-map-panel").css("display", "block");
+    //$(".split-map-container").css("display", "block");
     //$(".header nav").removeClass("bg-dark");
     //$(".map-overlay").fadeOut(500);
     adjustMargin();

@@ -38,34 +38,22 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-var __headerTexts = ["<i class=\"fas fa-map-marked-alt\"></i> \u53bb\u908a\u35ce GoToWhere", "<i class=\"fas fa-map-marked-alt\"></i> GoToWhere<small>.ga</small>", "<i class=\"fas fa-map-marked-alt\"></i> HeuiBin<small>.ga</small>"];
-var __stopHeaderAnimation = false;
+import './html.loc-status-btn';
+import './html.build-version';
+import './html.startup';
+import './html.map-overlay';
+import './html.loading-overlay';
+import './html.gtw-container';
+import './html.toast-stack-container';
+import './html.footer';
+import './html.gtw-map';
+import './html.mobile-split-container';
+import './html.modal';
 
-function __headerAnimation(i) {
-    if (__stopHeaderAnimation) {
-        return;
-    }
-
-    if (i === undefined || i > 2) {
-        i = 0;
-    }
-    $(".startup h1").html(__headerTexts[i]);
-    $(".startup h1").fadeIn(2000, function () {
-        $(".startup h1").fadeOut(2000, function () {
-            __headerAnimation(i + 1);
-        });
-    });
-}
-
-$(document).ready(function () {
-    adjustMargin();
-    $(".startup .progress-panel").fadeIn(5000);
-    $(".startup .container").fadeIn(2000, function () {
-        __headerAnimation();
-    });
-    console.log("GoToWhere (c) 2019. Licensed under the MIT License.");
-    $("#startup-status").html("Loading GoToWhere scripts...");
-});
+$(".startup .progress-panel").fadeIn(5000);
+$(".startup .container").fadeIn(2000);
+console.log("GoToWhere (c) 2019. Licensed under the GPLv3 License.");
+$("#startup-status").html("Loading GoToWhere scripts...");
 
 $(window).resize(function () {
     adjustMargin();
@@ -80,13 +68,14 @@ window.adjustMargin = function () {
 
     var hh = $(".header").height();
     var dh = $(window).height();
-    $(".desktop.half-map-container").css("height", dh - hh);
+    $(".desktop.split-map-container").css("height", dh - hh);
     $(".content-panel-container").css("height", dh - hh - nph);
 
     var msh = $(".mobile-split-container").height();
-    var hmph = $(".mobile.half-map-panel").height();
-    $(".mobile.half-map-container").css("height", msh - hmph);
+    var hmph = $(".mobile.split-map-panel").height();
+    $(".mobile.split-map-container").css("height", msh - hmph);
 };
+adjustMargin();
 
 /*
 requirejs.config({
@@ -115,8 +104,6 @@ import * as gtfs from './gtw-citydata-transit-gtfs';
 import proj4 from 'proj4';
 
 window.p = TransitEta;
-
-$(".build-version").html(VERSION);
 
 proj4.defs("EPSG:2326", "+proj=tmerc +lat_0=22.31213333333334 +lon_0=114.1785555555556 +k=1 +x_0=836694.05 +y_0=819069.8 +ellps=intl +towgs84=-162.619,-276.959,-161.764,0.067753,-2.24365,-1.15883,-1.09425 +units=m +no_defs");
 proj4.defs("EPSG:4326", "+proj=longlat +datum=WGS84 +no_defs");
@@ -266,9 +253,7 @@ if (!window.indexedDB || !window.localStorage) {
                 $(".footer").css("display", "none");
             });
         }, 2000);
-        $(".startup").fadeOut(1000, function () {
-            __stopHeaderAnimation = true;
-        });
+        $(".startup").fadeOut(1000);
 
         //TODO: Check is raw
         if (false) {

@@ -1,1 +1,1 @@
-- Fixes navbar
+- HTML Optimizations

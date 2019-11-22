@@ -153,7 +153,7 @@ body {
     background-color: unset;
 }
 
-.half-map-container {
+.split-map-container {
     display: none;
     width: 100%;
     position: absolute;
@@ -358,8 +358,8 @@ body {
     background-color: #fff;
 }
 
-/* Half-map Panel */
-.half-map-panel {
+/* split-map Panel */
+.split-map-panel {
     display: none;
     background-color: unset;
     padding: 8px;
@@ -393,11 +393,11 @@ body {
         /*width: 25%;*/
     }
 
-    .half-map-panel {
+    .split-map-panel {
         /*width: 25%;*/
     }
 
-    .half-map-container {
+    .split-map-container {
         /*width: 25%;*/
         margin-left: 0;
     }
@@ -434,19 +434,19 @@ body {
         /*width: 25%;*/
     }
 
-    .desktop.half-map-panel.gtw-half-map {
+    .desktop.split-map-panel.gtw-split-map {
         display: block;
     }
 
-    .desktop.half-map-container.gtw-half-map {
+    .desktop.split-map-container.gtw-split-map {
         display: block;
     }
 
-    .mobile.half-map-panel.gtw-half-map {
+    .mobile.split-map-panel.gtw-split-map {
         display: none;
     }
 
-    .mobile.half-map-container.gtw-half-map {
+    .mobile.split-map-container.gtw-split-map {
         display: none;
     }
 }
@@ -472,7 +472,7 @@ body {
         padding-bottom: env(safe-area-inset-bottom);
     }
 
-    .mobile-split-container.gtw-half-map {
+    .mobile-split-container.gtw-split-map {
         display: block;
     }
 
@@ -481,7 +481,7 @@ body {
     }
 
     /*
-    body.gtw-half-map {
+    body.gtw-split-map {
         overflow-y: scroll;
     }
 
@@ -490,33 +490,33 @@ body {
     }
     */
 
-    .map-overlay.gtw-half-map {
+    .map-overlay.gtw-split-map {
         display: none;
         /*margin-top: 50vh;
         height: 50vh;*/
     }
 
     /*
-    #gtw-map.gtw-half-map {
+    #gtw-map.gtw-split-map {
         height: 50vh;
         display: block;
     }
     */
 
-    .desktop.half-map-panel.gtw-half-map {
+    .desktop.split-map-panel.gtw-split-map {
         display: none;
     }
 
-    .desktop.half-map-container.gtw-half-map {
+    .desktop.split-map-container.gtw-split-map {
         display: none;
     }
 
-    .mobile.half-map-panel.gtw-half-map {
+    .mobile.split-map-panel.gtw-split-map {
         display: block;
         /*height: 20vh;*/
     }
 
-    .mobile.half-map-container.gtw-half-map {
+    .mobile.split-map-container.gtw-split-map {
         display: block;
         /*height: 30vh;*/
         height: inherit;

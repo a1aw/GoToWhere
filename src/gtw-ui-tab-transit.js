@@ -574,7 +574,7 @@ async function showRouteList(pkg, provider, agencyId, routeId, pathId, stopId, s
         "    </li>" +
         "</ul>"
         ;
-    $(".half-map-tab-panel").html(html);
+    $(".split-map-tab-panel").html(html);
 
     //Route Tab
 
@@ -703,9 +703,9 @@ async function showRouteList(pkg, provider, agencyId, routeId, pathId, stopId, s
         "</div>" +
         "</div>"
         ;
-    $(".half-map-container").html(html);
+    $(".split-map-container").html(html);
 
-    $(".half-map-container button").on("click", function () {
+    $(".split-map-container button").on("click", function () {
         var pkg = $(this).attr("data-gtw-package");
         var provider = $(this).attr("data-gtw-provider");
         var agencyId = $(this).attr("data-gtw-agency");
