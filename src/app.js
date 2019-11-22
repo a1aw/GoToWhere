@@ -38,20 +38,7 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-import * as Cors from './gtw-cors';
-import * as PluginLoader from './gtw-pluginloader';
-import * as Transit from './gtw-citydata-transit';
-import * as TransitEta from './gtw-citydata-transit-eta';
-import * as Map from './gtw-map';
-import * as loc from './gtw-location';
-import * as ui from './gtw-ui';
 import * as settings from './gtw-settings';
-import * as RequestLimiter from './gtw-requestlimiter';
-import * as log from './gtw-log';
-import * as lang from './gtw-lang';
-import * as Database from './gtw-db';
-import * as gtfs from './gtw-citydata-transit-gtfs';
-import proj4 from 'proj4';
 
 settings.load();
 
@@ -93,6 +80,20 @@ window.adjustMargin = function () {
     $(".mobile.split-map-container").css("height", msh - hmph);
 };
 adjustMargin();
+
+import * as Cors from './gtw-cors';
+import * as PluginLoader from './gtw-pluginloader';
+import * as Transit from './gtw-citydata-transit';
+import * as TransitEta from './gtw-citydata-transit-eta';
+import * as Map from './gtw-map';
+import * as loc from './gtw-location';
+import * as ui from './gtw-ui';
+import * as RequestLimiter from './gtw-requestlimiter';
+import * as log from './gtw-log';
+import * as lang from './gtw-lang';
+import * as Database from './gtw-db';
+import * as gtfs from './gtw-citydata-transit-gtfs';
+import proj4 from 'proj4';
 
 lang.changeLanguage(settings.get("preferred_language", "en"));
 

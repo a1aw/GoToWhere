@@ -18,11 +18,11 @@
     const navList = document.createElement("ul");
 
     navList.setAttribute("class", "navbar-nav");
-    navList.appendChild(navListItem("fas fa-plus-circle", "nav-plugins"));
-    navList.appendChild(navListItem("fas fa-cog", "nav-settings"));
-    navList.appendChild(navListItem("fab fa-github", "nav-github"));
-    navList.appendChild(navListItem("fas fa-exclamation-triangle", "nav-feedback"));
-    navList.appendChild(navListItem("fas fa-info-circle", "nav-about"));
+    navList.appendChild(navListItem("plugins", "fas fa-plus-circle", "nav-plugins"));
+    navList.appendChild(navListItem("settings", "fas fa-cog", "nav-settings"));
+    navList.appendChild(navListItem("github", "fab fa-github", "nav-github"));
+    navList.appendChild(navListItem("feedback", "fas fa-exclamation-triangle", "nav-feedback"));
+    navList.appendChild(navListItem("about", "fas fa-info-circle", "nav-about"));
 
     navCollapse.setAttribute("class", "collapse navbar-collapse");
     navCollapse.setAttribute("id", "collapsibleNavbar");
@@ -34,11 +34,11 @@
     return nav;
 }
 
-function navListItem(iconCss, msgKey) {
+function navListItem(linkName, iconCss, msgKey) {
     const listItem = document.createElement("li");
     const btn = document.createElement("button");
 
-    btn.setAttribute("class", "btn btn-link nav-link header-links-plugins");
+    btn.setAttribute("class", "btn btn-link nav-link header-links-" + linkName);
     btn.setAttribute("data-toggle", "collapse");
     btn.setAttribute("data-target", ".navbar-collapse.show");
     btn.innerHTML = "<i class=\"" + iconCss + "\"></i> <span data-i18n=\"" + msgKey + "\"></span>";
