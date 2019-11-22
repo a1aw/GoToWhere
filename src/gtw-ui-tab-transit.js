@@ -191,6 +191,8 @@ function describeCalendar(calendar, onlyDates = false) {
     return text;
 }
 
+var __cachedFirstLetters = false;
+
 async function searchRoutes() {
     var overlayFadeInTimeout = setTimeout(function () {
         $(".loading-overlay").fadeIn(500);
@@ -210,15 +212,29 @@ async function searchRoutes() {
     
     var html = "<ul class=\"list-group\">";
 
+    var st;
+    st = Date.now();
     if (val.length === 0) {
-        firstLetters = await gtfs.getAllRouteNames(val.length, 1, true);
+        console.log("FIRSTLETTERS");
+        if (!__cachedFirstLetters) {
+            firstLetters = await gtfs.getAllRouteNames(val.length, 1, true);
+            __cachedFirstLetters = firstLetters;
+        } else {
+            firstLetters = __cachedFirstLetters;
+        }
+        console.log("Used " + (Date.now() - st) + " ms");
+        st = Date.now();
     } else {
+        console.log("SEARCH");
         var result = await gtfs.searchRoutes(val);
+        console.log("Used " + (Date.now() - st) + " ms");
+        st = Date.now();
 
         var i;
         var j;
         var k;
         var l;
+        var key;
         var routeName;
         var trips;
         var trip;
@@ -227,6 +243,7 @@ async function searchRoutes() {
         var tripId;
         var routeId;
         var lastStop;
+        var lastStopId;
         var stopTimes;
         var calendar;
         var calendars = {};
@@ -246,7 +263,21 @@ async function searchRoutes() {
 
         var count = 0;
 
+        var fetchedAgency = {};
+        var fetchedTripsByRouteId = {};
+        var fetchedStopTimePaths = {};
+        var fetchedStops = {};
+
+        var beforeLoopTime = 0;
+        var beforeLoopCount = 0;
+
+        var afterLoopTime = 0;
+        var afterLoopCount = 0;
+
+        var xst;
+
         for (i = 0; i < result.length; i++) {
+            xst = Date.now();
             route = result[i];
             routeId = route["route_id"];
             routeName = Lang.localizedKey(route, "route_short_name");
@@ -261,8 +292,19 @@ async function searchRoutes() {
                 }
             }
 
-            agency = await gtfs.getAgency(pkg, provider, agencyId);
-            trips = await gtfs.getTripsByRouteId(pkg, provider, routeId);
+            key = pkg + "," + provider + "," ;
+            if (!fetchedAgency[key + agencyId]) {
+                agency = fetchedAgency[key + agencyId] = await gtfs.getAgency(pkg, provider, agencyId);
+            } else {
+                agency = fetchedAgency[key + agencyId];
+            }
+
+            if (!fetchedTripsByRouteId[key + routeId]) {
+                trips = fetchedTripsByRouteId[key + routeId] = await gtfs.getTripsByRouteId(pkg, provider, routeId);
+            } else {
+                trips = fetchedTripsByRouteId[key + routeId];
+            }
+
             pathIds = [];
             serviceIds = [];
             for (j = 0; j < trips.length; j++) {
@@ -276,8 +318,11 @@ async function searchRoutes() {
                     serviceIds.push(serviceId);
                 }
             }
+            beforeLoopTime += Date.now() - xst;
+            beforeLoopCount++;
 
             for (j = 0; j < pathIds.length; j++) {
+                xst = Date.now();
                 pathId = pathIds[j];
 
                 html +=
@@ -288,8 +333,18 @@ async function searchRoutes() {
                     "    </div>" +
                     "    <div class=\"d-flex flex-column stop-info mr-auto\">";
 
-                stopTimes = await gtfs.getStopTimePathByPathId(pkg, provider, pathId);
-                lastStop = await gtfs.getStop(pkg, provider, stopTimes[stopTimes.length - 1]["stop_id"]);
+                if (!fetchedStopTimePaths[key + pathId]) {
+                    stopTimes = fetchedStopTimePaths[key + pathId] = await gtfs.getStopTimePathByPathId(pkg, provider, pathId);
+                } else {
+                    stopTimes = fetchedStopTimePaths[key + pathId];
+                }
+
+                lastStopId = stopTimes[stopTimes.length - 1]["stop_id"];
+                if (!fetchedStops[key + lastStopId]) {
+                    lastStop = fetchedStops[key + lastStopId] = await gtfs.getStop(pkg, provider, lastStopId);
+                } else {
+                    lastStop = fetchedStops[key + lastStopId];
+                }
 
                 html += "        <div><b>" + $.i18n("transit-eta-to") + ":</b> " + gtfs.selectAgencyStopName(agency["agency_id"], Lang.localizedKey(lastStop, "stop_name")) + "</div>";
 
@@ -334,9 +389,15 @@ async function searchRoutes() {
                     "        </div>" +
                     "    </div>" +
                     "</li>";
+                afterLoopTime += Date.now() - xst;
+                afterLoopCount++;
             }
         }
     }
+    console.log("Used " + (Date.now() - st) + " ms");
+    console.log("BeforeLoopAvg: " + beforeLoopTime / beforeLoopCount + " ms (" + beforeLoopCount + " times)");
+    console.log("AfterLoopAvg: " + afterLoopTime / afterLoopCount + " ms (" + afterLoopCount + " times)");
+    st = Date.now();
 
     html += "</ul>";
     $(".all-route-list").html(html);
@@ -360,6 +421,7 @@ async function searchRoutes() {
     clearTimeout(overlayFadeInTimeout);
     $(".loading-overlay").fadeOut(500);
     adjustMargin();
+    console.log("Used " + (Date.now() - st) + " ms");
 }
 
 function resetProviderSort() {
