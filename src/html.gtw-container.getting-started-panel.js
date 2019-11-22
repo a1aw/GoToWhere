@@ -5,6 +5,7 @@
     const wizardSteps = document.createElement("ul");
     const wizardStepContents = document.createElement("div");
 
+    appTitle.setAttribute("class", "app-title");
     appTitle.innerHTML = "<i class=\"fas fa-map-marked-alt\"></i> <span data-i18n=\"app-name\"></span> <span class=\"lead\" data-i18n=\"app-desc\"></span>";
 
     wizardSteps.appendChild(wizardStep("#step-1", "getting-started-wizard-step-language"));
@@ -60,6 +61,7 @@ function step1() {
 
     inputGroup.setAttribute("class", "input-group mb-3");
     inputGroup.appendChild(inputGroupPrepend);
+    inputGroup.appendChild(select);
 
     link.setAttribute("href", "https://github.com/mob41/GoToWhere");
     link.setAttribute("target", "_blank");
@@ -105,13 +107,14 @@ function step2() {
 
     inputGroup.setAttribute("class", "input-group mb-3");
     inputGroup.appendChild(inputGroupPrepend);
+    inputGroup.appendChild(select);
 
     p2.setAttribute("id", "pluginsToInstallCount");
 
     accord.setAttribute("class", "accordion");
     accord.setAttribute("id", "pluginsToInstallAccordion");
 
-    container.setAttribute("id", "step-1");
+    container.setAttribute("id", "step-2");
     container.appendChild(p1);
     container.appendChild(inputGroup);
     container.appendChild(p2);
@@ -144,7 +147,8 @@ function step3() {
     btn.setAttribute("type", "button");
     btn.setAttribute("id", "getStartedBtn");
     btn.setAttribute("data-i18n", "getting-started-wizard-step-finish-get-started-btn");
-    
+
+    container.setAttribute("id", "step-3");
     container.appendChild(p1);
     container.appendChild(p2);
     container.appendChild(p3);

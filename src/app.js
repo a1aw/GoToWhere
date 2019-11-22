@@ -38,6 +38,23 @@ if ('serviceWorker' in navigator) {
     });
 }
 
+import * as Cors from './gtw-cors';
+import * as PluginLoader from './gtw-pluginloader';
+import * as Transit from './gtw-citydata-transit';
+import * as TransitEta from './gtw-citydata-transit-eta';
+import * as Map from './gtw-map';
+import * as loc from './gtw-location';
+import * as ui from './gtw-ui';
+import * as settings from './gtw-settings';
+import * as RequestLimiter from './gtw-requestlimiter';
+import * as log from './gtw-log';
+import * as lang from './gtw-lang';
+import * as Database from './gtw-db';
+import * as gtfs from './gtw-citydata-transit-gtfs';
+import proj4 from 'proj4';
+
+settings.load();
+
 import './html.loc-status-btn';
 import './html.build-version';
 import './html.startup';
@@ -77,40 +94,12 @@ window.adjustMargin = function () {
 };
 adjustMargin();
 
-/*
-requirejs.config({
-    baseUrl: 'js/lib',
-    paths: {
-        "xhook": "../xhook.min",
-        "crypto-js": "../../vendor/crypto-js-3.1.9-1/crypto-js",
-        "proj4": "../../vendor/proj4js-2.5.0/dist/proj4"
-    }
-});
-*/
-
-import * as Cors from './gtw-cors';
-import * as PluginLoader from './gtw-pluginloader';
-import * as Transit from './gtw-citydata-transit';
-import * as TransitEta from './gtw-citydata-transit-eta';
-import * as Map from './gtw-map';
-import * as loc from './gtw-location';
-import * as ui from './gtw-ui';
-import * as settings from './gtw-settings';
-import * as RequestLimiter from './gtw-requestlimiter';
-import * as log from './gtw-log';
-import * as lang from './gtw-lang';
-import * as Database from './gtw-db';
-import * as gtfs from './gtw-citydata-transit-gtfs';
-import proj4 from 'proj4';
+lang.changeLanguage(settings.get("preferred_language", "en"));
 
 window.p = TransitEta;
 
 proj4.defs("EPSG:2326", "+proj=tmerc +lat_0=22.31213333333334 +lon_0=114.1785555555556 +k=1 +x_0=836694.05 +y_0=819069.8 +ellps=intl +towgs84=-162.619,-276.959,-161.764,0.067753,-2.24365,-1.15883,-1.09425 +units=m +no_defs");
 proj4.defs("EPSG:4326", "+proj=longlat +datum=WGS84 +no_defs");
-
-settings.load();
-
-lang.changeLanguage(settings.get("preferred_language", "en"));
 
 RequestLimiter.start();
 
