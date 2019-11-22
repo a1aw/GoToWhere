@@ -1,1 +1,0 @@
-{"version":3,"sources":["webpack:///./src/ui/modal-loading-footer.html"],"names":["module","exports"],"mappings":"4EAAAA,EAAOC,QAAU","file":"22.799efe697b64d5a98011.js","sourcesContent":["module.exports = \"<p id=loading-footer></p>\";"],"sourceRoot":""}

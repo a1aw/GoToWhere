@@ -1,1 +1,0 @@
-{"version":3,"sources":["webpack:///./src/ui/modal-viewgtfsalerts-footer.html"],"names":["module","exports"],"mappings":"4EAAAA,EAAOC,QAAU","file":"37.f8fdf7d4be5cec26dbaa.js","sourcesContent":["module.exports = \"<p style=text-align:center data-i18n=app-license-message></p>\";"],"sourceRoot":""}

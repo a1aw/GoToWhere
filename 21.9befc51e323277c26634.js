@@ -1,2 +1,0 @@
-(window.webpackJsonp=window.webpackJsonp||[]).push([[21],{208:function(s,n){s.exports='<div class="d-flex justify-content-center align-items-center"> <div class=spinner-border role=status aria-hidden=true></div> <strong id=loading-status class=ml-3>Loading...</strong> </div>'}}]);
-//# sourceMappingURL=21.9befc51e323277c26634.js.map

@@ -1,2 +1,0 @@
-(window.webpackJsonp=window.webpackJsonp||[]).push([[15],{206:function(a,p){a.exports='<div class=text-center><h1><i class="fas fa-map-marked-alt"></i> <span data-i18n=app-name></span></h1></div> <hr/> <p data-i18n=about-desc></p>'}}]);
-//# sourceMappingURL=15.2cc42d78627906a21462.js.map

@@ -1,0 +1,1 @@
+{"version":3,"sources":["webpack:///./src/ui/modal-viewgtfsalerts-body.html"],"names":["module","exports"],"mappings":"4EAAAA,EAAOC,QAAU","file":"36.54fca452b82e4cfbb385.js","sourcesContent":["module.exports = \"<div class=accordion id=gtfsAlertsAccordion> </div>\";"],"sourceRoot":""}

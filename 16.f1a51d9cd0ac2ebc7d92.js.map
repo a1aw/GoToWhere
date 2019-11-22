@@ -1,0 +1,1 @@
+{"version":3,"sources":["webpack:///./src/ui/modal-about-footer.html"],"names":["module","exports"],"mappings":"4EAAAA,EAAOC,QAAU","file":"16.f1a51d9cd0ac2ebc7d92.js","sourcesContent":["module.exports = \"<p style=text-align:center data-i18n=app-license-message></p>\";"],"sourceRoot":""}

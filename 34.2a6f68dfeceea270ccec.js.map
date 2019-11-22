@@ -1,1 +1,0 @@
-{"version":3,"sources":["webpack:///./src/ui/modal-updated-footer.html"],"names":["module","exports"],"mappings":"4EAAAA,EAAOC,QAAU","file":"34.2a6f68dfeceea270ccec.js","sourcesContent":["module.exports = \"<button class=\\\"btn btn-success btn-block\\\" type=button id=updated-okay-btn data-i18n=updated-okay-btn></button>\";"],"sourceRoot":""}
