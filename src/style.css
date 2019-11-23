@@ -148,6 +148,12 @@ body {
     display: none;
 }
 
+/* Navigation CSS */
+
+.select-location-field {
+    background-color: #fff!important;
+}
+
 /* ETA CSS */
 .bg-trans {
     background-color: unset;
@@ -418,16 +424,16 @@ body {
     }
 
     .gtw-container {
-        width: 35%;
+        width: 25%;
     }
 
     .map-overlay {
-        width: 35%;
+        width: 25%;
         /*display: none;*/
     }
 
     .touch-keypad {
-        width: 35%;
+        width: 25%;
     }
 
     .getting-started-panel {

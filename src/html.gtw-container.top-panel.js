@@ -5,8 +5,8 @@
     const tabPanel = document.createElement("div");
 
     btnGroup.setAttribute("class", "tabs btn-group");
-    btnGroup.appendChild(tabButton("transitEta", "fas fa-bus", "home-tab-transit", true));
-    btnGroup.appendChild(tabButton("navigation", "fas fa-location-arrow", "home-tab-navigation", false, true));
+    btnGroup.appendChild(tabButton("transit", "fas fa-bus", "home-tab-transit", true));
+    btnGroup.appendChild(tabButton("navigation", "fas fa-location-arrow", "home-tab-navigation"));
     container.appendChild(btnGroup);
 
     tabPanel.setAttribute("class", "tab-panel");

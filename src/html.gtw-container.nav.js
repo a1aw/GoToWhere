@@ -28,7 +28,9 @@
     navCollapse.setAttribute("id", "collapsibleNavbar");
     navCollapse.appendChild(navList);
 
-    nav.setAttribute("class", "navbar navbar-light");
+    var darkMode = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+    nav.setAttribute("class", "navbar navbar-" + (darkMode ? "dark" : "light"));
     nav.appendChild(navCollapse);
 
     return nav;

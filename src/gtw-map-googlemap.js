@@ -2,6 +2,7 @@
 
 import config from './gtw-config';
 import * as loc from './gtw-location';
+import * as Event from './gtw-event';
 
 var markerInc = 1;
 var markers = {};
@@ -29,6 +30,11 @@ export function init() {
             });
             initDarkMode();
             checkIfDarkMode();
+
+            map.addListener("center_changed", function () {
+                Event.dispatchEvent(Event.EVENTS.EVENT_MAP_CENTER_CHANGED, getCenter());
+            });
+
             resolve();
             delete window.initMap;
         };
@@ -147,6 +153,14 @@ export function setCenter(coords) {
     return map.setCenter(coords);
 }
 
+export function getCenter() {
+    var center = map.getCenter();
+    return {
+        lat: center.lat(),
+        lng: center.lng()
+    };
+}
+
 export function setZoom(zoom) {
     return map.setZoom(zoom);
 }
@@ -154,9 +168,9 @@ export function setZoom(zoom) {
 export function addMarker(position, options, onClickFunc) {
     var marker = new google.maps.Marker({
         position: position,
-        label: options.label,
-        title: options.title,
-        icon: options.icon,
+        label: options ? options.label : undefined,
+        title: options ? options.title : undefined,
+        icon: options? options.icon : undefined,
         map: map
     });
     markers[markerInc] = marker;

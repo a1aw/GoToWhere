@@ -89,6 +89,12 @@
   "home-tab-transit": "Transit",
   "home-tab-navigation": "Navigation",
 
+  "location-from-location-short": "From",
+  "location-from-location-long": "Depart from",
+  "location-to-location-short": "To",
+  "location-to-location-long": "Arrive at",
+  "location-move-to-desired-location": "Move to your desired location",
+  "location-move-to-desired-location-confirm-btn": "Confirm",
   "location-error": "Location Error",
   "location-error-user-denied-location": "You have denied this app to obtain your current location. You can still use this app, but location is required to find nearby routes.<br />You can use the following steps to unblock location access:<br /><br /><a href=\"https://stackoverflow.com/a/14444695\" target=\"_blank\">iOS</a> | <a href=\"https://support.google.com/chrome/answer/114662?co=GENIE.Platform%3DAndroid&hl=en\" target=\"_blank\">Android</a>",
   "location-error-could-not-get-location": "Could not get your current location. Please ensure you are in a open area while using this app.",

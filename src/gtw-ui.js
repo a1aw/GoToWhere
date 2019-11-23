@@ -4,6 +4,7 @@ import * as Map from './gtw-map';
 import * as PluginLoader from './gtw-pluginloader';
 import * as Loc from './gtw-location';
 import * as Event from './gtw-event';
+import * as TouchKeypad from './gtw-ui-touchkeypad';
 
 var currentTabModule = false;
 var currentModalModule = false;
@@ -79,12 +80,6 @@ $(".ui-pull-down-btn").on("click", function () {
     $(".mobile-split-container").css("height", splitContainerPercent + "%");
     adjustMargin();
 });
-
-var darkMode = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-if (darkMode) {
-    $(".header nav").removeClass("navbar-light");
-    $(".header nav").addClass("navbar-dark");
-}
 
 export function init() {
     if (Object.keys(PluginLoader.plugins).length === 0) {
@@ -219,6 +214,11 @@ export function cleanUpTab() {
     if (currentTabModule) {
         currentTabModule.disable();
         currentTabModule = false;
+        $(".tab-panel").html("");
+        $(".content-panel-container").html("");
+        $(".split-map-tab-panel").html("");
+        $(".split-map-container").html("");
+        TouchKeypad.hideTouchKeypad();
     }
 }
 

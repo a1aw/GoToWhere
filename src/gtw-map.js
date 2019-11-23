@@ -20,6 +20,10 @@ export function setCenter(coords) {
     return map.setCenter(coords);
 }
 
+export function getCenter() {
+    return map.getCenter();
+}
+
 export function setZoom(zoom) {
     return map.setZoom(zoom);
 }

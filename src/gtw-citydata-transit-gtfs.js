@@ -100,6 +100,24 @@ export function selectAgencyStopName(agencyId, stopName) {
     }
 }
 
+export function selectFirstAgencyStopName(stopName){
+    if (stopName.startsWith("\"") && stopName.endsWith("\"")) {
+        stopName = stopName.substr(1, stopName.length - 2);
+    }
+    var splits = stopName.split("|");
+    if (splits.length > 0) {
+        var val = splits[0];
+        var spaceIndex = val.indexOf("] ");
+        if (spaceIndex === -1) {
+            return val;
+        } else {
+            return val.substr(spaceIndex + 2);
+        }
+    } else {
+        return stopName;
+    }
+}
+
 export async function getCurrentTrip(pkg, provider, routeId) {
     var trips = await getTripsByRouteId(pkg, provider, routeId);
     var freq;

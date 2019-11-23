@@ -89,6 +89,12 @@
   "home-tab-transit": "交通",
   "home-tab-navigation": "導航",
 
+  "location-from-location-short": "從",
+  "location-from-location-long": "出發地",
+  "location-to-location-short": "往",
+  "location-to-location-long": "目的地",
+  "location-move-to-desired-location": "把座標移動到想要的位置",
+  "location-move-to-desired-location-confirm-btn": "確定",
   "location-error": "無法獲取當前位置",
   "location-error-user-denied-location": "您選擇了不允許網站獲取您的當前位置。 您仍然可以正常使用程式的其他功能，但是如要搜尋附近的路線，則需要您的當前位置。<br />您可以嘗試用以下步驟重新允許網站獲取您的當前位置：<br /><br /><a href=\"https://stackoverflow.com/a/14444695\" target=\"_blank\">iOS</a> | <a href=\"https://support.google.com/chrome/answer/114662?co=GENIE.Platform%3DAndroid&hl=en\" target=\"_blank\">Android</a>",
   "location-error-could-not-get-location": "無法獲取您的當前位置。 請確保您在廣闊或GPS能覆蓋的地方，然後再試。",

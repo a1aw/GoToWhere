@@ -10,6 +10,7 @@ function component() {
     const para = document.createElement("p");
 
     var headerText;
+    console.log(Lang.getLocale());
     if (Lang.getLocale() === "zh") {
         headerText = "去邊㗎";
     } else {
