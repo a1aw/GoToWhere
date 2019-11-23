@@ -1,2 +1,0 @@
-(window.webpackJsonp=window.webpackJsonp||[]).push([[25],{227:function(n,o){n.exports='<button class="btn btn-warning" type=button id=plugin-closed-api-confirm-yes data-i18n=plugin-closed-api-confirm-yes></button> <button class="btn btn-secondary" type=button id=plugin-closed-api-confirm-no data-i18n=plugin-closed-api-confirm-no></button>'}}]);
-//# sourceMappingURL=25.d27fe07df6f17fabc0b4.js.map

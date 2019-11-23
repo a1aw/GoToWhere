@@ -1,1 +1,0 @@
-{"version":3,"sources":["webpack:///./src/ui/modal-pluginclosedapi-header.html"],"names":["module","exports"],"mappings":"4EAAAA,EAAOC,QAAU","file":"26.7245a1a4701471788201.js","sourcesContent":["module.exports = \"<h5 class=modal-title><i class=\\\"fas fa-exclamation-triangle\\\"></i> <span data-i18n=plugin-closed-api-title></span></h5>\";"],"sourceRoot":""}

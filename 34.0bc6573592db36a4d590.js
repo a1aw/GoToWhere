@@ -1,2 +1,0 @@
-(window.webpackJsonp=window.webpackJsonp||[]).push([[34],{230:function(t,n){t.exports='<button class="btn btn-success btn-block" type=button id=updated-okay-btn data-i18n=updated-okay-btn></button>'}}]);
-//# sourceMappingURL=34.0bc6573592db36a4d590.js.map

@@ -1,0 +1,1 @@
+{"version":3,"sources":["webpack:///./src/ui/modal-pluginclosedapi-body.html"],"names":["module","exports"],"mappings":"4EAAAA,EAAOC,QAAU","file":"25.14bc886fb8c20dc7f313.js","sourcesContent":["module.exports = \"<p data-i18n=plugin-closed-api-warning></p> <p data-i18n=plugin-closed-api-confirm-message></p>\";"],"sourceRoot":""}

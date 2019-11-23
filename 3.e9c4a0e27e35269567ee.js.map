@@ -1,1 +1,0 @@
-{"version":3,"sources":["webpack:///./src/gtw-ui-modal-about.js"],"names":["enable","disable"],"mappings":"yFAAO,SAASA,KAIT,SAASC,KAJhB","file":"3.e9c4a0e27e35269567ee.js","sourcesContent":["export function enable() {\r\n    \r\n}\r\n\r\nexport function disable() {\r\n\r\n}"],"sourceRoot":""}
