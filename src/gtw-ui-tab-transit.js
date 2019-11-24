@@ -1439,6 +1439,9 @@ async function findNearbyRoutes() {
     //var paths;
     //var stopId;
 
+    var lastStopId;
+    var lastStop;
+
     var stop;
     var agency;
     var html = "<ul class=\"list-group\">";
@@ -1449,6 +1452,8 @@ async function findNearbyRoutes() {
         distance = Math.round(result.distance * 1000);
         agency = await gtfs.getAgency(result.route["package"], result.route["provider"], result.route["agency_id"]);
         stop = await gtfs.getStop(result.stopTime["package"], result.stopTime["provider"], result.stopTime["stop_id"]);
+        lastStopId = result.path[result.path.length - 1]["stop_id"];
+        lastStop = await gtfs.getStop(result.route["package"], result.route["provider"], lastStopId);
 
         html +=
             "    <li class=\"list-group-item list-group-item-action d-flex justify-content-between align-items-center route-selection\" data-gtw-package=\"" + result.route["package"] + "\" data-gtw-provider=\"" + result.route["provider"] + "\" data-gtw-agency=\"" + result.route["agency_id"] + "\" data-gtw-route-id=\"" + result.route["route_id"] + "\" data-gtw-path-id=\"" + result.trip["path_id"] + "\" data-gtw-stop-id=\"" + result.stopTime["stop_id"] + "\" data-gtw-stop-seq=\"" + result.stopTime["stop_sequence"] + "\">" +
@@ -1457,9 +1462,9 @@ async function findNearbyRoutes() {
             "            <div>" + Lang.localizedKey(result.route, "route_short_name") + "</div>" +
             "        </div>" +
             "        <div class=\"d-flex flex-column stop-info mr-auto\">" +
-            //"            <div>" + Lang.localizedKey(result.route, "route_long_name") + "</div>" +
-            //"                <b>" + $.i18n("transit-eta-to") + ":</b> <small>" + Lang.localizedKey(TransitStops.getStopById(stopId), "stopName") +
-            //"</small></div>" +
+            "            <div>" + //Lang.localizedKey(result.route, "route_long_name") + "</div>" +
+            "                <b>" + $.i18n("transit-eta-to") + ":</b> <small>" + gtfs.selectAgencyStopName(agency["agency_id"], Lang.localizedKey(lastStop, "stop_name")) +
+            "</small></div>" +
             "            <div>" +
             "                " + gtfs.selectAgencyStopName(agency["agency_id"], Lang.localizedKey(stop, "stop_name")) + " (" + distance + $.i18n("transit-eta-metres") + ")" +
             "            </div>" +

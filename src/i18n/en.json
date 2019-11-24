@@ -87,7 +87,7 @@
   "settings-key-show-debug-msg-desc": "Enable to show all debug messages on screen. (Warning, Error Messages)",
 
   "home-tab-transit": "Transit",
-  "home-tab-navigation": "Navigation",
+  "home-tab-navigation": "Navigation (Testing)",
 
   "location-from-location-short": "From",
   "location-from-location-long": "Depart from",
@@ -101,6 +101,8 @@
   "location-error-unknown": "Unknown Error: $1",
 
   "gtfs-view-alerts-title": "Alerts",
+
+  "navigate-walk-distance": "Walk for $1 metres",
 
   "transit-eta-no-timetable": "No service timetable.",
   "transit-eta-not-in-service": "Not in service time.",

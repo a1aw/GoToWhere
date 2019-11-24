@@ -45,6 +45,113 @@ var STORES = [
 // Misc
 //
 
+export async function navigate(startPos, endPos, walkRange) {
+    var nearbyStops = await searchNearbyStops(startPos.lat, startPos.lng, walkRange, true);
+    var route;
+    var stop;
+    var stopTimes;
+    var trips;
+    var routeResult;
+    var pathResults;
+    var results = [];
+    var addedRouteIds = [];
+    var dist;
+    var minDist;
+    var minDistStop;
+
+    var stopLoopTime = 0;
+    var stopLoopCount = 0;
+
+    var pathLoopTime = 0;
+    var pathLoopCount = 0;
+
+    var pathStopLoopTime = 0;
+    var pathStopLoopCount = 0;
+
+    var pathResultLoopTime = 0;
+    var pathResultLoopCount = 0;
+
+    var st;
+
+    for (var stopResult of nearbyStops) {
+        st = Date.now();
+
+        routeResult = await searchStopRoutes(stopResult.stop["package"], stopResult.stop["provider"], stopResult.stop["stop_id"]);
+        console.log("SearchStopUsed: " + (Date.now() - st));
+        pathResults = [];
+        for (var pathId in routeResult.stopTimes) {
+            var sst = Date.now();
+
+            minDist = false;
+            minDistStop = false;
+            stopTimes = await getStopTimePathByPathId(stopResult.stop["package"], stopResult.stop["provider"], pathId);
+            for (var stopTime of stopTimes) {
+                var ssst = Date.now();
+
+                stop = await getStop(stopTime["package"], stopTime["provider"], stopTime["stop_id"]);
+                dist = Misc.geoDistance(endPos.lat, endPos.lng, stop["stop_lat"], stop["stop_lon"]);
+                if (!minDist || !minDistStop || dist < minDist) {
+                    minDist = dist;
+                    minDistStop = stop;
+                }
+
+                pathStopLoopTime += Date.now() - ssst;
+                pathStopLoopCount++;
+            }
+
+            if (minDist && minDistStop && minDist <= walkRange) {
+                pathResults.push({
+                    distance: minDist,
+                    stop: minDistStop,
+                    pathId: pathId,
+                    path: stopTimes
+                });
+            }
+
+            pathLoopTime += Date.now() - sst;
+            pathLoopCount++;
+        }
+
+        for (var pathResult of pathResults) {
+            var sst = Date.now();
+
+            trips = await getTripsByPathId(pathResult.stop["package"], pathResult.stop["provider"], pathResult.pathId);
+            for (var trip of trips) {
+                if (addedRouteIds.includes(trip["route_id"])) {
+                    continue;
+                }
+                addedRouteIds.push(trip["route_id"]);
+                route = await getRoute(trip["package"], trip["provider"], trip["route_id"]);
+                results.push({
+                    route: route,
+                    startStop: stopResult.stop,
+                    endStop: pathResult.stop,
+                    path: pathResult.path,
+                    pathId: pathResult.pathId,
+                    startDistance: stopResult.distance,
+                    endDistance: pathResult.distance
+                });
+            }
+
+            pathResultLoopTime += Date.now() - sst;
+            pathResultLoopCount++;
+        }
+
+        stopLoopTime += Date.now() - st;
+        stopLoopCount++;
+    }
+    console.log("StopLoop: " + (Math.round(stopLoopTime / stopLoopCount * 100) / 100) + " count " + stopLoopCount);
+    console.log("PathLoop: " + (Math.round(pathLoopTime / pathLoopCount * 100) / 100) + " count " + pathLoopCount);
+    console.log("PathStopLoop: " + (Math.round(pathStopLoopTime / pathStopLoopCount * 100) / 100) + " count " + pathStopLoopCount);
+    console.log("PathResultLoop: " + (Math.round(pathResultLoopTime / pathResultLoopCount * 100) / 100) + " count " + pathResultLoopCount);
+
+    results.sort((a, b) => {
+        return (a.startDisance + a.endDistance) - (b.startDistance + b.endDistance);
+    });
+
+    return results;
+}
+
 export async function validateDatabase(pkg, provider, version, map) {
     var requiredRows;
     var count;
@@ -250,7 +357,7 @@ export function searchStopRoutes(pkg, provider, stopId) {
                 pathIds.push([pkg, provider, pathId]);
                 stopTimes[pathId] = stopTime;
             }
-            console.log("PATH DONE: " + (Date.now() - st));
+            //console.log("PATH DONE: " + (Date.now() - st));
         }).then(function () {
             st = Date.now();
             db["trips"].where("[package+provider+path_id]").anyOf(pathIds).each(trip => {
@@ -258,13 +365,13 @@ export function searchStopRoutes(pkg, provider, stopId) {
                 trips[routeId] = trip;
                 routeIds.push([pkg, provider, routeId]);
             }).then(function () {
-                console.log("EACH DONE: " + (Date.now() - st));
+                //console.log("EACH DONE: " + (Date.now() - st));
                 st = Date.now();
                 db["routes"].where("[package+provider+route_id]").anyOf(routeIds).each(route => {
                     var routeId = route["route_id"];
                     routes[routeId] = route;
                 }).then(function () {
-                    console.log("EACH2 DONE: " + (Date.now() - st));
+                    //console.log("EACH2 DONE: " + (Date.now() - st));
                     resolve({
                         routes: routes,
                         trips: trips,
@@ -297,6 +404,11 @@ export async function getRoute(pkg, provider, routeId) {
 export async function getTrip(pkg, provider, tripId) {
     return await db["trips"].where("[package+provider+trip_id]")
         .equals([pkg, provider, tripId]).first();
+}
+
+export async function getTripsByPathId(pkg, provider, pathId){
+    return await db["trips"].where("[package+provider+path_id]")
+        .equals([pkg, provider, pathId]).toArray();
 }
 
 export async function getTripsByRouteId(pkg, provider, routeId) {

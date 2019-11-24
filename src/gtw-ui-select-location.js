@@ -19,7 +19,7 @@ function show(text) {
 
     var center = Map.getCenter();
     marker = Map.addMarker(center);
-    Event.addListener(Event.EVENTS.EVENT_MAP_CENTER_CHANGED, eventCenterChgListener = function(loc) {
+    Event.addListener(Event.EVENTS.EVENT_MAP_CENTER_CHANGED, eventCenterChgListener = function (loc) {
         Map.setMarkerPosition(marker, loc);
     });
 
@@ -64,6 +64,9 @@ export async function select(text) {
     Event.removeListener(Event.EVENTS.EVENT_LOCATION_SELECTED, selectedListener);
     Event.removeListener(Event.EVENTS.EVENT_UI_BACK, backListener);
     Event.removeListener(Event.EVENTS.EVENT_MAP_CENTER_CHANGED, eventCenterChgListener);
+    $(".ui-pull-up-btn").css("display", "");
+    $(".ui-pull-down-btn").css("display", "");
+    $(".mobile-split-container").removeAttr("style");
     eventCenterChgListener = false;
     Map.removeMarker(marker);
     return val;

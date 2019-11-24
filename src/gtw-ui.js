@@ -61,22 +61,26 @@ $(".ui-split-map-back-btn").on("click", function () {
     showPanel();
 });
 
-var splitContainerPercent = 50;
+var splitContainerPercent = 80;
+
+export function getSplitContainerPercent() {
+    return splitContainerPercent;
+}
 
 $(".ui-pull-up-btn").on("click", function () {
-    if (splitContainerPercent >= 90) {
+    if (splitContainerPercent >= 80) {
         return;
     }
-    splitContainerPercent += 10;
+    splitContainerPercent += 20;
     $(".mobile-split-container").css("height", splitContainerPercent + "%");
     adjustMargin();
 });
 
 $(".ui-pull-down-btn").on("click", function () {
-    if (splitContainerPercent <= 10) {
+    if (splitContainerPercent <= 20) {
         return;
     }
-    splitContainerPercent -= 10;
+    splitContainerPercent -= 20;
     $(".mobile-split-container").css("height", splitContainerPercent + "%");
     adjustMargin();
 });
@@ -121,7 +125,7 @@ export function hidePanel() {
     $(".map-overlay").addClass("gtw-split-map");
     $(".split-map-panel").addClass("gtw-split-map");
     $(".split-map-container").addClass("gtw-split-map");
-    $(".mobile-split-container").addClass("gtw-split-map");
+    $(".mobile-split-container").addClass("gtw-split-map"); 
 
     //$(".split-map-panel").css("display", "block");
     //$(".split-map-container").css("display", "block");
