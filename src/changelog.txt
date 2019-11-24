@@ -1,2 +1,1 @@
-- Adds navigation results (Still cannot click and view route)
-- Adds Google Map Traffic layer
+- Fixes CSS
