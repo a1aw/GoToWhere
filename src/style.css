@@ -189,7 +189,7 @@ body {
 }
 
 .item-list .list-group li {
-    /*min-height: 100px;*/
+    min-height: 150px;
 }
 
 .all-route-list {
