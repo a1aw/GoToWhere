@@ -31,6 +31,9 @@ export function init() {
             initDarkMode();
             checkIfDarkMode();
 
+            var trafficLayer = new google.maps.TrafficLayer();
+            trafficLayer.setMap(map);
+
             map.addListener("center_changed", function () {
                 Event.dispatchEvent(Event.EVENTS.EVENT_MAP_CENTER_CHANGED, getCenter());
             });
