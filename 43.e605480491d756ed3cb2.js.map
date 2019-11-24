@@ -1,1 +1,0 @@
-{"version":3,"sources":["webpack:///./src/changelog.txt"],"names":[],"mappings":"2FAAA,OAAe","file":"43.e605480491d756ed3cb2.js","sourcesContent":["export default \"- Adds navigation results (Still cannot click and view route)\\r\\n- Adds Google Map Traffic layer\""],"sourceRoot":""}
