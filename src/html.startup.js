@@ -1,5 +1,35 @@
 ﻿import * as Lang from './gtw-lang';
 
+var headerText;
+console.log(Lang.getLocale());
+if (Lang.getLocale() === "zh") {
+	headerText = "去邊㗎";
+} else {
+	headerText = "GoToWhere";
+}
+
+var headerTexts = [
+	"<i class=\"fas fa-map-marked-alt\"></i> " + headerText,
+	"<i class=\"fas fa-map-marked-alt\"></i> GoToWhere<small>.ga</small>",
+	"<i class=\"fas fa-map-marked-alt\"></i> HeuiBin<small>.ga</small>"
+];
+
+function headerAnimation(i) {
+    if (__stopHeaderAnimation) {
+        return;
+    }
+
+    if (i === undefined || i > 2) {
+        i = 0;
+    }
+    $(".startup h1").html(headerTexts[i]);
+    $(".startup h1").fadeIn(2000, function () {
+        $(".startup h1").fadeOut(2000, function () {
+           headerAnimation(i + 1);
+        });
+    });
+}
+
 function component() {
     const element = document.createElement("div");
 
@@ -8,14 +38,6 @@ function component() {
     const textDiv = document.createElement("div");
     const header = document.createElement("h1");
     const para = document.createElement("p");
-
-    var headerText;
-    console.log(Lang.getLocale());
-    if (Lang.getLocale() === "zh") {
-        headerText = "去邊㗎";
-    } else {
-        headerText = "GoToWhere";
-    }
     header.innerHTML = "<i class=\"fas fa-map-marked-alt\"></i> " + headerText;
     header.setAttribute("class", "display-3");
 
@@ -60,3 +82,4 @@ function component() {
 }
 
 document.body.appendChild(component());
+headerAnimation();

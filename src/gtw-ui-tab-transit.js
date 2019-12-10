@@ -1154,6 +1154,7 @@ async function showStopEta(agency, route, trip, stopTimes, stop) {
 }
 
 function updateEta() {
+	/*
     var requestLen = RequestLimiter.requests.length;
     if (requestLen > 0) {
         $(".request-progress-panel").fadeIn(500);
@@ -1173,9 +1174,9 @@ function updateEta() {
             $(".request-progress-panel .progress-bar").css("width", "0%");
         });
     }
+	*/
     //var h;
     for (var result of allNearbyRoutes) {
-        var agency = gtfs.get
         var p = TransitEta.fetchEta({
             etaProviders: result.route["agency_id"].split("+"),
             agency: result.agency,

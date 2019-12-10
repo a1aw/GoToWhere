@@ -15,6 +15,8 @@ files.forEach(function (module) {
     req("./jquery.i18n." + module);
 });
 
+window.__stopHeaderAnimation = false;
+
 import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './style.css';
@@ -200,6 +202,8 @@ import("./html.startup").then(function () {
                 ui.showModal("updated", VERSION);
             }
             localStorage.setItem("gtw-lastversion", VERSION);
+			
+			__stopHeaderAnimation = true;
 
             ui.init();
 

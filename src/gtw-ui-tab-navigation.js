@@ -52,6 +52,8 @@ async function selectToLocation() {
 }
 
 async function searchNavigation() {
+    clearInterval(updateEtaTimer);
+	
     console.log("peform search");
     var st = Date.now();
     var navigationResults = await gtfs.navigate(fromPos, toPos, 0.5);
@@ -79,12 +81,14 @@ async function searchNavigation() {
             "            <div>" + $.i18n("navigate-walk-distance", distance) +
             "            </div>" +
             "        </div>" +
-            "        <span class=\"badge badge-primary badge-pill transit-eta\">" + $.i18n("transit-eta-route-not-available-short") + "</span>" +
             "    </li>";
     }
 
     html += "</ul>";
     $(".navigation-results").html(html);
+
+    //updateEta();
+    //updateEtaTimer = setInterval(updateEta, 30000);
 }
 
 export function enable() {
@@ -128,6 +132,7 @@ export function enable() {
 }
 
 export function disable() {
+	clearInterval(updateEta);
     fromPos = false;
     fromName = false;
     toPos = false;

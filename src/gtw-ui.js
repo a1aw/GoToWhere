@@ -226,11 +226,11 @@ export function cleanUpTab() {
     }
 }
 
-export function showTab(tab) {
+export function showTab(tab, ...args) {
     cleanUpTab();
     import(`./gtw-ui-tab-${tab}`).then(function (module) {
         currentTabModule = module;
-        module.enable();
+        module.enable.apply(this, args);
     });
 }
 
