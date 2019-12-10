@@ -132,7 +132,7 @@ export function enable() {
 }
 
 export function disable() {
-	clearInterval(updateEta);
+	clearInterval(updateEtaTimer);
     fromPos = false;
     fromName = false;
     toPos = false;
