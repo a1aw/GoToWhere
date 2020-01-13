@@ -54,6 +54,9 @@ export function isSamePropertyValueInArray(array, name, value) {
 }
 
 export function fillZero(number) {
+	if (number >= 60 || number < 0){
+		return -1;
+	}
     return number < 10 ? ("0" + number) : number;
 }
 
