@@ -3,13 +3,13 @@
     "version": "1.3.5",
     "description": "A cross-platform interface to display city data using a simple map.",
     "private": false,
-  "scripts": {
-    "test:mocha:watch": "webpack-dev-server --hot --config webpack.mocha.js",
-    "deploy": "git subtree push --prefix dist origin gh-pages",
-    "build": "webpack --config webpack.prod.js",
-    "watch": "webpack --watch --config webpack.dev.js",
-    "start": "webpack-dev-server --open --config webpack.dev.js"
-  },
+    "scripts": {
+        "test:mocha:watch": "webpack-dev-server --hot --config webpack.mocha.js",
+        "deploy": "git subtree push --prefix dist origin gh-pages",
+        "build": "webpack --config webpack.prod.js",
+        "watch": "webpack --watch --config webpack.dev.js",
+        "start": "webpack-dev-server --open --config webpack.dev.js"
+    },
     "repository": {
         "type": "git",
         "url": "git+https://github.com/mob41/GoToWhere.git"

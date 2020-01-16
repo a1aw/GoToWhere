@@ -8,7 +8,14 @@ db.version(2).stores({
     "transitReference": "[package+provider]"
 });
 
+export async function deleteDatabase(){
+    return db.delete();
+}
+
 export async function putPluginStorage(pkg, data) {
+    if (typeof pkg !== "string" || typeof data !== "object"){
+        return false;
+    }
     var clone = Object.assign({}, data);
     return await db["pluginStorage"].put({
         "package": pkg,
