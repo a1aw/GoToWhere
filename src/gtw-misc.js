@@ -1,6 +1,9 @@
 //GTW Misc
 
 export function geoDistance(lat1, lon1, lat2, lon2) {
+    if (!lat1 || !lon1 || !lat2 || !lon2) {
+        return -1;
+    }
     var p = 0.017453292519943295;    // Math.PI / 180
     var c = Math.cos;
     var a = 0.5 - c((lat2 - lat1) * p) / 2 +
@@ -11,6 +14,9 @@ export function geoDistance(lat1, lon1, lat2, lon2) {
 }
 
 export function stringCompare(a, b) {
+    if (typeof a !== "string" || typeof b !== "string") {
+        return false;
+    }
     if (a.length < b.length) {
         return -1;
     } else if (a.length > b.length) {
@@ -33,6 +39,9 @@ export function stringCompare(a, b) {
 }
 
 export function allProgress(proms, progress_cb) {
+    if (!proms.length || typeof progress_cb !== "function") {
+        return false;
+    }
     let d = 0;
     progress_cb(0);
     for (const p of proms) {

@@ -8,7 +8,12 @@ describe("gtw-db#putPluginStorage", () => {
         }).then(() => {
             return Database.db["pluginStorage"].where("package").equals("testingpackage").first();
         }).then((row) => {
-            assert.equal(row, {"package": "testingpackage", "testingData": "dataTesting"});
+            if (!row ||
+                row.package !== "testingpackage" ||
+                !row.data ||
+                row.data.testingData !== "dataTesting") {
+                assert.fail("Invalid data inputted into database");
+            }
         });
     });
 });

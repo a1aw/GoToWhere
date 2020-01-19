@@ -9,7 +9,7 @@ db.version(2).stores({
 });
 
 export async function deleteDatabase(){
-    return db.delete();
+    return await db.delete();
 }
 
 export async function putPluginStorage(pkg, data) {

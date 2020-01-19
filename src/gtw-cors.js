@@ -7,9 +7,13 @@ const CORS_PROTOCOL = "https://";
 export var domains = {};
 
 export function register(domain, allowCors = false) {
+    if (typeof domain !== "string") {
+        return false;
+    }
     var config = {};
     config.allowCors = allowCors;
     domains[domain] = config;
+    return true;
 }
 
 xhook.before(function (request, callback) {
@@ -89,12 +93,22 @@ xhook.before(function (request, callback) {
 });
 
 export function extractHost(url) {
+    if (typeof url !== "string" || !url.startsWith("http")) {
+        return false;
+    }
+    /*
     if (!url.includes("://")) {
         return "___local___";
     } else if (url.startsWith("file://")) {
         return "___file___";
     }
+    */
     var i = url.indexOf("://");
+
+    if (i === -1) {
+        return false;
+    }
+
     var last = url.substring(i + 3);
 
     i = last.indexOf("/");
@@ -110,6 +124,10 @@ export function isCors(url) {
     }
 
     var host = extractHost(url);
+
+    if (!host) {
+        return true;
+    }
 
     if (domains[host]) {
         var config = domains[host];
