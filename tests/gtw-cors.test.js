@@ -29,14 +29,14 @@ describe("gtw-cors#isCors", () => {
     it("should return true if URL is not https", () => {
         assert.equal(Cors.isCors("http://www.example.com/testingabc"), true);
     });
-    it("should return true if host cannot be extracted", () => {
-        assert.equal(Cors.isCors("random:www.example.com/testingabc"), true);
-    });
     it("should return true if not registered and not equal to current host", () => {
         assert.equal(Cors.isCors("https://www.example.com/testingabc"), true);
     });
-    it("should return the registered value if it has been registered", () => {
-        Cors.register("www.example.com", false);
-        assert.equal(Cors.isCors("https://www.example.com/testingabc"), true);
+    it("should return the registered value (false) if it has been registered", () => {
+        Cors.register("www.example.com", true);
+        assert.equal(Cors.isCors("https://www.example.com/testingabc"), false);
+    });
+    it("should return true if host cannot be extracted", () => {
+        assert.equal(Cors.isCors("random:www.example.com/testingabc"), true);
     });
 });

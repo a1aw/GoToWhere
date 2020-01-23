@@ -7,7 +7,7 @@ import * as Lang from '../../gtw-lang';
 import * as RequestLimiter from '../../gtw-requestlimiter';
 
 export function onload() {
-    Cors.register("db.kmbeta.ml", true);
+    Cors.register("db.hktransit.ml", true);
     Cors.register("etav3.kmb.hk", false);
     TransitEta.registerProvider("gtwp-kmblwb", "kmblwb", ["KMB", "LWB"], new KmbLwbEtaProvider());
     return true;
@@ -22,7 +22,7 @@ var KmbLwbEtaProvider = function () {
 
     this.checkDatabaseUpdate = function (resolve, reject, localVer) {
         $.ajax({
-            url: "https://db.kmbeta.ml/kmbeta_db-version.json",
+            url: "https://db.hktransit.ml/kmbeta_db-version.json",
             cache: false,
             dataType: "json",
             success: function (data) {
@@ -265,7 +265,7 @@ var KmbLwbEtaProvider = function () {
 
     this.fetchDatabase = function (resolve, reject) {
         $.ajax({
-            url: "https://db.kmbeta.ml/kmbeta_db.json",
+            url: "https://db.hktransit.ml/kmbeta_db.json",
             cache: false,
             dataType: "json",
             success: function (data) {

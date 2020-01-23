@@ -5,15 +5,16 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const WorkerPlugin = require('worker-plugin');
 const common = require('./webpack.common.js');
+const merge = require('webpack-merge');
 
 module.exports = merge(common, {
     entry: {
         app: './src/app.js'
     },
     output: {
-        filename: '[name].[hash].js',
+        filename: '[name].[contenthash].js',
         path: path.resolve(__dirname, 'dist'),
-        chunkFilename: '[name].[hash].js'
+        chunkFilename: '[name].[contenthash].js'
     },
     optimization: {
         runtimeChunk: 'single',
@@ -40,4 +41,4 @@ module.exports = merge(common, {
             hash: true
         })
     ]
-};
+});

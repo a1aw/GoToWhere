@@ -13,7 +13,7 @@ function parseIsoDatetime(dtstr) {
 }
 
 export function onload() {
-    Cors.register("db.kmbeta.ml", true);
+    Cors.register("db.hktransit.ml", true);
     Transit.registerProvider("gtwp-hktransit", "hktransit", new HkTransitGtfsProvider());
     return true;
 };
@@ -22,7 +22,7 @@ var HkTransitGtfsProvider = function () {
 
     this.checkDatabaseUpdate = function (resolve, reject, localVer) {
         $.ajax({
-            url: "https://db.kmbeta.ml/hktransit_gtfs-version.json",
+            url: "https://db.hktransit.ml/hktransit_gtfs-version.json",
             cache: false,
             dataType: "json",
             success: function (data) {
@@ -45,7 +45,7 @@ var HkTransitGtfsProvider = function () {
     };
 
     this.fetchDatabase = function (resolve, reject) {
-        JSZipUtils.getBinaryContent("https://db.kmbeta.ml/hktransit_gtfs.zip", function (err, data) {
+        JSZipUtils.getBinaryContent("https://db.hktransit.ml/hktransit_gtfs.zip", function (err, data) {
             if (err) {
                 console.error(err);
                 reject(err);

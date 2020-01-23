@@ -39,7 +39,7 @@ export function stringCompare(a, b) {
 }
 
 export function allProgress(proms, progress_cb) {
-    if (!proms.length || typeof progress_cb !== "function") {
+    if (typeof proms.length !== "number" || typeof progress_cb !== "function") {
         return false;
     }
     let d = 0;

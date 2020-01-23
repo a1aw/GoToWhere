@@ -1,11 +1,10 @@
 const merge = require('webpack-merge');
-const common = require('./webpack.common.js');
+const build = require('./webpack.build.js');
 
-module.exports = merge(common, {
+module.exports = merge(build, {
     mode: 'development',
     devtool: 'inline-source-map',
     devServer: {
-        host: '0.0.0.0',
         contentBase: './dist'
     }
 });

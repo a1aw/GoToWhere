@@ -62,7 +62,7 @@ export function load(pc) {
         console.error("Error: LocalStorage is not supported in this browser.");
         return;
     }
-
+	
     var pluginsStr = localStorage.getItem("gtw-plugins");
 
     if (pluginsStr) {

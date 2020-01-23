@@ -6,7 +6,7 @@ import * as gtfs from '../../gtw-citydata-transit-gtfs';
 import * as Lang from '../../gtw-lang';
 
 export function onload() {
-    Cors.register("db.kmbeta.ml", true);
+    Cors.register("db.hktransit.ml", true);
     Cors.register("rt.data.gov.hk", true);
     TransitEta.registerProvider("gtwp-ctbnwfb", "ctbnwfb", ["CTB", "NWFB"], new CtbNwfbEtaProvider());
     return true;
@@ -21,7 +21,7 @@ var CtbNwfbEtaProvider = function () {
 
     this.checkDatabaseUpdate = function (resolve, reject, localVer) {
         $.ajax({
-            url: "https://db.kmbeta.ml/ctbnwfb_db-version.json",
+            url: "https://db.hktransit.ml/ctbnwfb_db-version.json",
             cache: false,
             dataType: "json",
             success: function (data) {
@@ -213,7 +213,7 @@ var CtbNwfbEtaProvider = function () {
 
     this.fetchDatabase = function (resolve, reject) {
         $.ajax({
-            url: "https://db.kmbeta.ml/ctbnwfb_db.json",
+            url: "https://db.hktransit.ml/ctbnwfb_db.json",
             cache: false,
             dataType: "json",
             success: function (data) {
