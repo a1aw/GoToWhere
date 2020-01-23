@@ -11,6 +11,10 @@ An interface to display city data using a simple map.
 
 4. You may also directly execute ```npm start``` to start the development server. A browser will be opened directly.
 
+## Testing
+
+Execute ```npm run test:mocha:watch``` and a browser will be started and tests will be run automatically.
+
 ## Redirects
 There are three domains that allows you to access GoWhere, all redirects back to https://www.gotowhere.ga:
 
