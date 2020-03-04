@@ -8,6 +8,7 @@ var fromPos = false;
 var fromName = false;
 var toPos = false;
 var toName = false;
+var updateEtaTimer = false;
 
 async function selectFromLocation() {
     if (fromPos) {
