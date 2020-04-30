@@ -60,7 +60,7 @@
         "dexie": "^2.0.4",
         "font-awesome": "^4.7.0",
         "gtfs-realtime-bindings": "0.0.5",
-        "jquery": "^3.4.1",
+        "jquery": "^3.5.0",
         "jszip": "^3.2.2",
         "jszip-utils": "^0.1.0",
         "oboe": "^2.1.5",
