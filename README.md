@@ -1,6 +1,10 @@
 ﻿# 去邊㗎 HeuiBin.ga (GoToWhere)
 An interface to display city data using a simple map.
 
+## Deprecated
+
+This version is deprecated. The source code is rewriting to React Native to enable native-only features like push notifications and faster navigations.
+
 ## Compiling
 
 1. Install Node.JS with npm
