@@ -1,0 +1,72 @@
+{
+  "name": "GoToWhere",
+  "version": "0.0.1",
+  "description": "A cross-platform interface to display city data using a simple map.",
+  "private": true,
+  "scripts": {
+    "android": "react-native run-android",
+    "ios": "react-native run-ios",
+    "start": "react-native start",
+    "test": "jest",
+    "lint": "eslint .",
+    "test-web": "webpack-dev-server --hot --config ./web/webpack.mocha.js",
+    "build-web": "webpack --config ./web/webpack.prod.js",
+    "watch-web": "webpack --watch --config ./web/webpack.dev.js",
+    "start-web": "webpack-dev-server --open --config ./web/webpack.dev.js"
+  },
+  "keywords": [
+    "eta",
+    "city",
+    "data",
+    "open",
+    "data",
+    "hong",
+    "kong",
+    "interface",
+    "bus",
+    "train",
+    "metro"
+  ],
+  "dependencies": {
+    "@react-native-community/blur": "^3.4.1",
+    "react": "^16.9.0",
+    "react-dom": "^16.13.0",
+    "react-native": "^0.62.2",
+    "react-native-device-info": "^5.5.3",
+    "react-native-gesture-handler": "^1.6.0",
+    "react-native-maps": "0.26.1",
+    "react-native-reanimated": "^1.7.0",
+    "react-native-safe-area": "^0.5.1",
+    "react-native-web": "^0.12.2",
+    "react-redux": "^7.2.0",
+    "realm": "^3.6.5",
+    "reanimated-bottom-sheet": "^1.0.0-alpha.19",
+    "redux": "^4.0.5"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.6.2",
+    "@babel/runtime": "^7.6.2",
+    "@react-native-community/eslint-config": "^0.0.5",
+    "babel-jest": "^24.9.0",
+    "babel-loader": "^8.0.6",
+    "babel-plugin-react-native-web": "^0.12.2",
+    "clean-webpack-plugin": "^3.0.0",
+    "copy-webpack-plugin": "^5.1.1",
+    "eslint": "^6.5.1",
+    "html-webpack-plugin": "^3.2.0",
+    "jest": "^24.9.0",
+    "metro-react-native-babel-preset": "^0.56.0",
+    "mocha-loader": "^4.0.1",
+    "react-test-renderer": "16.9.0",
+    "url-loader": "^3.0.0",
+    "webpack": "^4.42.0",
+    "webpack-cli": "^3.3.11",
+    "webpack-dev-server": "^3.11.0",
+    "webpack-merge": "^4.2.2",
+    "workbox-webpack-plugin": "^5.0.0",
+    "worker-plugin": "^4.0.2"
+  },
+  "jest": {
+    "preset": "react-native"
+  }
+}
