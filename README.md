@@ -41,4 +41,4 @@ A large map is used instead of just using text to display city data. It is known
 Estimated Transit Location is introduced is show the estimated location of the transportation. It is done by comparing different ETA data of a route. This is still experimental.
 
 ## License
-[tl;dr](https://tldrlegal.com/license/gnu-general-public-license-v3-(gpl-3)) The project is licensed under the GNU General Public License v3 (GPL-3).
+[tl;dr](https://tldrlegal.com/license/gnu-affero-general-public-license-v3-(agpl-3.0)) The project is licensed under the GNU Affero General Public License v3 (AGPLv3).
