@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Dimensions, Modal } from 'react-native';
+import { Platform, StyleSheet, Dimensions, Modal } from 'react-native';
 import { Provider } from 'react-redux';
 import MapView from 'react-native-maps';
 
@@ -11,6 +11,13 @@ import CompatBlurView from './components/CompatBlurView';
 const styles = StyleSheet.create({
   map: {
     flex: 1
+  },
+  notchBlur: {
+    position: "absolute",
+    left: 0,
+    top: 0,
+    width: Dimensions.get("window").width,
+    height: 0
   }
 });
 
@@ -21,24 +28,30 @@ export default class App extends React.Component {
       currentRegion: false,
       blurHeight: 0
     });
-    SafeArea.getSafeAreaInsetsForRootView().then((results) => {
-      this.setState({
-        blurHeight: results.safeAreaInsets.top
+
+    if (Platform.OS === "ios"){
+      SafeArea.getSafeAreaInsetsForRootView().then((results) => {
+        this.setState({
+          notchBlurHeight: results.safeAreaInsets.top
+        });
       });
-    });
+    }
+  }
+
+  mapOnRegionChange = (region) => {
+    console.log(region);
   }
 
   render() {
     return (
       <Provider store={store}>
-        <MapView style={styles.map} showsMyLocationButton={true} showsUserLocation={true} onRegionChange={(region) => {
-          this.setState({
-            currentRegion: region
-          });
-        }}>
+        <MapView style={styles.map} showsMyLocationButton={true} showsUserLocation={true} onRegionChange={this.mapOnRegionChange}>
 
         </MapView>
-        <CompatBlurView blurType="light" style={{position: "absolute", left: 0, top: 0, width: Dimensions.get("window").width, height: this.state && this.state.blurHeight}}/>
+        {
+          Platform.OS === "ios" &&
+          <CompatBlurView blurType="light" blurAmount={5} style={[styles.notchBlur, {height: this.state && this.state.notchBlurHeight}]}/>
+        }
         <BottomContainer currentRegion={this.state && this.state.currentRegion} />
       </Provider>
     );

@@ -5,11 +5,12 @@ import {
   Text,
   TouchableWithoutFeedback,
   View,
+  Dimensions
 } from 'react-native';
 import CompatBlurView from './CompatBlurView';
 import BottomSheet from 'reanimated-bottom-sheet'
 
-export default class Example extends React.Component {
+export default class BottomContainer extends React.Component {
   renderInner = () => (
     <CompatBlurView blurType="xlight" blurAmount={80} style={styleObjs.panel}>
       <Text style={styles.panelTitle}>San Francisco Airport</Text>
@@ -35,8 +36,18 @@ export default class Example extends React.Component {
 
   bs = React.createRef();
 
+  constructor(props){
+    super(props);
+  }
+
+  componentDidMount(){
+
+  }
+
   componentDidUpdate(){
-      if (this.lastRegion !== this.props.currentRegion){
+      if (this.lastRegion && this.props.currentRegion &&
+	      this.props.currentRegion.latitude !== this.lastRegion.latitude &&
+	      this.props.currentRegion.longitude !== this.lastRegion.longitude){
           this.bs.current.snapTo(2);
       }
       this.lastRegion = this.props.currentRegion;
@@ -46,7 +57,7 @@ export default class Example extends React.Component {
     return (
         <BottomSheet
             ref={this.bs}
-            snapPoints={[750, 300, 100]}
+            snapPoints={["90%", "30%", "10%"]}
             renderContent={this.renderInner}
             renderHeader={this.renderHeader}
             initialSnap={1}
@@ -59,10 +70,10 @@ const styleObjs = {
   panel: {
     height: 720,
     padding: 20,
-    backgroundColor: 'rgba(255,255,255,0)',
+    backgroundColor: '#f7f5eee8'//rgba(255,255,255,0)',
   },
   header: {
-    backgroundColor: 'rgba(255,255,255,0)', //#f7f5eee8
+    backgroundColor: '#f7f5eee8',//rgba(255,255,255,0)', //#f7f5eee8
     shadowColor: '#000000',
     paddingTop: 10,
     borderTopLeftRadius: 20,
