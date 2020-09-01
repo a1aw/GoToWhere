@@ -39,7 +39,7 @@ export default class App extends React.Component {
   }
 
   mapOnRegionChange = (region) => {
-    console.log(region);
+    //console.log(region);
   }
 
   render() {
