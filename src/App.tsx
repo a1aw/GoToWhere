@@ -21,7 +21,17 @@ const styles = StyleSheet.create({
   }
 });
 
-export default class App extends React.Component {
+interface IProps {
+
+}
+
+interface IState {
+    currentRegion: boolean | object,
+    blurHeight: number,
+    notchBlurHeight: number
+}
+
+export default class App extends React.Component<IProps, IState> {
 
   componentDidMount(){
     this.setState({
@@ -38,7 +48,7 @@ export default class App extends React.Component {
     }
   }
 
-  mapOnRegionChange = (region) => {
+  mapOnRegionChange = (region: object) => {
     //console.log(region);
   }
 

@@ -9,9 +9,18 @@ import {
 } from 'react-native';
 import CompatBlurView from './CompatBlurView';
 import BottomSheet from 'reanimated-bottom-sheet'
-import panelStyles from './PanelStyleSheet';
+import panelStyles from '../styles/panel';
+import BottomSheetBehavior from 'reanimated-bottom-sheet';
 
-export default class BottomContainer extends React.Component {
+interface IProps {
+    currentRegion: object|boolean
+}
+
+interface IState {
+
+}
+
+export default class BottomContainer extends React.Component<IProps, IState> {
   renderInner = () => (
     <CompatBlurView blurType="xlight" blurAmount={80} style={panelStyles.panel}>
       <Text style={panelStyles.panelTitle}>San Francisco Airport</Text>
@@ -35,11 +44,7 @@ export default class BottomContainer extends React.Component {
     </CompatBlurView>
   )
 
-  bs = React.createRef();
-
-  constructor(props){
-    super(props);
-  }
+  bs: React.RefObject<BottomSheetBehavior> = React.createRef();
 
   componentDidMount(){
 
