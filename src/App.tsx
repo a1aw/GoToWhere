@@ -57,11 +57,14 @@ export default class App extends React.Component<IProps, IState> {
         return (
             <Provider store={store}>
                 <MapView style={styles.map} showsMyLocationButton={true} showsUserLocation={true} onRegionChange={this.mapOnRegionChange}>
-
+                    
                 </MapView>
                 {
-                    Platform.OS === "ios" &&
-                    <CompatBlurView blurType="light" blurAmount={5} style={[styles.notchBlur, { height: this.state && this.state.notchBlurHeight }]} />
+                    Platform.OS === "ios" &&　
+                    <BlurView 
+                        blurType="light" 
+                        blurAmount={5}
+                        style={[styles.notchBlur, { height: this.state && this.state.notchBlurHeight }]} />
                 }
                 <BottomContainer currentRegion={this.state && this.state.currentRegion}/>
             </Provider>

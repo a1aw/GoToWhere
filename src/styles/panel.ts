@@ -1,13 +1,16 @@
 import { StyleSheet } from 'react-native';
 
 export default StyleSheet.create({
+    panelColor: {
+        backgroundColor: '#f7f5eee8'//rgba(255,255,255,0)',
+    },
     panel: {
         height: 720,
         padding: 20,
-        backgroundColor: '#f7f5eee8'//rgba(255,255,255,0)',
+        //backgroundColor: '#f7f5eee8'//rgba(255,255,255,0)',
     },
     header: {
-        backgroundColor: '#f7f5eee8',//rgba(255,255,255,0)', //#f7f5eee8
+        //backgroundColor: '#f7f5eee8',//rgba(255,255,255,0)', //#f7f5eee8
         shadowColor: '#000000',
         paddingTop: 10,
         borderTopLeftRadius: 20,

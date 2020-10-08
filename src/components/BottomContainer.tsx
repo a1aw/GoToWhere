@@ -37,11 +37,14 @@ export default class BottomContainer extends React.Component<IProps, IState> {
     )
 
     renderInner = () => (
-        <CompatBlurView blurType="xlight" blurAmount={80} style={panelStyles.panel} render={this.renderPanel} />
+        {
+            if (Platform.OS == 'ios')
+        }
+        <CompatBlurView blurType="xlight" blurAmount={10} style={panelStyles.panel} render={this.renderPanel} />
     )
 
     renderHeader = () => (
-        <CompatBlurView blurType="xlight" blurAmount={80} style={panelStyles.header} render={() => (
+        <CompatBlurView blurType="xlight" blurAmount={10} style={panelStyles.header} render={() => (
             <View style={panelStyles.panelHeader}>
                 <View style={panelStyles.panelHandle} />
             </View>

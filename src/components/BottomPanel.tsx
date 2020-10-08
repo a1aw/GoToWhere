@@ -10,7 +10,7 @@ interface IProps {
     render?: Function
 }
 
-const CompatBlurView: React.FC<IProps> = (props) => {
+const BottomPanel: React.FC<IProps> = (props) => {
     if (Platform.OS === "ios") {
         return (
             <BlurView blurType={props.blurType} blurAmount={props.blurAmount} style={props.style}>
@@ -36,7 +36,6 @@ const CompatBlurView: React.FC<IProps> = (props) => {
         );
     */
     } else {
-        //props.style.backgroundColor = "#f7f5eee8";
         return (
             <View style={props.style}>
                 {props.render && props.render()}
@@ -45,4 +44,4 @@ const CompatBlurView: React.FC<IProps> = (props) => {
     }
 };
 
-export default CompatBlurView;
+export default Com;
